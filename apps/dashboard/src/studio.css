@@ -4,3 +4,43 @@
 .timeline-panel{margin-top:16px;border:1px solid #34363d;background:#171a20;border-radius:12px;padding:18px}.timeline-scroll{overflow:auto}.timeline-grid{position:relative;display:grid;grid-template-columns:175px minmax(700px,1fr);grid-template-rows:30px 70px 54px 58px 58px;min-width:900px;gap:3px}.track-label{display:flex;align-items:center;padding:8px;font-size:12px;letter-spacing:.04em;border:0;background:#20242b;text-align:left;color:#bbb9b1}.track-track,.time-ruler{position:relative;background:#20242b;overflow:hidden}.time-ruler{cursor:crosshair}.time-ruler span{position:absolute;font-size:12px;top:6px}.timeline-clip{position:absolute;top:3px;height:calc(100% - 6px);min-width:0;overflow:hidden;border:1px solid #575241;border-radius:5px;padding:2px;color:#f7f1e4;display:flex;gap:5px;align-items:center;justify-content:flex-start;font-size:11px;white-space:nowrap;background:#3e392a}.timeline-clip img{height:100%;width:30px;object-fit:cover}.timeline-clip.selected{outline:2px solid #f1ca73;outline-offset:-2px;background:#62502b}.captions-track .timeline-clip{background:#393142;border-color:#786486;font-size:10px}.waveform{width:100%;height:100%;display:block;color:#90c7b5}.music-track .waveform{color:#d3b469}.playhead-lane{pointer-events:none;position:absolute;left:178px;right:0;top:0;bottom:0}.timeline-playhead{position:absolute;top:0;bottom:0;border-left:2px solid #ffdd85;z-index:3}.scene-boundary{position:absolute;top:30px;bottom:0;border-left:1px dashed #ffffff25}.timeline-panel>input{width:calc(100% - 175px);margin:12px 0 0 175px;accent-color:#e0bc6d}
 .activity-launch{position:fixed;right:22px;top:15px;z-index:60;display:flex;flex-direction:column;align-items:flex-start;background:#25231d;color:#f2d48a;border:1px solid #6e5c31;padding:9px 16px;border-radius:8px;font-size:15px;box-shadow:0 5px 20px #0004}.activity-launch small{font-size:11px;color:#b9b8af;max-width:200px}.activity-drawer{position:fixed;z-index:70;top:0;bottom:0;right:0;width:min(640px,96vw);padding:24px;background:#171a20;color:#eee8da;border-left:1px solid #6e5c31;overflow:auto;box-shadow:-20px 0 80px #0008;font-size:16px}.activity-drawer h2{margin:0}.activity-drawer label{display:block;margin:20px 0}.activity-drawer select{margin-left:10px}.activity-job{padding:18px 0;border-top:1px solid #3b3c42;overflow-wrap:anywhere}.activity-job p{margin:8px 0;line-height:1.5}.activity-job small{color:#9b9fa9}.activity-job summary{cursor:pointer;padding:12px 0;color:#e5c779}.activity-job li{margin:8px 0}.activity-log{max-height:230px;overflow:auto;font-size:14px;padding-left:22px}.activity-log time{color:#aaa}.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ddbc70;margin-right:8px}.live-stage{color:#dcc998}.next-action{color:#b3cab9}.activity-drawer [role=alert]{color:#f7aaa2}.progress-help{max-width:900px;padding:40px 24px;margin:auto;font-size:16px;line-height:1.7}.progress-help h1{margin:22px 0}.progress-help dl>div{padding:18px 0;border-bottom:1px solid #36383e}.progress-help dt{font-size:19px;font-weight:700;color:#e2c478}.progress-help dd{margin:8px 0}.topbar .top-status{margin-right:230px}.open-live-editor{display:inline-flex;align-items:center;background:#d7b768;color:#171a20!important;padding:10px 16px;border-radius:7px;font-weight:600}.draft-action{margin-bottom:16px;padding:16px;border:1px solid #655733;border-radius:10px;display:flex;gap:15px;align-items:center;flex-wrap:wrap}
 @media(max-width:1100px){.studio-header{padding-right:0;padding-top:58px;display:block}.studio-actions{justify-content:flex-start;margin-top:15px}.studio-workspace{grid-template-columns:minmax(280px,1fr) 300px}.topbar .top-status{visibility:hidden}}@media(max-width:750px){.live-studio{padding:12px}.studio-workspace{grid-template-columns:1fr}.studio-inspector{max-height:450px;resize:none}.player-panel{min-height:420px}.activity-launch{top:10px;right:12px}}
+
+/* Keep the persistent activity control inside the header, even while reconnecting. */
+.activity-launch {
+  top: 13px;
+  right: 24px;
+  width: 196px;
+  height: 42px;
+  padding: 6px 10px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  background: #1c1e22;
+  border-color: #494130;
+  border-radius: 9px;
+  box-shadow: none;
+  text-align: left;
+  white-space: normal;
+}
+.activity-launch:hover { background: #25251f; border-color: #88703b; }
+.activity-launch:focus-visible { outline: 2px solid #e0bc6d; outline-offset: 3px; }
+.activity-launch-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 27px;
+  height: 27px;
+  border-radius: 6px;
+  background: #d7b76812;
+  color: #dfc27c;
+}
+.activity-launch-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 1px; }
+.activity-launch-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 16px; font-weight: 600; }
+.activity-launch-copy small { display: flex; align-items: center; gap: 5px; color: #a9adb5; font-size: 11px; line-height: 14px; font-weight: 400; }
+.activity-connection-dot { width: 5px; height: 5px; flex: 0 0 5px; border-radius: 50%; background: #d7b768; }
+.activity-launch[data-connection=live] .activity-connection-dot { background: #82c6aa; }
+.activity-launch-chevron { flex-shrink: 0; color: #8f929b; }
+.activity-launch[aria-expanded=true] .activity-launch-chevron { transform: rotate(90deg); }
+@media(max-width:1100px) { .topbar .top-status { display: none; } }
+@media(max-width:750px) { .activity-launch { top: 9px; right: 12px; width: 164px; height: 40px; gap: 8px; } }
+@media(max-width:380px) { .topbar .crumb { visibility: hidden; } .activity-launch { width: 154px; } }

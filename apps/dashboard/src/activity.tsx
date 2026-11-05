@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {api} from './api';
+import {Activity, ChevronRight} from 'lucide-react';
 type ActivityEvent = {event_id:string; timestamp:string; message:string; type:string; completed?:number; total?:number; file?:string;retry_of?:string};
 type Job = {job_id:string; episode_id:number|null; provider:string; status:string; task:string; stage:string; created:string; started_at?:string; finished_at?:string; events:ActivityEvent[]; error?:string; cancellable:boolean; retryable:boolean};
 const running=(j:Job)=>['QUEUED','RUNNING'].includes(j.status);
@@ -13,18 +14,24 @@ export function ActivityMonitor(){
     const source=new EventSource('/api/activity/stream');let refresh:ReturnType<typeof setTimeout>|undefined;
     const update=()=>{if(!refresh)refresh=setTimeout(()=>{client.invalidateQueries({queryKey:['activity']});refresh=undefined},150)};
     source.addEventListener('activity',update);source.addEventListener('reset',update);
-    source.onopen=()=>{setConnection('Live');update()};source.onerror=()=>setConnection('Reconnecting; saved status remains available');
+    source.onopen=()=>{setConnection('Live');update()};source.onerror=()=>setConnection('Reconnecting');
     return ()=>{source.close();clearTimeout(refresh)};
   },[client]);
   useEffect(()=>{const timer=setInterval(()=>setTick(Date.now()),1000);return()=>clearInterval(timer)},[]);
   const active=jobs.filter(running),visible=jobs.filter(j=>filter==='all'||String(j.episode_id)===filter);
+  const connectionDetail=connection==='Reconnecting'?'Reconnecting to live updates. Saved job status remains available.':connection==='Live'?'Connected to live job updates.':'Connecting to live job updates.';
+  const taskLabel=active.length?`${active.length} running job${active.length>1?'s':''}`:'AI Activity';
   async function action(job:Job,kind:'cancel'|'retry'){
     try{setError('');await api(`/runs/${job.job_id}/${kind}`,'POST');await client.invalidateQueries({queryKey:['activity']})}
     catch(e){setError((e as Error).message)}
   }
-  return <><button className="activity-launch" onClick={()=>setOpen(!open)} aria-expanded={open}>◉ {active.length ? `${active.length} running job${active.length>1?'s':''}`:'AI Activity'} <small>{connection}</small></button>
-    {open&&<aside className="activity-drawer" aria-label="AI Activity Monitor"><div className="studio-row"><h2>AI Activity</h2><button onClick={()=>setOpen(false)}>Close</button></div>
-      <p>{connection} · Status is saved on this station.</p><a href="/help">Understanding AI Job Progress</a>
+  return <><button className="activity-launch" data-connection={connection.toLowerCase()} onClick={()=>setOpen(!open)} aria-label={`${taskLabel}, ${connection}`} aria-expanded={open} aria-controls="ai-activity-panel" title={connectionDetail}>
+    <span className="activity-launch-icon"><Activity size={17} aria-hidden="true"/></span>
+    <span className="activity-launch-copy"><strong>{taskLabel}</strong><small><span className="activity-connection-dot"/>{connection}</small></span>
+    <ChevronRight size={14} className="activity-launch-chevron" aria-hidden="true"/>
+  </button>
+    {open&&<aside id="ai-activity-panel" className="activity-drawer" aria-label="AI Activity Monitor"><div className="studio-row"><h2>AI Activity</h2><button onClick={()=>setOpen(false)}>Close</button></div>
+      <p>{connectionDetail} Status is saved on this station.</p><a href="/help">Understanding AI Job Progress</a>
       <label>Jobs <select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">All Jobs</option>{Array.from(new Set(jobs.map(j=>j.episode_id))).map(id=><option key={String(id)} value={String(id)}>{id?`OF_R${String(id).padStart(3,'0')}`:'Story ideas / provider tests'}</option>)}</select></label>
       {error&&<p role="alert">{error}</p>}{!visible.length&&<p>No recorded jobs yet. Generate ideas or open an episode to begin.</p>}
       {visible.map(job=>{
