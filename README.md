@@ -29,8 +29,8 @@ Tested environment: Python 3.14.7, Node 24.22.0, FFmpeg/FFprobe 9.0.2, Codex CLI
 4. The provider automatically generates and validates Character Bible, continuity, provisional storyboard, retention audit, narration, still prompts, image-only Flow JSON, manifests, caption/music plans and publishing draft. No separate artifact approvals. The episode becomes Waiting for Assets.
 5. Google Flow Prompts: download IMAGE_JOBS.json or batches. Generate strictly 2D stills externally and save scene IDs such as S001.png.
 6. Asset Manager: import stills, one ElevenLabs narration, trustworthy 1-4-word SRT cues split at scene boundaries, and one instrumental if no signature was configured. Record instrumental declaration and rights evidence. A validated instrumental is pinned. Global changes cannot replace it.
-7. Refresh Assets or wait for scanning. Native-isolated validation queues the existing Remotion/FFmpeg pipeline automatically when gates pass. Static illustrations, purposeful cuts, animated white/black center captions and exactly narration plus instrumental. No image/character animation and no SFX.
-8. Preview, technical QC and final 1080x1920/30 FPS H.264/AAC export run under the script authorization. Download in Exports. Correct actual safe regions in Edit Studio if necessary; no approved narration changes. Nothing publishes to Facebook.
+7. Refresh Assets or wait for scanning. Native-isolated validation automatically prepares a complete four-track editable draft, then marks it ready for review. No MP4 render is needed to open the draft.
+8. Open Edit Studio → Open Live Editor (`/episodes/<numeric-id>/editor`). Preview and adjust captions, transitions, narration and music separately. Edits autosave with revision history. Select Render Final Video to export the exact saved revision at 1080×1920/30 FPS H.264/AAC under the script authorization. Download in Exports. Nothing publishes to Facebook. See [STUDIO_UPGRADE.md](STUDIO_UPGRADE.md) for the architecture, tests and remaining limits.
 
 Manual is an explicit fallback in Settings: download the complete request/schema, use your own AI tool and import JSON. Writing import creates the internal-review handoff. Owner-authored drafts can also be saved; AI review is not falsely claimed.
 
@@ -46,7 +46,7 @@ ODD_AI_CONTEXT_TOKENS=200000
 ODD_AI_OUTPUT_TOKENS=12000
 ```
 
-Settings stores provider/model/timeout/concurrency independently of environment defaults. Keep credentials only in environment/.env and restart after changes. Codex uses installed CLI authentication in a private short-lived job home, not a separate API integration. Claude dashboard automation uses documented bare mode and requires an intentionally supplied ANTHROPIC_API_KEY; subscription OAuth is not extracted/routed. Manual Claude use remains available. API mode retains explicit ODD_AI_BASE_URL, ODD_AI_MODEL and ODD_AI_API_KEY. No failure silently changes provider/billing.
+Settings stores provider/model/timeout/concurrency independently of environment defaults. Keep credentials only in environment/.env and restart after changes. Codex uses installed CLI authentication in a private short-lived job home, not a separate API integration. Claude dashboard automation uses an explicitly configured ANTHROPIC_API_KEY in bare mode, or the owner’s own setup-token through the supported personal-use integration. Existing Claude login credentials are never extracted. Manual Claude use remains available. API mode retains explicit ODD_AI_BASE_URL, ODD_AI_MODEL and ODD_AI_API_KEY. No failure silently changes provider/billing.
 
 Optional administrator music configuration: ODD_SIGNATURE_MUSIC, ODD_SIGNATURE_MUSIC_VERSION and ODD_SIGNATURE_MUSIC_RIGHTS. The selected global file is only read, then copied/pinned per episode. No music asset or license has been invented.
 
@@ -89,5 +89,4 @@ node scripts/ui-smoke.mjs --providers
 Ordinary tests use mocks and consume no model usage. CLI/provider flags intentionally make real calls. Disposable stores remain under artifacts; genuine episodes are not modified. See VERIFICATION.md for executed results, evidence paths and limitations. Scientific claims preserved in sources are not automatically newly verified; no analytics/retention curves are fabricated. Exact acoustic alignment, art quality, licensing and listening remain separate from technical checks.
 
 See HANDOFF.md, AI_PROVIDERS.md, SECURITY.md, WORKFLOW.md, AGENTS.md and workflows/REEL-*.md. Development uses npm run dev with API proxy; build uses npm run build and npm run typecheck.
-#   r e e l - g e n e r a t o r  
- 
+# reel-generator

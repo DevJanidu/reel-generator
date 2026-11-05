@@ -1,0 +1,82 @@
+{
+  "version": "1.1.0",
+  "brand": "ODD FRAME",
+  "precedence": "These latest explicitly approved user rules override every conflicting source recommendation",
+  "output": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "video_codec": "h264",
+    "audio_codec": "aac"
+  },
+  "visuals": {
+    "type": "image",
+    "strict_2d": true,
+    "image_motion": "static",
+    "transition": "profile_defined",
+    "generated_video": false,
+    "photorealism": false,
+    "three_d": false,
+    "transitions_allowed": [
+      "cut",
+      "crossfade",
+      "dip_to_dark"
+    ],
+    "note": "Stills stay completely static in every profile. Transitions are limited to hard cut, smooth crossfade and dip to charcoal and must be justified by narrative meaning."
+  },
+  "captions": {
+    "required": true,
+    "font": "Barlow Condensed",
+    "weight": 800,
+    "color": "#FFFFFF",
+    "outline": "#000000",
+    "outline_px": 7,
+    "default_y": 0.46,
+    "max_lines": 2,
+    "max_words": 4,
+    "animation": "profile_defined",
+    "support_font": "Atkinson Hyperlegible Next",
+    "glow": "subtle white glow with restrained golden-yellow emphasis; white fill and black outline always preserved"
+  },
+  "audio": {
+    "sources": [
+      "narration",
+      "instrumental"
+    ],
+    "sfx": false,
+    "target_speech_music_gap_db": 21,
+    "target_lufs": -16,
+    "true_peak_db": -1.5
+  },
+  "story": {
+    "entertainment_first": true,
+    "forced_moral": false,
+    "forced_happy_ending": false,
+    "forced_twist": false,
+    "default_seconds": [
+      45,
+      75
+    ]
+  },
+  "approval": {
+    "single_script_gate": true,
+    "authorizes_auto_export": true,
+    "auto_publish": false
+  },
+  "overrides": [
+    "Required centered animated narration captions replace optional-caption rules",
+    "Typography-only animation replaces all image movement and layer animation",
+    "Narration plus instrumental only replaces ALL SFX, ambience and sound-word recommendations",
+    "ODD FRAME entertainment identity replaces Say It Better advice branding",
+    "Scene transitions limited to hard cut, crossfade and dip to charcoal; still images never move",
+    "Cinematic Flow v1.1 is the default editing profile for NEW episodes; Classic v1.0 stays available; existing episodes keep their pinned profile"
+  ],
+  "editing": {
+    "default_profile": "ODD_FRAME_CINEMATIC_FLOW_V1_1",
+    "profiles_file": "brand/EDITING_PROFILES.json",
+    "available": [
+      "ODD_FRAME_CLASSIC_V1_0",
+      "ODD_FRAME_CINEMATIC_FLOW_V1_1"
+    ]
+  }
+}
