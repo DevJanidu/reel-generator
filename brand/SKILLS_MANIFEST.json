@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0",
+  "brand": "ODD FRAME",
+  "override_version": "1.1.0",
+  "rules_sha256": "af2d41695b9f7b6efe6ecf18755546b81643ed835ffb02758ae7b0a993348775",
+  "documents": [
+    {
+      "id": "bible",
+      "canonical_path": "brand/references/ODD_FRAME_OFFICIAL_CONTENT_BIBLE_v1.md",
+      "source_path": "ODD_FRAME_OFFICIAL_CONTENT_BIBLE_v1.md",
+      "preserved_source_path": "source_documents/ODD_FRAME_OFFICIAL_CONTENT_BIBLE_v1.md",
+      "source_version": "1.0",
+      "version": "1.0",
+      "sha256": "69f5cb246167105fdac732073a7fd0650b892d749cc65003ea7fd792b3e01168",
+      "source_sha256": "69f5cb246167105fdac732073a7fd0650b892d749cc65003ea7fd792b3e01168",
+      "byte_length": 37403,
+      "mandatory": true,
+      "reading_order": 1,
+      "precedence": 2,
+      "responsibility": "Brand authority and story identity",
+      "signature": "OFFICIAL CONTENT BIBLE",
+      "known_conflicts": [
+        "Older optional captions, image movement and SFX are overridden by ODD_FRAME_RULES.json"
+      ]
+    },
+    {
+      "id": "psychology",
+      "canonical_path": "brand/skills/ODD_FRAME_FANBASE_GROWTH_PSYCHOLOGY_SKILL.md",
+      "source_path": "ODD_FRAME_FANBASE_GROWTH_PSYCHOLOGY_SKILL.md",
+      "preserved_source_path": "source_documents/ODD_FRAME_FANBASE_GROWTH_PSYCHOLOGY_SKILL.md",
+      "source_version": "1.0.0",
+      "version": "1.0.0",
+      "sha256": "e99427772c03934f4c92fba3ec4a0486b332718c7ed4a87ed8bf96725ff6b1ec",
+      "source_sha256": "e99427772c03934f4c92fba3ec4a0486b332718c7ed4a87ed8bf96725ff6b1ec",
+      "byte_length": 41821,
+      "mandatory": true,
+      "reading_order": 2,
+      "precedence": 3,
+      "responsibility": "Attention, curiosity, emotion, sharing and loyalty",
+      "signature": "FANBASE & REELS GROWTH",
+      "known_conflicts": [
+        "Older optional captions, image movement and SFX are overridden by ODD_FRAME_RULES.json"
+      ]
+    },
+    {
+      "id": "design",
+      "canonical_path": "brand/skills/ODD_FRAME_2D_STILL_DESIGN_SKILL.md",
+      "source_path": "OddFrame Design.md",
+      "preserved_source_path": "source_documents/OddFrame Design.md",
+      "source_version": "1.0",
+      "version": "1.0",
+      "sha256": "425192991379226e33b78e6f1f3d7e5d921ad3f15e98a4f31969d8d88c622003",
+      "source_sha256": "9bcf17cdf56b072991a6a79da810bfd26e764340da6b97eb3c1996bd99410c60",
+      "byte_length": 20695,
+      "mandatory": true,
+      "reading_order": 3,
+      "precedence": 4,
+      "responsibility": "Midnight Gold still-image art direction and continuity",
+      "signature": "2D Still Graphic Design Guide",
+      "known_conflicts": [
+        "Say It Better renamed to ODD FRAME"
+      ]
+    },
+    {
+      "id": "typography",
+      "canonical_path": "brand/skills/ODD_FRAME_TYPOGRAPHY_AND_MOTION_GUIDE.md",
+      "source_path": "ODD_FRAME_TYPOGRAPHY_AND_MOTION_GUIDE.md",
+      "preserved_source_path": "source_documents/ODD_FRAME_TYPOGRAPHY_AND_MOTION_GUIDE.md",
+      "source_version": "1.0",
+      "version": "1.0",
+      "sha256": "c4ce0ad4595437ae50444f401e562c501fbe5e3474c2000b9f38a1fb64975be1",
+      "source_sha256": "c4ce0ad4595437ae50444f401e562c501fbe5e3474c2000b9f38a1fb64975be1",
+      "byte_length": 14299,
+      "mandatory": true,
+      "reading_order": 4,
+      "precedence": 5,
+      "responsibility": "Typography, readability and frame-based text motion",
+      "signature": "Typography and Motion Guide",
+      "known_conflicts": [
+        "Older optional captions, image movement and SFX are overridden by ODD_FRAME_RULES.json"
+      ]
+    }
+  ],
+  "editing_profiles_sha256": "057ce3f420e720fbdfb495b4f1c73cd629cb35bc518ee7418db1609964ad707c"
+}

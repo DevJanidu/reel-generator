@@ -1,0 +1,13 @@
+# Import, validate and edit
+
+Import S001.png/jpg/jpeg/webp portrait stills, one narration, phrase SRT and one instrumental through Asset Manager or the assigned asset folders. Higher-resolution 9:16 images work without stretching. Upload/parser spools are episode-local. Reject unsafe filenames, reparse points, hard links and cross-episode paths. No silent overwrites; conflicting operations serialize.
+
+Configured shared signature music is copied and hash/version-pinned at creation. Otherwise the owner's validated instrumental is pinned on import. Record instrumental-content confirmation and real license/ownership evidence. Missing evidence is flagged, not invented. A later global update/different import cannot replace this episode's music.
+
+Refresh Assets and the watcher invoke a native-isolated validator: image decode/ratio/animation rejection; one usable source per audio role; real FFprobe duration/full decode; SRT syntax, bounds, nonoverlap and narration-text coverage. Supply trustworthy 1-4-word cues split at scene boundaries. No forced-aligner is bundled, so long/cross-scene cues require correction rather than fabricated intra-cue timestamps.
+
+Valid assets automatically queue a deterministic draft worker. It builds the measured timeline and uses authored protected regions to place captions safely. It prepares all four tracks without rendering an MP4, then marks EDIT_READY. Open Live Editor from Edit Studio for direct Remotion playback. Required Barlow Condensed 800 white/black center captions, glow and transitions follow the episode's pinned profile. Legacy Classic episodes remain Classic unless the owner explicitly adopts another profile before draft preparation. No zoom/pan/parallax/cutouts/generated clips.
+
+Save Edit and debounced autosave persist validated episode-local revisions. Caption wording must preserve approved narration; supplied cue corrections are limited to two frames. Unsafe caption placements, unsupported transitions, changed source fingerprints and concurrent revision conflicts fail closed. Undo/redo operates in the current session; Revision History restores prior saved edits after refresh as a new revision. Audition mute/solo never changes export controls. Render Final Video is the explicit render trigger.
+
+Measure/normalize narration, duck/fade the instrumental and remeasure integrated balance toward about 21 dB separation. Exactly two sources; no SFX. Preserve measurements and uncertainty; listening and vocal-content checks remain beneficial. All audio intermediates, bundles/media caches and status stay in the episode. Shared renderer/components/node_modules remain read-only.

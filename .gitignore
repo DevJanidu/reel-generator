@@ -1,0 +1,15 @@
+.venv/
+node_modules/
+**/dist/
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+!.env.example
+data/*
+episodes/*
+test-results/
+artifacts/
+video/remotion/runtime-binaries/
+!data/.gitkeep
+!episodes/.gitkeep

@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "brand": "ODD FRAME",
+  "default_profile": "ODD_FRAME_CINEMATIC_FLOW_V1_1",
+  "invariants": {
+    "image_motion": "static",
+    "generated_video": false,
+    "character_animation": false,
+    "sfx": false,
+    "audio_sources": ["narration", "instrumental"],
+    "note": "Every profile keeps still images completely static. Only scene transitions and typography change between profiles."
+  },
+  "profiles": {
+    "ODD_FRAME_CLASSIC_V1_0": {
+      "id": "ODD_FRAME_CLASSIC_V1_0",
+      "label": "Classic v1.0",
+      "version": "1.0.0",
+      "renderer": "classic",
+      "description": "Original ODD FRAME editing: static stills, hard cuts and Quick Pop captions.",
+      "transitions": {
+        "allowed": ["cut"]
+      },
+      "captions": {
+        "presets": ["quick_pop"],
+        "entrance": "quick_pop",
+        "replace": "quick_pop",
+        "emphasis": "quick_pop",
+        "fast": "quick_pop",
+        "glow": false
+      }
+    },
+    "ODD_FRAME_CINEMATIC_FLOW_V1_1": {
+      "id": "ODD_FRAME_CINEMATIC_FLOW_V1_1",
+      "label": "Cinematic Flow v1.1",
+      "version": "1.1.0",
+      "renderer": "cinematic",
+      "description": "Static stills with scene-aware cuts, crossfades and dips to charcoal; animated center captions with a wave entrance, soft white glow and restrained golden emphasis.",
+      "transitions": {
+        "allowed": ["cut", "crossfade", "dip_to_dark"],
+        "crossfade_frames": {"min": 6, "default": 8, "max": 10},
+        "dip_frames": {"min": 8, "default": 12, "max": 18},
+        "dip_color": "#14171C",
+        "max_non_cut_share": 0.5,
+        "max_dip_share": 0.15,
+        "min_scene_frames_for_transition": 18,
+        "rule": "Hard cuts remain the default. A crossfade or dip must be justified by narrative meaning; the first scene never has a transition."
+      },
+      "captions": {
+        "presets": ["wave_reveal", "glow_pop", "smooth_replace", "immediate_impact", "soft_fade"],
+        "entrance": "wave_reveal",
+        "replace": "smooth_replace",
+        "emphasis": "glow_pop",
+        "fast": "immediate_impact",
+        "glow": true,
+        "wave": {
+          "entrance_frames": 7,
+          "stagger_total_frames": 3,
+          "rise_px": 30,
+          "exit_frames": 3,
+          "max_entrance_share": 0.4
+        },
+        "glow_style": {
+          "white": [255, 255, 255],
+          "gold": [255, 212, 59],
+          "base_alpha": 0.42,
+          "base_blur_px": 14,
+          "peak_alpha": 0.85,
+          "peak_blur_px": 24,
+          "gold_alpha": 0.7,
+          "rise_frames": 4,
+          "settle_frames": 12
+        },
+        "fast_phrase_frames": 10,
+        "min_glow_frames": 14
+      }
+    }
+  }
+}

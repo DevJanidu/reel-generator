@@ -1,0 +1,6 @@
+{
+  "name": "odd-frame-station", "private": true, "version": "1.0.0",
+  "type": "module", "workspaces": ["apps/dashboard", "video/remotion"],
+  "scripts": {"dev": "npm run dev -w apps/dashboard", "build": "npm run build -w apps/dashboard", "typecheck": "tsc --noEmit -p video/remotion/tsconfig.json", "render": "node video/remotion/render.mjs"},
+  "devDependencies": {"typescript": "^5.9.3", "@types/node": "^24.0.0", "@playwright/test": "^1.56.0"}
+}

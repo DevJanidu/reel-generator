@@ -1,0 +1,2 @@
+# Production snapshots verify exact bytes. Preserve original line endings on checkout.
+* -text
