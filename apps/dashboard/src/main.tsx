@@ -24,6 +24,7 @@ import {
   Clock,
 } from "lucide-react";
 import "./style.css";
+import "./select.css";
 
 const controllerFromLaunch = new URLSearchParams(
   window.location.hash.slice(1),

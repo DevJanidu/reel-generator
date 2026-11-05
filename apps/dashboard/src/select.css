@@ -1,0 +1,86 @@
+/* Readable native fallback; enhanced browsers render the complete menu in the app theme. */
+select {
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #3b414c;
+  border-radius: 9px;
+  background-color: #15181e;
+  color: #f0ede6;
+  color-scheme: dark;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms, background-color 150ms, box-shadow 150ms;
+}
+select:hover:not(:disabled) { border-color: #76633e; background-color: #1a1e25; }
+select:focus-visible, select:open {
+  border-color: #d8b76a;
+  outline: none;
+  box-shadow: 0 0 0 3px #d8b76a20;
+}
+select:disabled, fieldset:disabled select { cursor: not-allowed; opacity: .5; }
+select:has(> option[value=""]:checked) { color: #b3b8c2; }
+select option, select optgroup { color: #f0ede6; background-color: #1a1d23; }
+.activity-drawer label select { margin-left: 0; }
+
+@supports (appearance: base-select) {
+  select, select::picker(select) { appearance: base-select; }
+  select, label select { display: flex; align-items: center; gap: 12px; }
+  select::picker-icon {
+    content: "";
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin: 0 0 0 auto;
+    background: center / 16px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m4 6 4 4 4-4' stroke='%23c2b38e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    rotate: 0deg;
+    transition: rotate 150ms;
+  }
+  select:open::picker-icon { rotate: 180deg; }
+  select::picker(select) {
+    min-inline-size: anchor-size(self-inline);
+    max-inline-size: calc(100vw - 24px);
+    max-block-size: min(360px, 60vh);
+    margin-block-start: 7px;
+    padding: 6px;
+    border: 1px solid #514632;
+    border-radius: 11px;
+    background: #1a1d23;
+    box-shadow: 0 14px 40px #0009, 0 2px 8px #0005;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #655636 #1a1d23;
+  }
+  select option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 6px;
+    font-family: "Atkinson Hyperlegible Next", sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+  }
+  select option + option { margin-top: 2px; }
+  select option[value=""] { color: #aeb5c0; }
+  select option:checked { color: #ffe3a0; background: #d8b76a18; font-weight: 600; }
+  select option:hover, select option:focus-visible { color: #fff3d4; background: #d8b76a26; outline: none; }
+  select option:disabled { color: #777e8b; cursor: not-allowed; }
+  select option::checkmark { order: 1; margin-inline-start: auto; color: #e4c276; }
+  select optgroup { padding: 8px 4px; color: #d4bb83; font-size: 12px; font-weight: 600; }
+}
+@media (prefers-reduced-motion: reduce) { select, select::picker-icon { transition: none; } }
+@media (forced-colors: active) {
+  select, select::picker(select) { border-color: ButtonText; }
+  select option:checked { outline: 1px solid Highlight; }
+  select::picker-icon { content: "▼"; background: none; }
+}
