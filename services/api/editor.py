@@ -22,8 +22,10 @@ def provision_runtime(directory):
         raw=(ROOT/'video/remotion'/relative).read_bytes()
         dest='06_edit/remotion/editor-v1/'+relative
         if writer.path(dest).exists():
-            if sha(writer.path(dest).read_bytes())!=sha(raw):raise ValueError('Editor runtime version differs. Preserve this draft and use its installed matching version.')
-        else:writer.bytes(dest,raw,replace=False)
+            # An older episode keeps its own installed copy (never overwritten); the plan pins that copy's hash.
+            records[relative]=sha(writer.path(dest).read_bytes())
+            continue
+        writer.bytes(dest,raw,replace=False)
         records[relative]=sha(raw)
     return records
 
@@ -65,7 +67,7 @@ def prepare(eid, jid):
     envelope=[min(1,max(waves['narration'][int(f/30*100):int((f+1)/30*100)+1],default=0)*3) for f in range(props['durationInFrames'])]
     props.update(editor_version=1,narration=mix['narration'],instrumental=mix['instrumental'],
                  audio=dict(narration_gain=1,music_gain=1,fade_in=0,fade_out=0,ducking=0,envelope=envelope))
-    plan.update(created=now(),method='SRT-grounded timing; pinned storyboard transitions, emphasis and caption rules; measured FFmpeg mix',
+    plan.update(created=now(),method='SRT-grounded timing; validated per-boundary transition decisions (decisions file, storyboard AI hints or deterministic fallback) within the pinned profile; emphasis and caption rules; measured FFmpeg mix',
                 baseline=props,asset_fingerprints=report['fingerprints'],audio_measurements=mix,
                 prepared_audio_hashes={k:fingerprint(STORE/mix[k]) for k in ('narration','instrumental')})
     writer.json('06_edit/edit_plan.json',plan)
@@ -77,7 +79,16 @@ def prepare(eid, jid):
     writer.json('06_edit/editor_state.json',dict(revision=revision,updated=now(),ready=True))
     for name in ('timeline.json','captions.json','audio_mix.json','waveforms.json','editor_state.json'):
         event('file.saved','Editable draft file verified',file='06_edit/'+name)
-    update_episode(eid,'EDIT_READY',error=None,message='Automatic draft ready. Open Live Editor, then Render Final Video when satisfied.')
+    from . import studio
+    forced=bool(read_json(writer.path(f'.production/jobs/{jid}.json')).get('replace_studio_edits'))
+    def say(stage,message):emit(directory,'render-'+str(jid),eid,'deterministic',stage,'stage.completed',message)
+    try:
+        studio.generate(directory,props,ep['data']['package']['scenes'],ep['code'],force=forced,source_revision=revision,emit=say)
+        say('Ready to edit','Remotion Studio project is ready to open')
+    except ValueError as exc:
+        if 'has your edits' not in str(exc):raise
+        event('ai.activity','Your existing Remotion Studio edits were kept and not replaced: '+str(exc))
+    update_episode(eid,'EDIT_READY',error=None,message='Automatic edit ready. Open it in Remotion Studio, make small adjustments, then render the final video.')
     event('job.completed','Draft ready for review. Open Live Editor; no MP4 render was launched.',status='COMPLETE')
 
 class CaptionEdit(BaseModel):
@@ -102,11 +113,12 @@ class SceneEdit(BaseModel):
 
 class AudioEdit(BaseModel):
     model_config=ConfigDict(extra='forbid',allow_inf_nan=False)
-    narration_gain:float=Field(ge=.25,le=1)
-    music_gain:float=Field(ge=0,le=1)
-    fade_in:StrictInt=Field(ge=0,le=90)
-    fade_out:StrictInt=Field(ge=0,le=90)
-    ducking:float=Field(ge=0,le=.8)
+    # Full range: silence up to +6 dB (gain 2) for both sources; fades up to 10 s; ducking up to full.
+    narration_gain:float=Field(ge=0,le=2)
+    music_gain:float=Field(ge=0,le=2)
+    fade_in:StrictInt=Field(ge=0,le=300)
+    fade_out:StrictInt=Field(ge=0,le=300)
+    ducking:float=Field(ge=0,le=1)
 
 class Edit(BaseModel):
     model_config=ConfigDict(extra='forbid')

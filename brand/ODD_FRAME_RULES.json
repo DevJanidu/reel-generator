@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "brand": "ODD FRAME",
   "precedence": "These latest explicitly approved user rules override every conflicting source recommendation",
   "output": {
@@ -20,9 +20,14 @@
     "transitions_allowed": [
       "cut",
       "crossfade",
-      "dip_to_dark"
+      "dip_to_dark",
+      "hard_cut",
+      "short_crossfade",
+      "emotional_crossfade",
+      "dip_to_charcoal",
+      "graphic_match_cut"
     ],
-    "note": "Stills stay completely static in every profile. Transitions are limited to hard cut, smooth crossfade and dip to charcoal and must be justified by narrative meaning."
+    "note": "Stills stay completely static in every profile. Scene transitions are limited to hard cut, graphic match cut, short or emotional crossfade and dip to charcoal (legacy names cut/crossfade/dip_to_dark for older profiles), chosen per boundary for narrative meaning and never at random. Transitions are silent."
   },
   "captions": {
     "required": true,
@@ -68,15 +73,16 @@
     "Typography-only animation replaces all image movement and layer animation",
     "Narration plus instrumental only replaces ALL SFX, ambience and sound-word recommendations",
     "ODD FRAME entertainment identity replaces Say It Better advice branding",
-    "Scene transitions limited to hard cut, crossfade and dip to charcoal; still images never move",
-    "Cinematic Flow v1.1 is the default editing profile for NEW episodes; Classic v1.0 stays available; existing episodes keep their pinned profile"
+    "Scene transitions limited to hard cut, graphic match cut, short/emotional crossfade and dip to charcoal, chosen per scene boundary for narrative purpose; still images never move; transitions never change narration timing or total duration",
+    "Cinematic Transitions v1 is the default editing profile for NEW episodes; Classic v1.0 and Cinematic Flow v1.1 stay available; existing episodes keep their pinned profile unless the owner explicitly migrates one"
   ],
   "editing": {
-    "default_profile": "ODD_FRAME_CINEMATIC_FLOW_V1_1",
+    "default_profile": "ODD_FRAME_CINEMATIC_TRANSITIONS_V1",
     "profiles_file": "brand/EDITING_PROFILES.json",
     "available": [
       "ODD_FRAME_CLASSIC_V1_0",
-      "ODD_FRAME_CINEMATIC_FLOW_V1_1"
+      "ODD_FRAME_CINEMATIC_FLOW_V1_1",
+      "ODD_FRAME_CINEMATIC_TRANSITIONS_V1"
     ]
   }
 }

@@ -286,9 +286,11 @@ def timeline(eid,report,style=None,extra_overrides=None,write=True):
     style=style or styles.effective_style(ep); profile=style['profile']
     package_scenes=ep['data']['package']['scenes']
     overrides={**(ep['data'].get('style_overrides') or {}).get('transitions',{}),**(extra_overrides or {})}
-    plan,transition_notes=styles.resolve_transitions(package_scenes,[r['end']-r['start'] for r in result],profile,overrides)
+    decisions=styles.load_decisions(epdir(ep),package_scenes)
+    plan,transition_notes=styles.resolve_transitions(package_scenes,[r['end']-r['start'] for r in result],profile,overrides,decisions)
     for shot,item in zip(result,plan):
-        shot.update(transition=item['transition'],transition_frames=item['frames'],transition_reason=item['reason'])
+        shot.update(transition=item['transition'],transition_frames=item['frames'],transition_reason=item['reason'],
+                    transition_editorial=item['editorial'],transition_purpose=item['purpose'],transition_source=item['source'])
     captions=[]; offsets=[]; word_offset=0
     for cue in cues:
         start=math.ceil(cue['start']*fps); end=min(frames,math.ceil(cue['end']*fps))

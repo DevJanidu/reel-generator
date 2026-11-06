@@ -1,7 +1,7 @@
 export async function api(path: string, method = 'GET', body?: unknown) {
   const res = await fetch('/api' + path, {
     method,
-    headers: {'Content-Type': 'application/json', 'X-Odd-Controller': sessionStorage.getItem('odd-frame-controller') || ''},
+    headers: {'Content-Type': 'application/json', 'X-Odd-Controller': (localStorage.getItem('odd-frame-controller') || sessionStorage.getItem('odd-frame-controller') || '')},
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const data = await res.json();

@@ -11,8 +11,6 @@ import {
   continueRender,
   cancelRender,
 } from "remotion";
-import "@fontsource/barlow-condensed/800.css";
-import "@fontsource/atkinson-hyperlegible-next/600.css";
 
 /*
  * ODD FRAME composition. Supports two pinned editing profiles:
@@ -23,9 +21,9 @@ import "@fontsource/atkinson-hyperlegible-next/600.css";
  * two supplied audio sources.
  */
 
-type Transition = "cut" | "crossfade" | "dip_to_dark";
+export type Transition = "cut" | "crossfade" | "dip_to_dark";
 const TRANSITIONS: Transition[] = ["cut", "crossfade", "dip_to_dark"];
-type Preset =
+export type Preset =
   | "quick_pop"
   | "immediate_reveal"
   | "gentle_emphasis"
@@ -347,7 +345,7 @@ export const AnimatedCaption: React.FC<{
   );
 
 /* ------------------------------ Scene layers ------------------------------ */
-const FadeIn: React.FC<{ frames: number; children: React.ReactNode }> = ({
+export const FadeIn: React.FC<{ frames: number; children: React.ReactNode }> = ({
   frames,
   children,
 }) => {
@@ -362,7 +360,7 @@ const FadeIn: React.FC<{ frames: number; children: React.ReactNode }> = ({
   return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
 };
 
-const DipOverlay: React.FC<{ frames: number; color: string }> = ({
+export const DipOverlay: React.FC<{ frames: number; color: string }> = ({
   frames,
   color,
 }) => {
@@ -381,7 +379,7 @@ const DipOverlay: React.FC<{ frames: number; color: string }> = ({
   return <AbsoluteFill style={{ background: color, opacity }} />;
 };
 
-export const OddFrameReel: React.FC<ReelProps> = (props) => {
+export const useCaptionFonts = () => {
   const [fontHandle] = useState(() =>
     delayRender("Load licensed caption and supporting fonts"),
   );
@@ -397,6 +395,10 @@ export const OddFrameReel: React.FC<ReelProps> = (props) => {
       })
       .catch(cancelRender);
   }, [fontHandle]);
+};
+
+export const OddFrameReel: React.FC<ReelProps> = (props) => {
+  useCaptionFonts();
   if (props.audioSources.join(",") !== "narration,instrumental")
     throw new Error("Exactly narration + instrumental required");
   if (!props.captions.length) throw new Error("Center captions are mandatory");
