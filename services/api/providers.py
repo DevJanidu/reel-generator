@@ -74,6 +74,10 @@ class ProviderError(ValueError):
 
 def classify(message):
     lowered=message.lower()
+    for code in ('NOT_INSTALLED','PROCESS_SPAWN','PROCESS_EXIT','RATE_LIMIT','NETWORK','ARTIFACT_PERSISTENCE','INVALID_OUTPUT','PROVIDER_UNAVAILABLE'):
+        if code.lower() in lowered:return code
+    if 'filenotfounderror' in lowered:return 'PROCESS_SPAWN'
+    if any(x in lowered for x in ('503','service unavailable','502 bad gateway')):return 'PROVIDER_UNAVAILABLE'
     if any(x in lowered for x in ['usage limit','rate limit','quota','insufficient_quota','429','credit balance','out of credits']):return 'USAGE_LIMIT'
     if any(x in lowered for x in ['unauthorized','authentication','not logged in','401','invalid api key','login required','credentials','claude_auth_unsupported']):return 'AUTHENTICATION'
     if 'timeout' in lowered or 'timed out' in lowered:return 'TIMEOUT'
@@ -170,11 +174,17 @@ def generate(config,messages,schema,root,runid,cancel=None):
         except Exception as exc:
             if isinstance(exc,ProviderError):raise
             raise ProviderError(redact(str(exc)),classify(str(exc))) from exc
+    from .creative import run_event
+    activity_id=config.get('activity_run_id',runid)
+    run_event(activity_id,'provider.checking','Checking provider authentication')
     info=cli_info(provider)
     if not info.get('installed'):raise ProviderError(info.get('error','CLI missing'),'NOT_INSTALLED')
     if not info.get('eligible'):raise ProviderError(info.get('eligibility_message') or info.get('error','Provider authentication unavailable'),'AUTHENTICATION')
+    run_event(activity_id,'provider.authenticated','Provider authentication check passed')
+    run_event(activity_id,'isolation.checking','Checking native isolation')
     try:isolation.require_verified(Path(root))
     except (OSError,ValueError) as exc:raise ProviderError(str(exc),'ISOLATION_UNAVAILABLE') from exc
+    run_event(activity_id,'isolation.verified','Native isolation verified; preparing CLI launch')
     auth_home=None
     if provider=='codex_cli':
         # Official documented cache provisioning for a private job CODEX_HOME. Do not parse,

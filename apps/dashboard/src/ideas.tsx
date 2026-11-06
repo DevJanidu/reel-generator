@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { api } from "./api";
 import "./ideas.css";
+import { IdeaProgress, type GenerationProgress } from "./idea-progress";
+import "./provider-progress.css";
 
 type Genre = { id: string; name: string; description: string };
 type Group = { id: string; name: string; description: string; genres: Genre[] };
@@ -68,6 +70,7 @@ type Batch = {
   error?: string;
   validation_error?: string;
   provider?: string;
+  generation_progress?: GenerationProgress;
   result?: { ideas: Concept[]; generated_at: string; provider: string };
 };
 type Session = {
@@ -589,9 +592,11 @@ export function IdeasStudio({
         </p>
       )}
       {sid && active && (
-        <section className="genre-job panel" role="status">
+        <section
+          className="genre-job panel"
+          aria-label="Idea generation progress"
+        >
           <div>
-            <span className="genre-job-dot" />
             <strong>
               {active.status === "AWAITING_MANUAL"
                 ? "Manual handoff ready"
@@ -599,7 +604,9 @@ export function IdeasStudio({
                   ? "Idea batch queued"
                   : active.status === "PREPARING"
                     ? "Preparing category-specific request"
-                    : "Generating five story concepts"}
+                    : active.generation_progress?.request_sent
+                      ? "Generating five story concepts"
+                      : "Preparing five story concepts"}
             </strong>
             <span>
               {active.status === "AWAITING_MANUAL"
@@ -610,9 +617,16 @@ export function IdeasStudio({
           <p>
             {active.status === "AWAITING_MANUAL"
               ? "Download the full category-specific request, use your chosen AI tool, then import its JSON response below."
-              : active.stage ||
-                "Waiting for the authorized provider. Follow AI Activity for verified milestones."}
+              : null}
           </p>
+          {active.status !== "AWAITING_MANUAL" && (
+            <IdeaProgress
+              progress={active.generation_progress}
+              status={active.status}
+              stage={active.stage}
+              now={tick}
+            />
+          )}
           {!error && active.validation_error && (
             <p className="genre-error" role="alert">
               Last import failed validation: {active.validation_error}

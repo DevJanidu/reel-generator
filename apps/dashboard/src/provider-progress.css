@@ -1,0 +1,6 @@
+.idea-provider-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--warning);margin-right:10px;flex-shrink:0}
+.live-stage[data-provider-active="false"] .live-dot{background:var(--warning)}
+.live-stage[data-provider-active="true"] .live-dot{background:var(--success)}
+.idea-provider-progress[data-confirmed="true"] .idea-provider-dot{background:var(--success)}
+.idea-provider-progress p{overflow-wrap:anywhere}.idea-provider-progress ol{padding-left:22px;margin:12px 0;display:grid;gap:8px;font-size:14px;color:var(--muted-foreground)}
+.idea-provider-progress time{margin-left:8px}.idea-provider-wait{border-left:2px solid var(--warning);padding-left:12px}.production-stage-list{display:grid;gap:14px;list-style:none;padding:0}.production-stage-list [data-done="true"]>span{color:var(--success)}

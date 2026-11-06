@@ -157,10 +157,12 @@ def run_claude_worker(tmp_path,monkeypatch,mode,env_name,secret):
             if self.sent:return b''
             self.sent=True
             return json.dumps(dict(type='result',structured_output=dict(ok=True))).encode()+b'\n'
+    class Errors:
+        async def read(self,size):return b''
     async def fake_async(*args,**kwargs):
         calls.update(args=list(args),env=kwargs['env'])
         async def wait():return 0
-        return types.SimpleNamespace(returncode=0,stdin=Input(),stdout=Output(),wait=wait)
+        return types.SimpleNamespace(returncode=0,stdin=Input(),stdout=Output(),stderr=Errors(),wait=wait)
     monkeypatch.setattr(asyncio,'create_subprocess_exec',fake_async)
     monkeypatch.setattr(sys,'path',list(sys.path))
     runpy.run_path(str(providers.ROOT/'scripts/cli_worker.py'),run_name='__main__')

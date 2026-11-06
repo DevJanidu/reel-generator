@@ -1,4 +1,5 @@
 import { JobStatus } from "./status-badge";
+import { latestAttemptIds } from "./job-lifecycle";
 import {
   Sheet,
   SheetContent,
@@ -37,6 +38,18 @@ type Job = {
   error?: string;
   cancellable: boolean;
   retryable: boolean;
+  generation_progress?: { phase: string };
+  attempt_number?: number;
+  job_group_id?: string;
+  retry_of?: string;
+  failure?: {
+    category: string;
+    message: string;
+    failed_stage: string;
+    failed_at: string;
+    elapsed_seconds?: number;
+  };
+  episode_title?: string;
 };
 const running = (j: Job) => ["QUEUED", "RUNNING"].includes(j.status);
 
@@ -54,6 +67,7 @@ export function ActivityMonitor({
     [connection, setConnection] = useState("Connecting"),
     [error, setError] = useState(""),
     [tick, setTick] = useState(Date.now());
+  const [lastHeartbeat, setLastHeartbeat] = useState<number | null>(null);
   useEffect(() => {
     if (embedded) return;
     const source = new EventSource("/api/activity/stream");
@@ -67,6 +81,7 @@ export function ActivityMonitor({
     };
     source.addEventListener("activity", update);
     source.addEventListener("reset", update);
+    source.addEventListener("heartbeat", () => setLastHeartbeat(Date.now()));
     source.onopen = () => {
       setConnection("Live");
       update();
@@ -111,7 +126,12 @@ export function ActivityMonitor({
       aria-label={`${taskLabel}, ${connection}`}
       aria-expanded={open}
       aria-controls="ai-activity-panel"
-      title={connectionDetail}
+      title={
+        connectionDetail +
+        (lastHeartbeat
+          ? ` Last transport heartbeat ${Math.max(0, Math.floor((tick - lastHeartbeat) / 1000))}s ago. This is not provider activity.`
+          : "")
+      }
     >
       <span className="activity-launch-icon">
         <Activity size={17} aria-hidden="true" />
@@ -168,6 +188,8 @@ export function ActivityMonitor({
       >
         {(rows) =>
           rows.map((job) => {
+            const historical = !latestAttemptIds(jobs).has(job.job_id);
+            const Wrapper = historical ? "details" : "div";
             const last = job.events.at(-1),
               elapsed = Math.max(
                 0,
@@ -189,112 +211,140 @@ export function ActivityMonitor({
             );
             return (
               <section className="activity-job" key={job.job_id}>
-                <div className="studio-row">
-                  <strong>
-                    {job.episode_id
-                      ? `OF_R${String(job.episode_id).padStart(3, "0")}`
-                      : job.task === "connection_test"
-                        ? "Provider diagnostic"
-                        : "Story ideas"}{" "}
-                    · {job.task}
-                  </strong>
-                  <JobStatus value={job.status} />
-                </div>
-                <p>
-                  {job.provider} · {job.stage} · {Math.floor(elapsed / 60)}m{" "}
-                  {elapsed % 60}s
-                </p>
-                <small>
-                  Job {job.job_id} · Started{" "}
-                  {job.started_at
-                    ? new Date(job.started_at).toLocaleString()
-                    : "not started"}
-                </small>
-                {count && count.total! > 0 && (
+                <Wrapper>
+                  {historical && (
+                    <summary>
+                      Previous attempt {job.attempt_number || 1} — {job.status}{" "}
+                      · {job.job_id}
+                    </summary>
+                  )}
+                  <div className="studio-row">
+                    <strong>
+                      {job.episode_id
+                        ? `OF_R${String(job.episode_id).padStart(3, "0")}`
+                        : job.task === "connection_test"
+                          ? "Provider diagnostic"
+                          : "Story ideas"}{" "}
+                      · {job.task}
+                    </strong>
+                    <JobStatus value={job.status} />
+                  </div>
                   <p>
-                    {count.completed} of {count.total}{" "}
-                    {count.type === "render.progress"
-                      ? "frames rendered"
-                      : "items validated"}
+                    Attempt {job.attempt_number || 1} · {job.provider} ·{" "}
+                    {job.stage} · {Math.floor(elapsed / 60)}m {elapsed % 60}s
                   </p>
-                )}
-                {running(job) && (
-                  <p className="live-stage">
-                    <span className="live-dot" />
-                    {silent
-                      ? "AI generation is still running. No detailed progress events are currently available."
-                      : last?.message ||
-                        "Queued; waiting for an available worker."}
-                  </p>
-                )}
-                {job.error && <p role="alert">{job.error}</p>}
-                <details>
-                  <summary>Milestones, files and recent activity</summary>
-                  <ul>
-                    {job.events
-                      .filter((e) =>
-                        [
-                          "skills.validated",
-                          "stage.completed",
-                          "file.saved",
-                          "render.completed",
-                          "job.completed",
-                        ].includes(e.type),
-                      )
-                      .map((e) => (
+                  <small>
+                    Job {job.job_id} · Started{" "}
+                    {job.started_at
+                      ? new Date(job.started_at).toLocaleString()
+                      : "not started"}
+                  </small>
+                  {count && count.total! > 0 && (
+                    <p>
+                      {count.completed} of {count.total}{" "}
+                      {count.type === "render.progress"
+                        ? "frames rendered"
+                        : "items validated"}
+                    </p>
+                  )}
+                  {running(job) && (
+                    <p
+                      className="live-stage"
+                      data-provider-active={[
+                        "sent",
+                        "connected",
+                        "generating",
+                        "validating",
+                        "saving",
+                      ].includes(job.generation_progress?.phase || "")}
+                    >
+                      <span className="live-dot" />
+                      {silent
+                        ? "AI generation is still running. No detailed progress events are currently available."
+                        : last?.message ||
+                          "Queued; waiting for an available worker."}
+                    </p>
+                  )}
+                  {job.error && (
+                    <div role="alert">
+                      <p>{job.error}</p>
+                      {job.failure && (
+                        <p>
+                          Failed stage: {job.failure.failed_stage} ·{" "}
+                          {job.failure.failed_at ||
+                            "Historical timestamp unavailable"}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  <details>
+                    <summary>Milestones, files and recent activity</summary>
+                    <ul>
+                      {job.events
+                        .filter((e) =>
+                          [
+                            "skills.validated",
+                            "stage.completed",
+                            "file.saved",
+                            "render.completed",
+                            "job.completed",
+                          ].includes(e.type),
+                        )
+                        .map((e) => (
+                          <li key={e.event_id}>
+                            {e.message}
+                            {e.file ? " · " + e.file : ""}
+                          </li>
+                        ))}
+                    </ul>
+                    <ol className="activity-log">
+                      {job.events.slice(-80).map((e) => (
                         <li key={e.event_id}>
+                          <time>
+                            {new Date(e.timestamp).toLocaleTimeString()}
+                          </time>{" "}
                           {e.message}
-                          {e.file ? " · " + e.file : ""}
+                          {e.retry_of ? " · Retry of " + e.retry_of : ""}
                         </li>
                       ))}
-                  </ul>
-                  <ol className="activity-log">
-                    {job.events.slice(-80).map((e) => (
-                      <li key={e.event_id}>
-                        <time>
-                          {new Date(e.timestamp).toLocaleTimeString()}
-                        </time>{" "}
-                        {e.message}
-                        {e.retry_of ? " · Retry of " + e.retry_of : ""}
-                      </li>
-                    ))}
-                  </ol>
-                  <p>
-                    Last event:{" "}
-                    {last
-                      ? new Date(last.timestamp).toLocaleString()
-                      : "Waiting for first event"}
-                  </p>
-                  <p>
-                    Generated files:{" "}
-                    {files.length ? files.join(", ") : "None verified yet"}
-                  </p>
-                </details>
-                {job.cancellable && (
-                  <Button onClick={() => action(job, "cancel")}>
-                    Cancel generation
-                  </Button>
-                )}
-                {job.retryable && (
-                  <Button onClick={() => action(job, "retry")}>
-                    Retry as new job
-                  </Button>
-                )}
-                {!running(job) && (
-                  <p className="next-action">
-                    {job.status === "AWAITING_MANUAL"
-                      ? "Next: download the complete request and import your structured response in the dashboard."
-                      : last?.message ||
-                        "Open the episode workspace for the next action."}
-                  </p>
-                )}
-                {job.task === "draft" &&
-                  job.status === "COMPLETE" &&
-                  job.episode_id && (
-                    <a className="open-live-editor" href="/">
-                      Open Edit Studio → Remotion Studio
-                    </a>
+                    </ol>
+                    <p>
+                      Last event:{" "}
+                      {last
+                        ? new Date(last.timestamp).toLocaleString()
+                        : "Waiting for first event"}
+                    </p>
+                    <p>
+                      Generated files:{" "}
+                      {files.length ? files.join(", ") : "None verified yet"}
+                    </p>
+                  </details>
+                  {job.cancellable && (
+                    <Button onClick={() => action(job, "cancel")}>
+                      Cancel generation
+                    </Button>
                   )}
+                  {job.retryable && (
+                    <Button onClick={() => action(job, "retry")}>
+                      Retry as new job
+                    </Button>
+                  )}
+                  {!running(job) && (
+                    <p className="next-action">
+                      {job.status === "AWAITING_MANUAL"
+                        ? "Next: download the complete request and import your structured response in the dashboard."
+                        : last?.message ||
+                          "Open the episode workspace for the next action."}
+                    </p>
+                  )}
+                  {job.task === "draft" &&
+                    job.status === "COMPLETE" &&
+                    job.episode_id && (
+                      <a className="open-live-editor" href="/">
+                        Open Edit Studio → Remotion Studio
+                      </a>
+                    )}
+                </Wrapper>
               </section>
             );
           })
