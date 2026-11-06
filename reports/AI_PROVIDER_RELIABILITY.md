@@ -1,5 +1,7 @@
 # AI provider reliability: OF_R002 forensic investigation and repair
 
+Post-implementation update: the owner subsequently authorized integration, and the reliability fix was merged locally into main as `8470238`. See [the main merge report](AI_PROVIDER_MAIN_MERGE.md). The investigation and pre-merge statements below describe the earlier implementation stage.
+
 Branch: `fix/ai-progress-retry`, worktree `E:/facebook-ai-reliability`, based on production `main` at `4781f23`. Production was inspected read-only. No production job was restarted, no provider credits were consumed, and this branch has not been merged or pushed. The storytelling upgrade is not included.
 
 ## Confirmed failure and current episode state
