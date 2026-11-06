@@ -1,0 +1,183 @@
+{
+  "schema_version": "2.0",
+  "version": "2.0.0",
+  "brand": "ODD FRAME",
+  "groups": [
+    {
+      "id": "mystery_suspense",
+      "name": "MYSTERY & SUSPENSE",
+      "description": "Secrets, clues and tension that invite a closer look.",
+      "genres": [
+        {
+          "id": "mystery",
+          "name": "Mystery",
+          "description": "Missing objects. Hidden secrets. Strange discoveries. Questions that demand answers."
+        },
+        {
+          "id": "suspense",
+          "name": "Suspense",
+          "description": "Tense situations. Anticipation. Approaching danger. Uncertainty about what happens next."
+        },
+        {
+          "id": "crime_detective",
+          "name": "Crime & Detective",
+          "description": "Thefts. Investigations. Hidden evidence. Suspicious characters."
+        },
+        {
+          "id": "unexplained_surreal",
+          "name": "Unexplained & Surreal",
+          "description": "Impossible situations. Strange realities. Unanswered phenomena. Ambiguous or unconventional endings."
+        }
+      ]
+    },
+    {
+      "id": "comedy_dark_comedy",
+      "name": "COMEDY & DARK COMEDY",
+      "description": "Character-driven humor, absurd choices and sharp irony.",
+      "genres": [
+        {
+          "id": "comedy",
+          "name": "Comedy",
+          "description": "Funny misunderstandings. Absurd decisions. Unexpected outcomes. Character-driven humor."
+        },
+        {
+          "id": "dark_comedy",
+          "name": "Dark Comedy",
+          "description": "Uncomfortable but funny situations. Ironic misunderstandings. Absurd consequences. Clever humor."
+        },
+        {
+          "id": "dark_irony",
+          "name": "Dark Irony",
+          "description": "Unintended consequences. Ironic reversals. Characters trapped by their own choices."
+        }
+      ]
+    },
+    {
+      "id": "betrayal_revenge",
+      "name": "BETRAYAL & REVENGE",
+      "description": "Broken trust, rivalry and choices that shift the balance of power.",
+      "genres": [
+        {
+          "id": "betrayal",
+          "name": "Betrayal",
+          "description": "Broken trust. Secret enemies. Unexpected disloyalty. Friendship or relationship conflicts."
+        },
+        {
+          "id": "revenge",
+          "name": "Revenge",
+          "description": "Clever comebacks. Retaliation. Power reversals. Consequences of revenge."
+        },
+        {
+          "id": "jealousy_rivalry",
+          "name": "Jealousy & Rivalry",
+          "description": "Competition. Envy. Status struggles. Rival characters."
+        }
+      ]
+    },
+    {
+      "id": "emotional_friendship",
+      "name": "EMOTIONAL & FRIENDSHIP",
+      "description": "Relationships, difficult decisions and emotional consequences.",
+      "genres": [
+        {
+          "id": "emotional_drama",
+          "name": "Emotional Drama",
+          "description": "Regret. Sadness. Compassion. Difficult decisions. Personal sacrifices."
+        },
+        {
+          "id": "friendship",
+          "name": "Friendship",
+          "description": "Loyalty. Trust. Unexpected connections. Friendship tested."
+        },
+        {
+          "id": "family_drama",
+          "name": "Family Drama",
+          "description": "Parents and children. Siblings. Family secrets. Reunions. Sacrifices."
+        },
+        {
+          "id": "heartbreak",
+          "name": "Heartbreak",
+          "description": "Loss. Rejection. Separation. Emotional disappointment."
+        },
+        {
+          "id": "wholesome_heartwarming",
+          "name": "Wholesome & Heartwarming",
+          "description": "Kindness. Unexpected friendships. Joyful moments. Emotional warmth."
+        }
+      ]
+    },
+    {
+      "id": "horror_psychological",
+      "name": "HORROR & PSYCHOLOGICAL",
+      "description": "Unsettling encounters, deception and the fear of uncertainty.",
+      "genres": [
+        {
+          "id": "horror",
+          "name": "Horror",
+          "description": "Creepy encounters. Supernatural threats. Unsettling discoveries. Disturbing events."
+        },
+        {
+          "id": "psychological_thriller",
+          "name": "Psychological Thriller",
+          "description": "Mind games. Manipulation. Deception. Paranoia. Suspicion."
+        }
+      ]
+    },
+    {
+      "id": "fantasy_adventure",
+      "name": "FANTASY & ADVENTURE",
+      "description": "Inventive worlds, discoveries and resourceful journeys.",
+      "genres": [
+        {
+          "id": "fantasy",
+          "name": "Fantasy",
+          "description": "Magical worlds. Enchanted objects. Impossible events. Fictional creatures."
+        },
+        {
+          "id": "adventure",
+          "name": "Adventure",
+          "description": "Journeys. Exploration. Dangerous discoveries. Unexpected challenges."
+        },
+        {
+          "id": "science_fiction",
+          "name": "Science Fiction",
+          "description": "Robots. Aliens. Future worlds. Unusual technology."
+        },
+        {
+          "id": "survival",
+          "name": "Survival",
+          "description": "Escaping danger. Difficult environments. Resourceful decisions. High-stakes survival."
+        }
+      ]
+    },
+    {
+      "id": "cleverness_twists",
+      "name": "CLEVERNESS & TWISTS",
+      "description": "Smart decisions and earned discoveries that change the story.",
+      "genres": [
+        {
+          "id": "cleverness_strategy",
+          "name": "Cleverness & Strategy",
+          "description": "Outsmarting opponents. Creative solutions. Clever decisions. Strategic planning."
+        },
+        {
+          "id": "plot_twists",
+          "name": "Plot Twists",
+          "description": "Earned revelations. Surprising discoveries. Recontextualized events. Unexpected but logical outcomes."
+        }
+      ]
+    },
+    {
+      "id": "romance_other",
+      "name": "ROMANCE & OTHER",
+      "description": "Love, affection and unexpected romantic connections.",
+      "genres": [
+        {
+          "id": "romance",
+          "name": "Romance",
+          "description": "Love. Affection. Unexpected relationships. Romantic misunderstandings. Emotional connections."
+        }
+      ]
+    }
+  ]
+}

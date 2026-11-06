@@ -40,15 +40,20 @@ def collect(episode_id=None):
     for row in runs + renders:
         if episode_id is not None and row['episode_id'] != episode_id: continue
         is_ai = 'workspace' in row
-        root = Path(row['workspace']) if is_ai and row.get('workspace') else epdir(episode(row['episode_id']))
         jid = str(row['id']) if is_ai else 'render-' + str(row['id'])
-        path = EpisodeWriter(root).path(f'.production/activity/{jid}.json')
-        journal = read_json(path) if path.exists() else dict(sequence=0, events=[])
-        if not is_ai and row['status'] in ('QUEUED','RUNNING'):
-            local=EpisodeWriter(root).path(f'.production/jobs/{row["id"]}.json')
-            if local.exists():
-                state=read_json(local)
-                row['stage']=state.get('stage',row.get('stage'))
+        # One job whose workspace is gone (manual/idea runs have none; deleted episodes) must never break the whole feed.
+        try:
+            root = Path(row['workspace']) if is_ai and row.get('workspace') else epdir(episode(row['episode_id']))
+            writer = EpisodeWriter(root)
+            path = writer.path(f'.production/activity/{jid}.json')
+            journal = read_json(path) if path.exists() else dict(sequence=0, events=[])
+            if not is_ai and row['status'] in ('QUEUED','RUNNING'):
+                local=writer.path(f'.production/jobs/{row["id"]}.json')
+                if local.exists():
+                    state=read_json(local)
+                    row['stage']=state.get('stage',row.get('stage'))
+        except (OSError, ValueError, KeyError, TypeError):
+            journal = dict(sequence=0, events=[])
         if row['status']=='RUNNING' and journal['events']:
             row['stage']=journal['events'][-1]['message']
         from .providers import classify
@@ -64,7 +69,7 @@ def collect(episode_id=None):
                          created=row['created'], started_at=journal.get('started_at'), finished_at=journal.get('finished_at'),
                          error=diagnosis.get(error_code,'Operation failed. Check provider status and the episode asset report before retrying.') if error_code else None,
                          events=journal['events'], sequence=journal['sequence'],
-                         cancellable=is_ai and row.get('task')!='connection_test' and row['status'] in ('QUEUED','RUNNING'),
+                         cancellable=is_ai and row.get('task')!='connection_test' and (row['status'] in ('QUEUED','RUNNING') or (row.get('task')=='genre_ideas' and row['status']=='AWAITING_MANUAL')),
                          retryable=is_ai and row.get('task')!='connection_test' and row['status'] in ('FAILED','CANCELLED')))
     return jobs
 

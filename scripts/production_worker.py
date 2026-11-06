@@ -15,7 +15,7 @@ from services.api.file_writer import EpisodeWriter
 writer=EpisodeWriter(root)
 job=None
 try:
-    validate(root,media=sys.argv[1] in ('render','draft','style-preview'))
+    validate(root,media=sys.argv[1] in ('render','draft','style-preview','studio-render'))
     if sys.argv[1]=='validate':
         from services.api.media import validate_assets
         print(json.dumps(validate_assets(int(sys.argv[2]))))
@@ -27,6 +27,9 @@ try:
     elif sys.argv[1]=='render':
         from services.api.worker import process_job
         job=read_json(writer.path(sys.argv[2]));process_job(job)
+    elif sys.argv[1]=='studio-render':
+        from services.api.worker import process_studio_job
+        job=read_json(writer.path(sys.argv[2]));process_studio_job(job)
     elif sys.argv[1]=='style-preview':
         from services.api.worker import style_preview
         print(json.dumps(style_preview(int(sys.argv[2]),sys.argv[3].split(','))))

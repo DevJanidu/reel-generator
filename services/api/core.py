@@ -63,6 +63,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, episode_id INTEGER, kind TEXT, status TEXT, progress REAL DEFAULT 0, stage TEXT, error TEXT, created TEXT, updated TEXT);
         CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
         CREATE TABLE IF NOT EXISTS metrics (id INTEGER PRIMARY KEY, episode_id INTEGER, payload TEXT, created TEXT);
+        CREATE TABLE IF NOT EXISTS idea_sessions (id TEXT PRIMARY KEY, path TEXT UNIQUE NOT NULL, created TEXT NOT NULL, updated TEXT NOT NULL);
         CREATE UNIQUE INDEX IF NOT EXISTS active_job ON jobs(episode_id,kind) WHERE status IN ('QUEUED','RUNNING');
         ''')
         columns={r['name'] for r in c.execute('PRAGMA table_info(runs)')}

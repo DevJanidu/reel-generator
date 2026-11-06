@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { mountStudio, queryClient } from "./router";
+import { StudioPanel } from "./studio";
+import { IdeasStudio } from "./ideas";
+import { Paged } from "./paging";
+import { ExportsPanel } from "./exports";
 import {
   LayoutDashboard,
   BookOpen,
@@ -31,6 +35,7 @@ const controllerFromLaunch = new URLSearchParams(
 ).get("controller");
 if (controllerFromLaunch) {
   sessionStorage.setItem("odd-frame-controller", controllerFromLaunch);
+  localStorage.setItem("odd-frame-controller", controllerFromLaunch);
   history.replaceState(null, "", window.location.pathname);
 }
 
@@ -55,12 +60,12 @@ async function api(path: string, method = "GET", body?: any) {
       body instanceof FormData
         ? {
             "X-Odd-Controller":
-              sessionStorage.getItem("odd-frame-controller") || "",
+              (localStorage.getItem("odd-frame-controller") || sessionStorage.getItem("odd-frame-controller") || ""),
           }
         : {
             "Content-Type": "application/json",
             "X-Odd-Controller":
-              sessionStorage.getItem("odd-frame-controller") || "",
+              (localStorage.getItem("odd-frame-controller") || sessionStorage.getItem("odd-frame-controller") || ""),
           },
     body:
       body === undefined
@@ -142,6 +147,29 @@ function App() {
     [metrics, setMetrics] = useState(""),
     [metricRows, setMetricRows] = useState<Data[]>([]);
   const [providerInfo, setProviderInfo] = useState<Data>();
+  const [credentials, setCredentials] = useState<Data[]>([]);
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [testing, setTesting] = useState<string>("");
+  const runTest = async (provider: string) => {
+    setTesting(provider);
+    setConnectionResults((v) => ({ ...v, [provider]: undefined as any }));
+    try {
+      const r = await api("/providers/" + provider + "/test", "POST");
+      setConnectionResults((v) => ({ ...v, [provider]: r }));
+      return r;
+    } catch (e: any) {
+      const r = { success: false, code: "NOT_RUN", message: e.message };
+      setConnectionResults((v) => ({ ...v, [provider]: r }));
+      return r;
+    } finally {
+      setTesting("");
+      api("/providers").then(setProviderInfo).catch(() => {});
+    }
+  };
+  const [accessKey, setAccessKey] = useState("");
+  const checkAuthorization = () =>
+    api("/controller/status").then((r) => setAuthorized(!!r.authorized)).catch(() => setAuthorized(null));
+  const [tokenDraft, setTokenDraft] = useState<Record<string, string>>({});
   const [connectionResults, setConnectionResults] = useState<
     Record<string, Data>
   >({});
@@ -195,6 +223,8 @@ function App() {
     api("/settings").then(setPrefs);
     api("/metrics").then(setMetricRows);
     api("/providers").then(setProviderInfo);
+    api("/providers/credentials").then((r) => setCredentials(r.credentials));
+    checkAuthorization();
   }, []);
   useEffect(() => {
     const run = runs.find((r) => r.id === runId);
@@ -241,14 +271,7 @@ function App() {
       }
     }
   };
-  const generate = () =>
-    act("Load skills & generate ideas", async () => {
-      const r = await api("/ideas/generate", "POST", {});
-      setRunId(r.run_id);
-      if (r.result?.ideas) setIdeas(r.result.ideas);
-      setPage("Ideas");
-      return r;
-    });
+  const generate = () => {setPage("Ideas");setError("");};
   const liveIdeasRun = runs.find((r) => r.id === runId && r.task === "ideas");
   const liveRun =
     runs.find(
@@ -333,7 +356,7 @@ function App() {
           text: "Export complete. Open Exports to download the video.",
         };
       case "EDIT_READY":
-        return {step:5,text:"Automatic draft ready. Open Live Editor in Edit Studio, review the four tracks, then select Render Final Video."};
+        return {step:5,text:"Automatic edit ready. Open it in Remotion Studio from Edit Studio, make small adjustments, then render the final video."};
       case "FAILED":
         return {
           step: 5,
@@ -363,7 +386,7 @@ function App() {
     ASSETS_BLOCKED:
       "Waiting for your files: stills, narration audio, SRT captions and music.",
     QUEUED: "Production job queued. See AI Activity for details.",
-    EDIT_READY: "Automatic edit ready for review in Live Editor.",
+    EDIT_READY: "Automatic edit ready. Open it in Remotion Studio.",
     RENDERING: "Rendering the video.",
     COMPLETE: "Export complete.",
     BLOCKED: "Blocked. See the error shown on this page.",
@@ -441,7 +464,7 @@ function App() {
           ))}
         </ol>
         <p className={info.warn ? "error" : "muted"}>{info.text}</p>
-        {ep.status==='EDIT_READY'&&<a className="open-live-editor" href={`/episodes/${ep.id}/editor`}>Open Live Editor</a>}
+        {ep.status==='EDIT_READY'&&<button onClick={()=>setPage("Edit Studio")}>Open in Remotion Studio</button>}
         {["AWAITING_ASSETS", "ASSETS_BLOCKED"].includes(ep.status) &&
           AssetChecklist()}
         {LiveIdeasPanel()}
@@ -594,12 +617,12 @@ function App() {
             onChange={(e) => setRunId(e.target.value)}
           >
             <option value="">
-              {activeRuns.some((r) => r.status === "AWAITING_MANUAL")
+              {activeRuns.some((r) => r.task !== "genre_ideas" && r.status === "AWAITING_MANUAL")
                 ? "Select a run waiting for your AI response"
                 : "No runs waiting — press Generate first"}
             </option>
             {activeRuns
-              .filter((r) => r.status === "AWAITING_MANUAL" || r.id === runId)
+              .filter((r) => r.task !== "genre_ideas" && (r.status === "AWAITING_MANUAL" || r.id === runId || (r.task === "ideas" && r.status === "SUCCEEDED")))
               .map((r) => (
                 <option value={r.id} key={r.id}>
                   {r.task} ·{" "}
@@ -801,10 +824,11 @@ function App() {
           <div className="page-heading">
             <div>
               <span className="eyebrow">SMALL STORIES. BIG EMOTIONS.</span>
-              <h1>{page === "Home" ? "Your next story starts here." : page}</h1>
+              <h1>{page === "Home" ? "Your next story starts here." : page === "Ideas" ? "What Kind of Story Are We Creating?" : page}</h1>
               <p>
                 {page === "Home"
                   ? "One workspace. From the first spark to the final frame."
+                  : page === "Ideas" ? "Choose your genre. Discover five original story ideas."
                   : selected && ep
                     ? ep.code + " / " + ep.title
                     : "Create, prepare and produce original ODD FRAME stories."}
@@ -819,6 +843,37 @@ function App() {
             <div className="loading" role="status">
               <RefreshCw className="spin" size={16} />
               {busy}…
+            </div>
+          )}
+          {authorized === false && (
+            <div className="error" role="alert">
+              <AlertCircle size={17} />
+              <div>
+                <strong>This browser window is not authorized to make changes.</strong>{" "}
+                Open the dashboard with <code>scriptsstart.ps1</code>, or paste the
+                access key from <code>datantroller-access.json</code> (the
+                "token" value) here. It is kept in this browser only.
+                <div className="row">
+                  <input
+                    type="password"
+                    autoComplete="off"
+                    aria-label="Controller access key"
+                    placeholder="Paste access key"
+                    value={accessKey}
+                    onChange={(e) => setAccessKey(e.target.value)}
+                  />
+                  <button
+                    disabled={!accessKey.trim()}
+                    onClick={() => {
+                      localStorage.setItem("odd-frame-controller", accessKey.trim());
+                      setAccessKey("");
+                      checkAuthorization();
+                    }}
+                  >
+                    Authorize
+                  </button>
+                </div>
+              </div>
             </div>
           )}
           {error && (
@@ -918,26 +973,35 @@ function App() {
                   {!episodes.length ? (
                     <Empty text="Your first story is waiting to be told." />
                   ) : (
-                    episodes.slice(0, 6).map((e) => (
-                      <button
-                        className="episode-row"
-                        key={e.id}
-                        onClick={() => selectEp(e)}
-                      >
-                        <span className="mini-frame">
-                          <Film size={21} />
-                        </span>
-                        <div>
-                          <strong>{e.title}</strong>
-                          <small>
-                            {e.code} ·{" "}
-                            {new Date(e.updated).toLocaleDateString()}
-                          </small>
-                        </div>
-                        <Badge value={e.status} />
-                        <ChevronRight size={16} />
-                      </button>
-                    ))
+                    <Paged
+                      items={episodes}
+                      size={5}
+                      label="reels"
+                      getText={(e: Data) => e.title + " " + e.code + " " + e.status}
+                    >
+                      {(rows) =>
+                        rows.map((e) => (
+                          <button
+                            className="episode-row"
+                            key={e.id}
+                            onClick={() => selectEp(e)}
+                          >
+                            <span className="mini-frame">
+                              <Film size={21} />
+                            </span>
+                            <div>
+                              <strong>{e.title}</strong>
+                              <small>
+                                {e.code} ·{" "}
+                                {new Date(e.updated).toLocaleDateString()}
+                              </small>
+                            </div>
+                            <Badge value={e.status} />
+                            <ChevronRight size={16} />
+                          </button>
+                        ))
+                      }
+                    </Paged>
                   )}
                 </section>
                 {skillsPanel}
@@ -955,17 +1019,26 @@ function App() {
                     queue automatically.
                   </p>
                 ) : (
-                  status.jobs.slice(0, 5).map((j: Data) => (
-                    <div className="job" key={j.id}>
-                      <span>
-                        #{j.id} · Episode {j.episode_id}
-                      </span>
-                      <strong>{j.stage}</strong>
-                      {['QUEUED','RUNNING'].includes(j.status) && <progress aria-label={j.stage} />}
-                      <Badge value={j.status} />
-                      {j.error && <p className="error">{j.error}</p>}
-                    </div>
-                  ))
+                  <Paged
+                    items={status.jobs as Data[]}
+                    size={5}
+                    label="jobs"
+                    getText={(j: Data) => `#${j.id} episode ${j.episode_id} ${j.kind || ""} ${j.stage} ${j.status} ${j.error || ""}`}
+                  >
+                    {(rows) =>
+                      rows.map((j: Data) => (
+                        <div className="job" key={j.id}>
+                          <span>
+                            #{j.id} · Episode {j.episode_id}
+                          </span>
+                          <strong>{j.stage}</strong>
+                          {['QUEUED','RUNNING'].includes(j.status) && <progress aria-label={j.stage} />}
+                          <Badge value={j.status} />
+                          {j.error && <p className="error">{j.error}</p>}
+                        </div>
+                      ))
+                    }
+                  </Paged>
                 )}
               </section>
             </>
@@ -991,107 +1064,9 @@ function App() {
             </>
           )}
           {page === "Ideas" && (
-            <>
-              {LiveIdeasPanel(liveIdeasRun)}
-              <section className="panel">
-                <div className="section-heading">
-                  <h3>Ten new possibilities</h3>
-                  <button
-                    disabled={!!busy || !valid || ideasRunning}
-                    onClick={generate}
-                  >
-                    <Sparkles size={15} />
-                    {ideasRunning ? "Generating…" : "Generate ideas"}
-                  </button>
-                </div>
-                <p className="muted">
-                  A configured model generates original concepts. Manual mode
-                  exports the full four-skill request.
-                </p>
-              </section>
-              <div className="idea-grid">
-                {ideas.map((idea, i) => (
-                  <article className="panel idea" key={i}>
-                    <span className="eyebrow gold">
-                      {String(i + 1).padStart(2, "0")} / {idea.genre}
-                    </span>
-                    <h3>{idea.title}</h3>
-                    <p>{idea.premise}</p>
-                    <dl>
-                      {Object.entries(idea)
-                        .filter(
-                          ([k]) => !["title", "genre", "premise"].includes(k),
-                        )
-                        .map(([k, v]) => (
-                          <div key={k}>
-                            <dt>{k.replaceAll("_", " ")}</dt>
-                            <dd>{String(v)}</dd>
-                          </div>
-                        ))}
-                    </dl>
-                    <button disabled={!!busy} onClick={() => choose(idea)}>
-                      Select Story <ArrowRight size={15} />
-                    </button>
-                  </article>
-                ))}
-              </div>
-              <section className="panel">
-                <h3>Or start with your own premise</h3>
-                <div className="form-grid">
-                  <label>
-                    Working title
-                    <input
-                      value={custom.title}
-                      onChange={(e) =>
-                        setCustom({ ...custom, title: e.target.value })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Genre
-                    <input
-                      value={custom.genre}
-                      onChange={(e) =>
-                        setCustom({ ...custom, genre: e.target.value })
-                      }
-                    />
-                  </label>
-                </div>
-                <label>
-                  Your story premise
-                  <textarea
-                    value={custom.premise}
-                    onChange={(e) =>
-                      setCustom({ ...custom, premise: e.target.value })
-                    }
-                    rows={3}
-                  />
-                </label>
-                <button
-                  disabled={
-                    !!busy ||
-                    custom.title.length < 3 ||
-                    custom.premise.length < 10
-                  }
-                  onClick={() =>
-                    choose({
-                      ...custom,
-                      visual_hook: "Pending development from owner premise",
-                      narration_hook: "Pending script development",
-                      conflict: "Defined by owner premise",
-                      curiosity: "Pending script development",
-                      emotion: "Owner premise",
-                      ending_type: "Genre appropriate; pending development",
-                      character_type: "Pending story-specific cast",
-                      feasibility: "To be evaluated during script development",
-                    })
-                  }
-                >
-                  Use Custom Premise
-                </button>
-              </section>
-              {ManualPanel()}
-            </>
+            <IdeasStudio legacyHandoff={<>{ManualPanel()}{ideas.length > 0 && <section className="panel"><h3>Saved general story concepts · legacy format</h3><p>These earlier concepts keep their original titles and metadata.</p><div className="cards">{ideas.map((idea, index) => <article className="panel" key={index}><h3>{idea.title}</h3><span className="tag">{idea.genre}</span><p>{idea.premise}</p><p><strong>Opening hook:</strong> {idea.visual_hook}</p><p><strong>Conflict:</strong> {idea.conflict}</p><button disabled={!!busy} onClick={() => choose(idea)}>Select Legacy Story</button></article>)}</div></section>}</>} onSelected={(eid, pendingRun) => {
+              setSelected(eid);setPage("Script Studio");if(pendingRun)setRunId(pendingRun);reload().catch(e=>setError(e.message));
+            }}/>
           )}
           {![
             "Home",
@@ -1153,22 +1128,36 @@ function App() {
                     ))}
                   </select>
                 </div>
-                {episodeList.map((e) => (
-                  <button
-                    className="episode-row"
-                    key={e.id}
-                    onClick={() => selectEp(e, page)}
-                  >
-                    <strong>
-                      {e.code} · {e.title}
-                    </strong>
-                    <Badge value={e.status} />
-                    <ChevronRight size={15} />
-                  </button>
-                ))}
-                {!episodeList.length && (
-                  <Empty text="Select or create a story to open its workspace." />
-                )}
+                <Paged
+                  items={episodeList}
+                  label="projects"
+                  resetKey={query + "|" + filter}
+                  empty={
+                    <Empty
+                      text={
+                        episodes.length
+                          ? "No project matches this search or status."
+                          : "Select or create a story to open its workspace."
+                      }
+                    />
+                  }
+                >
+                  {(rows) =>
+                    rows.map((e) => (
+                      <button
+                        className="episode-row"
+                        key={e.id}
+                        onClick={() => selectEp(e, page)}
+                      >
+                        <strong>
+                          {e.code} · {e.title}
+                        </strong>
+                        <Badge value={e.status} />
+                        <ChevronRight size={15} />
+                      </button>
+                    ))
+                  }
+                </Paged>
               </section>
             )}
           {page === "Script Studio" && selected && ep && (
@@ -1424,30 +1413,50 @@ function App() {
               </div>
               <section className="panel">
                 <h3>Episode files</h3>
-                <div className="files">
-                  {ep.files?.map((f: string) => (
-                    <a
-                      key={f}
-                      href={fileURL(f)}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <FileText size={15} />
-                      {f}
-                      <Download size={13} />
-                    </a>
-                  ))}
-                </div>
+                <Paged
+                  items={(ep.files || []) as string[]}
+                  size={10}
+                  label="files"
+                  placeholder="Search files by name or folder"
+                  getText={(f: string) => f}
+                >
+                  {(rows) => (
+                    <div className="files">
+                      {rows.map((f: string) => (
+                        <a
+                          key={f}
+                          href={fileURL(f)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <FileText size={15} />
+                          {f}
+                          <Download size={13} />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </Paged>
               </section>
               <section className="panel">
                 <h3>Production history</h3>
-                {ep.history?.map((h: Data) => (
-                  <p className="history" key={h.id}>
-                    <Clock size={14} />
-                    {new Date(h.at).toLocaleString()} <Badge value={h.stage} />
-                    {historyText(h, ep)}
-                  </p>
-                ))}
+                <Paged
+                  items={(ep.history || []) as Data[]}
+                  size={10}
+                  label="history"
+                  placeholder="Search production history"
+                  getText={(h: Data) => h.stage + " " + historyText(h, ep)}
+                >
+                  {(rows) =>
+                    rows.map((h: Data) => (
+                      <p className="history" key={h.id}>
+                        <Clock size={14} />
+                        {new Date(h.at).toLocaleString()} <Badge value={h.stage} />
+                        {historyText(h, ep)}
+                      </p>
+                    ))
+                  }
+                </Paged>
               </section>
               {ManualPanel()}
             </>
@@ -1471,43 +1480,59 @@ function App() {
                 Generate these stills in Google Flow, then import files named
                 S001.png, S002.jpg, etc. No website automation or video jobs.
               </p>
-              {ep.files
-                ?.filter((f: string) => f.startsWith("04_google_flow/batches/"))
-                .map((f: string) => (
-                  <a
-                    className="button secondary small"
-                    key={f}
-                    href={fileURL(f)}
-                    download
-                  >
-                    {f.split("/").pop()}
-                  </a>
-                ))}
-              {ep.data.package?.scenes?.map((s: Data) => (
-                <details key={s.scene_id}>
-                  <summary>
-                    <span className="gold">{s.scene_id}</span> {s.beat}
-                  </summary>
-                  <p>{s.narration_text}</p>
-                  <p>
-                    Focal point: {s.focus} · {s.yellow_placement}
-                  </p>
-                  <pre>
-                    {
-                      ep.flow?.jobs?.find(
-                        (j: Data) => j.scene_id === s.scene_id,
-                      )?.prompt
-                    }
-                  </pre>
-                  <a
-                    href={fileURL("04_google_flow/IMAGE_PROMPTS.md")}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Read complete self-contained prompts
-                  </a>
-                </details>
-              ))}
+              <Paged
+                items={((ep.files || []) as string[]).filter((f) => f.startsWith("04_google_flow/batches/"))}
+                size={10}
+                label="prompt batches"
+                getText={(f: string) => f}
+                empty={<></>}
+              >
+                {(rows) => (
+                  <div className="row">
+                    {rows.map((f: string) => (
+                      <a className="button secondary small" key={f} href={fileURL(f)} download>
+                        {f.split("/").pop()}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </Paged>
+              <Paged
+                items={(ep.data.package?.scenes || []) as Data[]}
+                size={10}
+                label="scenes"
+                placeholder="Search scenes (S005, a word from the story...)"
+                getText={(s: Data) => s.scene_id + " " + s.beat + " " + s.narration_text}
+                empty={<></>}
+              >
+                {(rows) =>
+                  rows.map((s: Data) => (
+                    <details key={s.scene_id}>
+                      <summary>
+                        <span className="gold">{s.scene_id}</span> {s.beat}
+                      </summary>
+                      <p>{s.narration_text}</p>
+                      <p>
+                        Focal point: {s.focus} · {s.yellow_placement}
+                      </p>
+                      <pre>
+                        {
+                          ep.flow?.jobs?.find(
+                            (j: Data) => j.scene_id === s.scene_id,
+                          )?.prompt
+                        }
+                      </pre>
+                      <a
+                        href={fileURL("04_google_flow/IMAGE_PROMPTS.md")}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Read complete self-contained prompts
+                      </a>
+                    </details>
+                  ))
+                }
+              </Paged>
               {!ep.data.package && (
                 <Empty text="Approve the script and complete preproduction to create real prompt jobs." />
               )}
@@ -1585,32 +1610,41 @@ function App() {
                           }}
                         />
                       </label>
-                      {ep.files
-                        ?.filter((f: string) =>
+                      <Paged
+                        items={((ep.files || []) as string[]).filter((f) =>
                           f.startsWith("05_assets/" + kind + "/"),
-                        )
-                        .map((f: string) => (
-                          <div className="asset-file" key={f}>
-                            <a href={fileURL(f)}>{f.split("/").pop()}</a>
-                            <button
-                              className="text-button"
-                              onClick={() =>
-                                act("Remove asset", () =>
-                                  api(
-                                    selectedPath +
-                                      "/assets/" +
-                                      kind +
-                                      "/" +
-                                      encodeURIComponent(f.split("/").pop()!),
-                                    "DELETE",
-                                  ),
-                                )
-                              }
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        ))}
+                        )}
+                        size={5}
+                        label={kind + " files"}
+                        getText={kind === "images" ? (f: string) => f : undefined}
+                        resetKey={kind}
+                        empty={<></>}
+                      >
+                        {(rows) =>
+                          rows.map((f: string) => (
+                            <div className="asset-file" key={f}>
+                              <a href={fileURL(f)}>{f.split("/").pop()}</a>
+                              <button
+                                className="text-button"
+                                onClick={() =>
+                                  act("Remove asset", () =>
+                                    api(
+                                      selectedPath +
+                                        "/assets/" +
+                                        kind +
+                                        "/" +
+                                        encodeURIComponent(f.split("/").pop()!),
+                                      "DELETE",
+                                    ),
+                                  )
+                                }
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ))
+                        }
+                      </Paged>
                     </div>
                   ))}
                 </div>
@@ -1688,7 +1722,15 @@ function App() {
           )}
           {page === "Edit Studio" && selected && ep && (
             <>
-              <div className="draft-action"><a className="open-live-editor" href={`/episodes/${selected}/editor`}>Open Live Editor</a><button disabled={!!busy || !ep.data.package || ['QUEUED','RENDERING'].includes(ep.status)} onClick={()=>act('Prepare automatic draft',()=>api(selectedPath+'/editor/prepare','POST'))}>Auto Edit</button><span>Review the complete four-track draft before rendering.</span></div>
+              <StudioPanel
+                episodeId={selected}
+                hasDraft={ep.files.includes("06_edit/editor_state.json")}
+                status={ep.status}
+                jobs={ep.jobs}
+                act={act}
+                busy={busy}
+                onChanged={() => void reload()}
+              />
               <section className="panel">
                 <div className="section-heading">
                   <h3>Timeline & render</h3>
@@ -1736,14 +1778,18 @@ function App() {
                   );
                   return (
                     <>
-                      {shown.map(row)}
+                      <Paged items={shown} size={5} label="jobs" empty={<></>}>
+                        {(rows) => rows.map(row)}
+                      </Paged>
                       {old.length > 0 && (
                         <details>
                           <summary>
                             Earlier failed attempts ({old.length}) — already
                             superseded
                           </summary>
-                          {old.map(row)}
+                          <Paged items={old} size={5} label="earlier attempts" empty={<></>}>
+                            {(rows) => rows.map(row)}
+                          </Paged>
                         </details>
                       )}
                     </>
@@ -1875,13 +1921,13 @@ function App() {
                             api(selectedPath + "/style-preview", "POST", {
                               profiles: [
                                 "ODD_FRAME_CLASSIC_V1_0",
-                                "ODD_FRAME_CINEMATIC_FLOW_V1_1",
+                                "ODD_FRAME_CINEMATIC_TRANSITIONS_V1",
                               ],
                             }),
                           )
                         }
                       >
-                        Preview style: Classic vs Cinematic Flow
+                        Preview style: Classic vs Cinematic Transitions
                       </button>
                       <span className="muted">
                         Renders about 7 seconds of your real footage in both
@@ -2196,33 +2242,19 @@ function App() {
           {page === "Exports" && selected && ep && (
             <section className="panel">
               <h3>Finished frames</h3>
-              {ep.data.exports?.length ? (
-                ep.data.exports.map((e: Data) => (
-                  <div key={e.job_id} className="export">
-                    <Badge value="COMPLETE" />
-                    <strong>{e.path.split("/").pop()}</strong>
-                    <span>{new Date(e.created).toLocaleString()}</span>
-                    <a
-                      className="button"
-                      download
-                      href={"/api/media/" + e.path}
-                    >
-                      <Download size={15} />
-                      Final MP4
-                    </a>
-                    <a
-                      className="button secondary"
-                      href={fileURL("07_export/QC_REPORT.md")}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      QC report
-                    </a>
-                  </div>
-                ))
-              ) : (
-                <Empty text="No final exports yet. Nothing is published automatically." />
-              )}
+              <ExportsPanel
+                exports={(ep.data.exports || []) as Data[]}
+                episodeId={ep.id}
+                fileURL={fileURL}
+                disabled={!!busy || ["QUEUED", "RENDERING"].includes(ep.status)}
+                Badge={Badge}
+                Empty={Empty}
+                onDelete={(ids) =>
+                  act("Delete exports", () =>
+                    api(selectedPath + "/exports/delete", "POST", {job_ids: ids, confirm: true}),
+                  )
+                }
+              />
             </section>
           )}
           {page === "Analytics" && (
@@ -2285,13 +2317,28 @@ function App() {
                   Save actual metrics
                 </button>
               </div>
-              {metricRows.map((m) => (
-                <pre key={m.id}>{JSON.stringify(m, null, 2)}</pre>
-              ))}
+              <Paged
+                items={metricRows as Data[]}
+                size={5}
+                label="recorded metrics"
+                getText={(m: Data) => JSON.stringify(m)}
+              >
+                {(rows) => rows.map((m: Data) => <pre key={m.id}>{JSON.stringify(m, null, 2)}</pre>)}
+              </Paged>
             </section>
           )}
           {page === "Settings" && prefs && (
             <>
+              <section className="panel">
+                <h3>Controller access</h3>
+                <p>
+                  {authorized === null
+                    ? "Checking…"
+                    : authorized
+                      ? "✓ Authorized — this browser is saved and can make changes."
+                      : "✗ Not authorized — see the notice at the top to authorize this browser."}
+                </p>
+              </section>
               <section className="panel">
                 <h3>AI provider</h3>
                 <p className="muted">
@@ -2441,6 +2488,78 @@ function App() {
                 >
                   Save settings
                 </button>
+                <div className="provider-tests credentials-panel">
+                  <h3>AI credentials</h3>
+                  <p className="muted">
+                    Paste a token here instead of editing <code>.env</code>. It
+                    is saved to this computer's <code>.env</code>, applies
+                    immediately (no restart) and is never shown again, only its
+                    last four characters. <strong>Codex CLI needs no token</strong>:
+                    it uses your own ChatGPT sign-in (run <code>codex login</code>{" "}
+                    once in a terminal, then use Test below).
+                  </p>
+                  {credentials.map((c: Data) => (
+                    <div className="panel" key={c.name}>
+                      <strong>{c.label}</strong>{" "}
+                      <span className="muted">
+                        {c.configured
+                          ? "✓ Already saved " + c.hint + (c.stored_in_env_file ? " · in .env, ready to use" : " · from environment")
+                          : "not set"}
+                      </span>
+                      <div className="row">
+                        <input
+                          type="password"
+                          autoComplete="off"
+                          aria-label={c.label}
+                          placeholder={c.configured ? "Paste a new token to replace" : "Paste token"}
+                          value={tokenDraft[c.name] || ""}
+                          onChange={(e) =>
+                            setTokenDraft({ ...tokenDraft, [c.name]: e.target.value })
+                          }
+                        />
+                        <button
+                          disabled={!!busy || authorized === false || !(tokenDraft[c.name] || "").trim()}
+                          onClick={() =>
+                            act("Save token and test " + c.provider, async () => {
+                              const saved = await api(
+                                "/providers/credentials/" + c.name,
+                                "PUT",
+                                { value: tokenDraft[c.name] },
+                              );
+                              setTokenDraft({ ...tokenDraft, [c.name]: "" });
+                              setCredentials(saved.credentials);
+                              api("/providers").then(setProviderInfo);
+                              return { message: "Token saved to this computer and kept for future runs. Testing the connection…" };
+                            }).then((saved) => {
+                              if (saved) void runTest(c.provider);
+                            })
+                          }
+                        >
+                          Save &amp; test
+                        </button>
+                        {c.configured && c.stored_in_env_file && (
+                          <button
+                            className="secondary"
+                            disabled={!!busy}
+                            onClick={() =>
+                              act("Remove " + c.name, async () => {
+                                const r = await api(
+                                  "/providers/credentials/" + c.name,
+                                  "DELETE",
+                                );
+                                setCredentials(r.credentials);
+                                api("/providers").then(setProviderInfo);
+                                return r;
+                              })
+                            }
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
                 <div className="provider-tests">
                   <h3>Test AI Connection</h3>
                   <p className="muted">
@@ -2454,24 +2573,10 @@ function App() {
                         <strong>{p.provider}</strong>
                         <button
                           className="secondary"
-                          disabled={!!busy}
-                          onClick={() =>
-                            act("Test " + p.provider, async () => {
-                              const r = await api(
-                                "/providers/" + p.provider + "/test",
-                                "POST",
-                              );
-                              setConnectionResults((v) => ({
-                                ...v,
-                                [p.provider]: r,
-                              }));
-                              if (!r.success)
-                                throw Error(r.code + ": " + r.message);
-                              return { message: r.message };
-                            })
-                          }
+                          disabled={!!busy || !!testing}
+                          onClick={() => void runTest(p.provider)}
                         >
-                          Test AI Connection · {p.provider}
+                          {testing === p.provider ? "Testing…" : "Test AI Connection · " + p.provider}
                         </button>
                       </div>
                       <p className="muted">
@@ -2483,6 +2588,14 @@ function App() {
                       </p>
                       {p.eligibility_message && (
                         <p className="finding">{p.eligibility_message}</p>
+                      )}
+                      {testing === p.provider && (
+                        <p className="notice" role="status">
+                          <RefreshCw className="spin" size={14} /> Sending a real
+                          short request with all four instructions to{" "}
+                          {p.provider}. This usually takes 20–90 seconds; the
+                          result appears here.
+                        </p>
                       )}
                       {connectionResults[p.provider] && (
                         <p

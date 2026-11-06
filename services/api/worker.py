@@ -18,7 +18,7 @@ def enqueue(eid,kind='draft'):
     with episode_lock(epdir(episode(eid)),'editor'):
         return _enqueue(eid,kind)
 
-def _enqueue(eid,kind='draft',rebuild=False):
+def _enqueue(eid,kind='draft',rebuild=False,replace_studio=False):
     ep=episode(eid); approved(ep)
     if not ep['data'].get('package'):
         raise ValueError('Preproduction is incomplete')
@@ -33,11 +33,16 @@ def _enqueue(eid,kind='draft',rebuild=False):
             if writer.path('06_edit/editor_state.json').exists() and not rebuild:raise ValueError('A saved draft already exists. Open Live Editor; saved edits will not be replaced.')
             runtime=provision_runtime(epdir(ep))
             writer.json('06_edit/edit_plan.json',dict(version=1,runtime=runtime))
+        elif kind=='studio-render':
+            from . import studio
+            studio.validate_project(epdir(ep))
+            if studio.check_source(epdir(ep))['errors']:raise ValueError('Fix the Studio source problems first: '+' '.join(studio.check_source(epdir(ep))['errors']))
         elif kind!='render':raise ValueError('Unknown production job kind')
-        row=c.execute('INSERT INTO jobs(episode_id,kind,status,stage,created,updated) VALUES (?,?,?,?,?,?)',(eid,kind,'QUEUED','Prepare editable draft' if kind=='draft' else 'Render saved edit',now(),now()))
+        row=c.execute('INSERT INTO jobs(episode_id,kind,status,stage,created,updated) VALUES (?,?,?,?,?,?)',(eid,kind,'QUEUED','Prepare editable draft' if kind=='draft' else ('Render Remotion Studio project' if kind=='studio-render' else 'Render saved edit'),now(),now()))
     update_episode(eid,'QUEUED',error=None)
     with db() as c:job=dict(c.execute('SELECT * FROM jobs WHERE id=?',(row.lastrowid,)).fetchone())
     if kind=='render':job['editor_revision']=read_json(epdir(ep)/'06_edit/editor_state.json')['revision']
+    if kind=='draft' and replace_studio:job['replace_studio_edits']=True
     EpisodeWriter(epdir(ep)).json(f'.production/jobs/{row.lastrowid}.json',job)
     emit(epdir(ep),'render-'+str(row.lastrowid),eid,'deterministic' if kind=='draft' else 'remotion',kind,'job.queued','Automatic draft preparation queued' if kind=='draft' else 'Saved revision queued for final rendering')
     return row.lastrowid
@@ -155,6 +160,74 @@ def process_job(job):
     emit(directory,'render-'+str(jid),eid,'remotion','Export complete','render.completed','Final MP4 passed full decode and technical QC',file=final.relative_to(directory).as_posix())
     emit(directory,'render-'+str(jid),eid,'remotion','Export complete','job.completed','Final export ready; no publishing performed',status='COMPLETE')
     server.shutdown()
+
+def process_studio_job(job):
+    """Final export of the owner's official Remotion Studio project. The Studio source is the authority."""
+    if os.getenv('ODD_EPISODE_WORKER')!='1':raise ValueError('Rendering must execute inside the verified episode worker, never in the controller process')
+    from . import studio
+    jid=job['id']; eid=job['episode_id']; ep=episode(eid); directory=epdir(ep)
+    approval=approved(ep)
+    label='Render Remotion Studio project'
+    emit(directory,'render-'+str(jid),eid,'remotion',label,'job.started','Starting final export from the Remotion Studio project')
+    job_progress(jid,'Validate assets',.02)
+    report=validate_assets(eid)
+    if not report['valid']:raise ValueError('; '.join(report['errors']))
+    manifest=studio.validate_project(directory)
+    check=studio.check_source(directory)
+    if check['errors']:raise ValueError('The Studio source breaks a production rule: '+' '.join(check['errors']))
+    changed=studio.owner_changes(directory)
+    update_episode(eid,'RENDERING',message='Studio project validated; rendering exactly what you reviewed in Remotion Studio')
+    # Keep a recoverable copy of exactly what is being exported.
+    writer=EpisodeWriter(directory)
+    stamp=f'render-{jid}'
+    for rel in studio.EDITABLE+('studio.manifest.json',):
+        writer.bytes(f'{studio.STUDIO_DIR}/revisions/{stamp}/{rel}',(studio.studio_dir(directory)/rel).read_bytes(),replace=True)
+    source_sha={rel:studio.sha((studio.studio_dir(directory)/rel).read_bytes()) for rel in studio.EDITABLE}
+    raw=directory/'06_edit'/f'final_work_{jid}.mp4'
+    metafile=directory/'06_edit'/f'studio_render_{jid}_meta.json'
+    job_progress(jid,'Rendering final',.1)
+    process=subprocess.Popen(['node',str(Path(os.environ['ODD_APP_ROOT'])/'video/remotion/render-studio.mjs'),str(studio.studio_dir(directory)),manifest['composition_id'],str(raw),str(metafile)],
+                             cwd=directory,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,encoding='utf-8',errors='replace',env=os.environ.copy())
+    lines=[];total=check['total_frames']
+    for line in process.stdout:
+        lines.append(line)
+        if line.startswith('META '):total=json.loads(line[5:])['durationInFrames']
+        if line.startswith('RENDER_EVENT '):
+            counts=json.loads(line[len('RENDER_EVENT '):])
+            emit(directory,'render-'+str(jid),eid,'remotion','Rendering final','render.progress','Frames rendered',completed=counts['renderedFrames'],total=total)
+        if line.startswith('PROGRESS '):job_progress(jid,'Rendering final',.1+float(line.split()[1])*.7)
+    process.wait()
+    textfile(directory/'06_edit'/f'studio_render_{jid}.log',''.join(lines))
+    if process.returncode:raise ValueError('Remotion failed: '+''.join(lines)[-1800:])
+    meta=read_json(metafile)
+    props=dict(durationInFrames=meta['durationInFrames'])
+    job_progress(jid,'Final loudness/peak normalization',.82)
+    measurement=loudness(raw)
+    candidate=directory/'06_edit'/f'final_qc_{jid}.mp4'
+    filter_=f"loudnorm=I=-16:TP=-1.5:LRA=9:measured_I={measurement['input_i']}:measured_TP={measurement['input_tp']}:measured_LRA={measurement['input_lra']}:measured_thresh={measurement['input_thresh']}:offset={measurement['target_offset']}:linear=true"
+    command(['ffmpeg','-y','-v','error','-i',raw,'-c:v','copy','-af',filter_,'-c:a','aac','-b:a','192k','-ar','48000','-movflags','+faststart',candidate],timeout=300)
+    job_progress(jid,'Final decode, codec, coverage and audio QC',.93)
+    qc=technical_qc(candidate,props)
+    current=episode(eid)
+    if approved(current)['sha256']!=approval['sha256']:raise ValueError('Approval changed during render; final export blocked')
+    final=directory/'07_export/final'/f'{ep["code"]}_v{jid:03d}.mp4'
+    EpisodeWriter(directory).path('07_export/final').mkdir(parents=True,exist_ok=True)
+    EpisodeWriter(directory).rename(candidate.relative_to(directory).as_posix(),final.relative_to(directory).as_posix())
+    qc['path']=final.relative_to(STORE).as_posix()
+    qc['approved_script_sha256']=approval['sha256']
+    qc['studio']=dict(composition_id=manifest['composition_id'],remotion_version=manifest.get('remotion_version'),source_sha256=source_sha,
+                      owner_edited_files=changed,scene_sequences=len(check['scenes']),caption_sequences=check['captions'],
+                      generated_from_editor_revision=manifest.get('source_editor_revision'),render_source_archive=f'06_edit/studio/revisions/{stamp}',
+                      default_props=meta.get('props'),warnings=check['warnings'])
+    qc['style']=manifest.get('style')
+    write_json(directory/'07_export/QC_REPORT.json',qc)
+    textfile(directory/'07_export/QC_REPORT.md','# Technical QC passed\n\nRendered from the official Remotion Studio project (the Studio source is authoritative).\n\n'+json.dumps(qc,indent=2)+'\n\nHuman viewing/listening remains beneficial. No real audience-retention claims are made.')
+    exports=current['data'].get('exports',[])+[dict(path=qc['path'],preview=None,job_id=jid,created=now(),qc='PASS',source='remotion_studio',style=manifest.get('style'),owner_edited=bool(changed))]
+    update_episode(eid,'COMPLETE',exports=exports,error=None,message='Final exported from your Remotion Studio project; not published')
+    path=directory/f'.production/jobs/{jid}.json'
+    state=read_json(path);state.update(status='COMPLETE',progress=1,stage='Export complete',updated=now());write_json(path,state)
+    emit(directory,'render-'+str(jid),eid,'remotion','Export complete','render.completed','Final MP4 passed full decode and technical QC',file=final.relative_to(directory).as_posix())
+    emit(directory,'render-'+str(jid),eid,'remotion','Export complete','job.completed','Final export ready; no publishing performed',status='COMPLETE')
 
 def job_eid(root):
     return read_json(root/'episode.json')['id']
@@ -319,7 +392,7 @@ def run_isolated_render(job):
     if writer.path(relative).exists():job={**read_json(writer.path(relative)),**job}
     writer.json(relative,job)
     with episode_lock(directory,'media',blocking=False):
-        result=isolation.launch(directory,[sys.executable,'-B',str(ROOT/'scripts/production_worker.py'),'draft' if job['kind']=='draft' else 'render',relative],
+        result=isolation.launch(directory,[sys.executable,'-B',str(ROOT/'scripts/production_worker.py'),{'draft':'draft','studio-render':'studio-render'}.get(job['kind'],'render'),relative],
                                 'render-'+str(job['id']),network=True,timeout=1800)
     state=read_json(directory/relative)
     if result['returncode'] or state.get('status')!='COMPLETE':

@@ -26,6 +26,7 @@ def test_reasoning_never_becomes_public_activity(provider,event):
 
 def make_draft(store,monkeypatch):
     monkeypatch.setattr(editor,'STORE',store)
+    from services.api import studio;monkeypatch.setattr(studio,'STORE',store)
     ep=prepared();root=asset_fixture(ep);jid=worker.enqueue(ep['id'])
     monkeypatch.setenv('ODD_EPISODE_WORKER','1');monkeypatch.setenv('EPISODE_WRITE_ROOT',str(root))
     editor.prepare(ep['id'],jid)
@@ -99,3 +100,14 @@ def test_export_retry_uses_the_saved_timeline_instead_of_replacing_draft(store,m
     with core.db() as c:job=dict(c.execute('SELECT * FROM jobs WHERE id=?',(queued['job_id'],)).fetchone())
     assert job['kind']=='render'
     assert (root/'06_edit/revisions/000001.json').read_bytes()==before
+
+
+def test_activity_feed_survives_jobs_without_a_resolvable_workspace(store):
+    from services.api import core, activity
+    with core.db() as c:
+        c.execute("INSERT INTO runs(id,episode_id,task,status,request,provenance,created,workspace,stage,progress,provider) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                  ('orphan-run', None, 'ideas', 'AWAITING_MANUAL', '{}', '{}', core.now(), None, 'Waiting', 0, 'manual'))
+        c.execute("INSERT INTO runs(id,episode_id,task,status,request,provenance,created,workspace,stage,progress,provider) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                  ('ghost-run', 999, 'prepare', 'FAILED', '{}', '{}', core.now(), '', 'Failed', 0, 'codex_cli'))
+    jobs = activity.collect()
+    assert {'orphan-run', 'ghost-run'} <= {j['job_id'] for j in jobs}

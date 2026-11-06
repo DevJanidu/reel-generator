@@ -1,13 +1,16 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "brand": "ODD FRAME",
-  "default_profile": "ODD_FRAME_CINEMATIC_FLOW_V1_1",
+  "default_profile": "ODD_FRAME_CINEMATIC_TRANSITIONS_V1",
   "invariants": {
     "image_motion": "static",
     "generated_video": false,
     "character_animation": false,
     "sfx": false,
-    "audio_sources": ["narration", "instrumental"],
+    "audio_sources": [
+      "narration",
+      "instrumental"
+    ],
     "note": "Every profile keeps still images completely static. Only scene transitions and typography change between profiles."
   },
   "profiles": {
@@ -18,10 +21,14 @@
       "renderer": "classic",
       "description": "Original ODD FRAME editing: static stills, hard cuts and Quick Pop captions.",
       "transitions": {
-        "allowed": ["cut"]
+        "allowed": [
+          "cut"
+        ]
       },
       "captions": {
-        "presets": ["quick_pop"],
+        "presets": [
+          "quick_pop"
+        ],
         "entrance": "quick_pop",
         "replace": "quick_pop",
         "emphasis": "quick_pop",
@@ -36,9 +43,21 @@
       "renderer": "cinematic",
       "description": "Static stills with scene-aware cuts, crossfades and dips to charcoal; animated center captions with a wave entrance, soft white glow and restrained golden emphasis.",
       "transitions": {
-        "allowed": ["cut", "crossfade", "dip_to_dark"],
-        "crossfade_frames": {"min": 6, "default": 8, "max": 10},
-        "dip_frames": {"min": 8, "default": 12, "max": 18},
+        "allowed": [
+          "cut",
+          "crossfade",
+          "dip_to_dark"
+        ],
+        "crossfade_frames": {
+          "min": 6,
+          "default": 8,
+          "max": 10
+        },
+        "dip_frames": {
+          "min": 8,
+          "default": 12,
+          "max": 18
+        },
         "dip_color": "#14171C",
         "max_non_cut_share": 0.5,
         "max_dip_share": 0.15,
@@ -46,7 +65,13 @@
         "rule": "Hard cuts remain the default. A crossfade or dip must be justified by narrative meaning; the first scene never has a transition."
       },
       "captions": {
-        "presets": ["wave_reveal", "glow_pop", "smooth_replace", "immediate_impact", "soft_fade"],
+        "presets": [
+          "wave_reveal",
+          "glow_pop",
+          "smooth_replace",
+          "immediate_impact",
+          "soft_fade"
+        ],
         "entrance": "wave_reveal",
         "replace": "smooth_replace",
         "emphasis": "glow_pop",
@@ -60,8 +85,16 @@
           "max_entrance_share": 0.4
         },
         "glow_style": {
-          "white": [255, 255, 255],
-          "gold": [255, 212, 59],
+          "white": [
+            255,
+            255,
+            255
+          ],
+          "gold": [
+            255,
+            212,
+            59
+          ],
           "base_alpha": 0.42,
           "base_blur_px": 14,
           "peak_alpha": 0.85,
@@ -72,6 +105,99 @@
         },
         "fast_phrase_frames": 10,
         "min_glow_frames": 14
+      }
+    },
+    "ODD_FRAME_CINEMATIC_TRANSITIONS_V1": {
+      "id": "ODD_FRAME_CINEMATIC_TRANSITIONS_V1",
+      "label": "Cinematic Transitions v1",
+      "version": "1.0.0",
+      "renderer": "cinematic",
+      "description": "Narrative-aware scene transitions on static stills: purposeful hard cuts by default, graphic match cuts where the artwork truly corresponds, short and emotional crossfades and sparing dips to charcoal; wave + glow captions on a continuous layer above the stills.",
+      "transitions": {
+        "allowed": [
+          "hard_cut",
+          "short_crossfade",
+          "emotional_crossfade",
+          "dip_to_charcoal",
+          "graphic_match_cut"
+        ],
+        "short_crossfade_frames": {
+          "min": 5,
+          "default": 7,
+          "max": 8
+        },
+        "emotional_crossfade_frames": {
+          "min": 9,
+          "default": 11,
+          "max": 12
+        },
+        "dip_frames": {
+          "min": 10,
+          "default": 12,
+          "max": 14
+        },
+        "dip_color": "#14171C",
+        "max_non_cut_share": 0.45,
+        "max_dip_share": 0.15,
+        "max_emotional_share": 0.15,
+        "min_scene_frames_for_transition": 18,
+        "guideline_distribution": {
+          "hard_or_graphic_match_cut": 0.65,
+          "short_crossfade": 0.25,
+          "dip_or_emotional": 0.1,
+          "note": "Loose editorial guideline, never a quota: a tense mystery may be almost all hard cuts, a gentle story may use more crossfades. Narrative suitability always wins."
+        },
+        "purposes": {
+          "hard_cut": "Default. Hooks, discoveries, reactions, changes of action, important beats, suspense, revelations, fast progression.",
+          "short_crossfade": "Gentle emotional continuity, quiet moments, friendship, sadness, romance, subtle atmospheric change. Not where silhouettes would overlap awkwardly.",
+          "emotional_crossfade": "Sparingly: important emotional pauses, memories, reflective moments, gentle resolutions. Not in fast suspense or action.",
+          "dip_to_charcoal": "Meaningful time jumps, major location or chapter changes, dramatic separations. Never for an ordinary scene change.",
+          "graphic_match_cut": "Only when two neighbouring stills deliberately correspond (shape, position, framing) as verified by looking at the artwork. Zero frames."
+        },
+        "rule": "Hard cuts remain the default. Every other transition must be justified by narrative meaning; S001 never has a transition; transitions are silent and never move the artwork."
+      },
+      "captions": {
+        "presets": [
+          "wave_reveal",
+          "glow_pop",
+          "smooth_replace",
+          "immediate_impact",
+          "soft_fade"
+        ],
+        "entrance": "wave_reveal",
+        "replace": "smooth_replace",
+        "emphasis": "glow_pop",
+        "fast": "immediate_impact",
+        "glow": true,
+        "wave": {
+          "entrance_frames": 7,
+          "stagger_total_frames": 3,
+          "rise_px": 30,
+          "exit_frames": 3,
+          "max_entrance_share": 0.4
+        },
+        "glow_style": {
+          "white": [
+            255,
+            255,
+            255
+          ],
+          "gold": [
+            255,
+            212,
+            59
+          ],
+          "base_alpha": 0.42,
+          "base_blur_px": 14,
+          "peak_alpha": 0.85,
+          "peak_blur_px": 24,
+          "gold_alpha": 0.7,
+          "rise_frames": 4,
+          "settle_frames": 12
+        },
+        "fast_phrase_frames": 10,
+        "min_glow_frames": 14,
+        "continuous_layer": true
       }
     }
   }

@@ -1,5 +1,7 @@
 import React from "react";
 import {Composition, registerRoot} from "remotion";
+import "@fontsource/barlow-condensed/800.css";
+import "@fontsource/atkinson-hyperlegible-next/600.css";
 import {OddFrameReel, type ReelProps} from "./composition";
 export {OddFrameReel, type ReelProps} from "./composition";
 const empty: ReelProps = {

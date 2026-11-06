@@ -2,6 +2,7 @@ import {useEffect, useState} from 'react';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {api} from './api';
 import {Activity, ChevronRight} from 'lucide-react';
+import {Paged} from './paging';
 type ActivityEvent = {event_id:string; timestamp:string; message:string; type:string; completed?:number; total?:number; file?:string;retry_of?:string};
 type Job = {job_id:string; episode_id:number|null; provider:string; status:string; task:string; stage:string; created:string; started_at?:string; finished_at?:string; events:ActivityEvent[]; error?:string; cancellable:boolean; retryable:boolean};
 const running=(j:Job)=>['QUEUED','RUNNING'].includes(j.status);
@@ -34,7 +35,7 @@ export function ActivityMonitor(){
       <p>{connectionDetail} Status is saved on this station.</p><a href="/help">Understanding AI Job Progress</a>
       <label>Jobs <select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">All Jobs</option>{Array.from(new Set(jobs.map(j=>j.episode_id))).map(id=><option key={String(id)} value={String(id)}>{id?`OF_R${String(id).padStart(3,'0')}`:'Story ideas / provider tests'}</option>)}</select></label>
       {error&&<p role="alert">{error}</p>}{!visible.length&&<p>No recorded jobs yet. Generate ideas or open an episode to begin.</p>}
-      {visible.map(job=>{
+      <Paged items={visible} size={5} label="jobs" resetKey={filter} empty={<></>} getText={j=>`${j.job_id} ${j.episode_id??""} ${j.task} ${j.provider} ${j.stage} ${j.status} ${j.error||""}`}>{rows=>rows.map(job=>{
         const last=job.events.at(-1),elapsed=Math.max(0,Math.floor(((job.finished_at?Date.parse(job.finished_at):tick)-Date.parse(job.started_at||job.created))/1000));
         const count=[...job.events].reverse().find(e=>e.total!==undefined&&e.completed!==undefined);
         const silent=running(job)&&job.status!=='QUEUED'&&tick-Date.parse(last?.timestamp||job.created)>90000;
@@ -50,9 +51,9 @@ export function ActivityMonitor(){
           </details>
           {job.cancellable&&<button onClick={()=>action(job,'cancel')}>Cancel generation</button>}{job.retryable&&<button onClick={()=>action(job,'retry')}>Retry as new job</button>}
           {!running(job)&&<p className="next-action">{job.status==='AWAITING_MANUAL'?'Next: download the complete request and import your structured response in the dashboard.':last?.message||'Open the episode workspace for the next action.'}</p>}
-          {job.task==='draft'&&job.status==='COMPLETE'&&job.episode_id&&<a className="open-live-editor" href={`/episodes/${job.episode_id}/editor`}>Open Live Editor</a>}
+          {job.task==='draft'&&job.status==='COMPLETE'&&job.episode_id&&<a className="open-live-editor" href="/">Open Edit Studio → Remotion Studio</a>}
         </section>
-      })}</aside>}</>;
+      })}</Paged></aside>}</>;
 }
 
 export function ProgressHelp(){return <main className="progress-help"><a href="/">← Dashboard</a><h1>Understanding AI Job Progress</h1><p>The activity button stays available as you move between pages. Choose All Jobs or one episode. Each job has its own provider, ID, history and output files.</p>
@@ -63,7 +64,8 @@ export function ProgressHelp(){return <main className="progress-help"><a href="/
     ['Validating / Saving','The response is checked against its schema and story coverage before any generated files are recorded as complete.'],
     ['Waiting for script approval','Read the draft in Script Studio. Approve once to freeze the wording and start episode preparation. No AI is running while it waits for you.'],
     ['Waiting for uploaded assets','Add your Flow still images, narration and SRT in Asset Manager. The pinned instrumental must also be available.'],
-    ['Auto Edit / Ready for review','The station aligns scenes and captions to your supplied subtitles and measures the two audio sources. Open Live Editor to review this complete draft without rendering an MP4.'],
+    ['Auto Edit / Ready for review','The station aligns scenes and captions to your supplied subtitles and measures the two audio sources. Then open it in the official Remotion Studio (Edit Studio page) to review and adjust it without rendering an MP4.'],
+    ['Editing in Remotion Studio','In Edit Studio click Open in Remotion Studio. When the panel says Remotion Studio Ready, open the editor. Adjust props or timeline, your changes are saved to the episode, then use Render final MP4 from this Studio project.'],
     ['Rendering / Running QC','Remotion renders the saved timeline. Frame counts come from the renderer. FFmpeg then checks the actual encoded output. This is separate from AI generation.'],
     ['Completed / Generated files','Expand a job to see verified filenames. Open the episode workspace to download public creative documents, or Exports for final videos. Private AI request files are not public media.'],
     ['Failed / Retry','Check the episode error and provider status in Settings. Fix missing assets, expired login or usage limits, then use Retry where offered. A retry creates a new job and does not rewrite approved narration.'],

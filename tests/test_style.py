@@ -10,6 +10,7 @@ from .fixtures import IDEA, SCRIPT, NARRATION, package
 from .test_station import prepared, asset_fixture
 
 FLOW = styles.FLOW_ID
+NEW = styles.TRANSITIONS_ID
 CLASSIC = styles.CLASSIC_ID
 
 
@@ -30,10 +31,10 @@ def scene(i, text='one two three four five six', **extra):
 
 
 # ----------------------------------------------------------------- profile document
-def test_profile_document_is_valid_and_default_is_cinematic_flow():
+def test_profile_document_is_valid_and_default_is_cinematic_transitions_v1():
     doc = styles.profiles_doc(core.ROOT)
     styles.validate_profiles(doc)
-    assert doc['default_profile'] == FLOW and set(doc['profiles']) == {CLASSIC, FLOW}
+    assert doc['default_profile'] == NEW and set(doc['profiles']) == {CLASSIC, FLOW, NEW}   # history kept
     assert doc['profiles'][CLASSIC]['transitions']['allowed'] == ['cut']  # Classic v1.0 kept, unchanged behaviour
     assert doc['profiles'][FLOW]['transitions']['allowed'] == ['cut', 'crossfade', 'dip_to_dark']
     cfg = doc['profiles'][FLOW]['transitions']
@@ -58,7 +59,7 @@ def test_profile_document_rejects_policy_violations(mutation):
 def test_skills_loader_pins_rules_and_profiles():
     from services.api import skills
     docs, rules = skills.load_skills()
-    assert len(docs) == 4 and rules['version'] == '1.1.0' and rules['editing']['default_profile'] == FLOW
+    assert len(docs) == 4 and rules['version'] == '1.2.0' and rules['editing']['default_profile'] == NEW
     assert rules['visuals']['image_motion'] == 'static' and rules['audio']['sfx'] is False
     assert rules['audio']['sources'] == ['narration', 'instrumental']
 
@@ -68,7 +69,7 @@ def test_old_packages_without_style_hints_remain_valid_and_unknown_transitions_a
     base = package()['scenes'][0]
     old = {k: v for k, v in base.items() if k not in ('transition_in', 'transition_reason', 'caption_style', 'emphasis_phrase')}
     parsed = Scene.model_validate(old)
-    assert parsed.transition_in == 'cut' and parsed.emphasis_phrase == ''
+    assert parsed.transition_in == 'hard_cut' and parsed.emphasis_phrase == ''
     for bad in ('wipe', 'glitch', 'zoom', 'spin'):
         with pytest.raises(ValidationError):
             Scene.model_validate({**old, 'transition_in': bad})
@@ -81,7 +82,7 @@ def test_preproduction_forces_first_cut_and_drops_invalid_emphasis(store):
     pkg['scenes'][1]['emphasis_phrase'] = 'door was open'
     ep = prepared_with(pkg)
     scenes = ep['data']['package']['scenes']
-    assert scenes[0]['transition_in'] == 'cut' and scenes[0]['emphasis_phrase'] == ''
+    assert scenes[0]['transition_in'] == 'hard_cut' and scenes[0]['emphasis_phrase'] == ''
     assert scenes[1]['emphasis_phrase'] == 'door was open'
 
 
@@ -93,8 +94,8 @@ def test_transition_budget_first_scene_and_frame_limits():
     plan, notes = styles.resolve_transitions(scenes, [90] * 12, profile)
     assert plan[0]['transition'] == 'cut'
     non_cut = [p for p in plan if p['transition'] != 'cut']
-    assert len(non_cut) <= int(profile['transitions']['max_non_cut_share'] * 11)
-    assert sum(p['transition'] == 'dip_to_dark' for p in plan) <= max(1, int(profile['transitions']['max_dip_share'] * 11))
+    assert len(non_cut) <= round(profile['transitions']['max_non_cut_share'] * 11)
+    assert sum(p['transition'] == 'dip_to_dark' for p in plan) <= max(1, round(profile['transitions']['max_dip_share'] * 11))
     assert len(non_cut) < 12 - 1  # never every still
     for p in non_cut:
         spec = profile['transitions']['crossfade_frames' if p['transition'] == 'crossfade' else 'dip_frames']
@@ -169,10 +170,10 @@ def test_caption_presets_follow_narrative_function():
 
 
 # ----------------------------------------------------------------- episode pinning / isolation
-def test_new_episode_inherits_cinematic_flow_and_pins_it(store):
+def test_new_episode_inherits_cinematic_transitions_v1_and_pins_it(store):
     ep = prepared()
     style = ep['data']['style']
-    assert style['profile_id'] == FLOW and style['renderer_dir'] == 'remotion' and style['source'] == 'global_default'
+    assert style['profile_id'] == NEW and style['renderer_dir'] == 'remotion' and style['source'] == 'global_default'
     directory = core.epdir(ep)
     assert (directory / '.production/input_snapshot/brand/EDITING_PROFILES.json').is_file()
     provenance = core.read_json(directory / '.production/provenance.json')
@@ -192,7 +193,7 @@ def test_global_default_change_never_touches_existing_episodes(store, monkeypatc
         return doc
     monkeypatch.setattr(styles, 'profiles_doc', changed)
     assert styles.global_default_style(core.ROOT)['profile_id'] == CLASSIC  # global default changed...
-    assert core.episode(ep['id'])['data']['style']['profile_id'] == FLOW     # ...the pinned episode did not
+    assert core.episode(ep['id'])['data']['style']['profile_id'] == NEW      # ...the pinned episode did not
 
 
 def test_legacy_episode_is_classic_and_adoption_is_explicit_and_non_destructive(store):
@@ -235,7 +236,7 @@ def test_style_changes_are_per_episode_and_rerender_is_opt_in(store):
     done = core.update_episode(a['id'], 'COMPLETE', exports=[dict(path='x.mp4', job_id=1)])
     out = main.set_style(a['id'], dict(profile_id=CLASSIC))
     assert out['data']['style']['profile_id'] == CLASSIC and out['status'] == 'COMPLETE' and out['data']['exports'] == done['data']['exports']
-    assert core.episode(b['id'])['data']['style']['profile_id'] == FLOW           # sibling untouched
+    assert core.episode(b['id'])['data']['style']['profile_id'] == NEW            # sibling untouched
     again = main.set_style(a['id'], dict(profile_id=FLOW, rerender=True))
     assert again['status'] == 'AWAITING_ASSETS' and again['data']['exports'] == done['data']['exports']
     core.update_episode(a['id'], 'RENDERING')
@@ -263,9 +264,9 @@ def test_timeline_uses_pinned_style_and_transitions_never_change_timing(store):
     report = media.validate_assets(ep['id'])
     assert report['valid'], report['errors']
     flow = media.timeline(ep['id'], report, write=False)
-    assert flow['style']['profile_id'] == FLOW and flow['style']['renderer'] == 'cinematic'
+    assert flow['style']['profile_id'] == NEW and flow['style']['renderer'] == 'cinematic'
     assert flow['scenes'][0]['transition'] == 'cut' and flow['scenes'][1]['transition'] == 'crossfade'
-    assert 6 <= flow['scenes'][1]['transition_frames'] <= 10
+    assert flow['scenes'][1]['transition_editorial'] == 'short_crossfade' and 5 <= flow['scenes'][1]['transition_frames'] <= 8   # v1.1 hint mapped
     assert all(s['motion'] == 'static' for s in flow['scenes'])
     assert any(c['preset'] == 'glow_pop' and c['emphasis'] == 'gold' for c in flow['captions'])
     classic = media.timeline(ep['id'], report, style=styles.preview_style(core.episode(ep['id']), CLASSIC), write=False)
@@ -284,3 +285,33 @@ def test_audio_identity_is_unchanged_by_style(store):
     props = media.timeline(ep['id'], report, write=False)
     assert props['audioSources'] == ['narration', 'instrumental']
     assert 'sfx' not in json.dumps(props).lower()
+
+
+# ----------------------------------------------------------------- auto-suggested transitions / editor audio range
+def test_packages_without_hints_get_deterministic_automatic_transitions():
+    profile = flow_profile()
+    base = dict(character_ids=['A'])
+    scenes = [dict(scene_id='S001', narration_text='She stood outside.', transition_in='cut', **base),
+              dict(scene_id='S002', narration_text='She kept looking at the key.', transition_in='cut', **base),
+              dict(scene_id='S003', narration_text='Hours later, nothing had changed.', transition_in='cut', **base),
+              dict(scene_id='S004', narration_text='A stranger arrived.', transition_in='cut', character_ids=['B']),
+              dict(scene_id='S005', narration_text='Then the door slammed.', transition_in='cut', character_ids=['B'])]
+    plan, notes = styles.resolve_transitions(scenes, [90] * 5, profile)
+    names = [p['transition'] for p in plan]
+    assert names[0] == 'cut' and names[1] == 'crossfade' and names[3] == 'cut' and names[4] == 'cut'
+    assert any('suggested automatically' in n for n in notes) and plan[1]['reason'].startswith('Auto')
+    assert styles.resolve_transitions(scenes, [90] * 5, profile)[0] == plan  # deterministic
+    classic, _ = styles.resolve_transitions(scenes, [90] * 5, styles.profiles_doc(core.ROOT)['profiles'][CLASSIC])
+    assert {p['transition'] for p in classic} == {'cut'}
+    authored = [dict(s, transition_in='cut') for s in scenes]
+    authored[3]['transition_in'] = 'crossfade'
+    plan2, _ = styles.resolve_transitions(authored, [90] * 5, profile)
+    assert plan2[1]['transition'] == 'cut'  # authored hints win; no auto-suggestions mixed in
+
+
+def test_editor_audio_range_allows_silence_through_plus_6db():
+    from services.api.editor import AudioEdit
+    AudioEdit(narration_gain=0, music_gain=2, fade_in=300, fade_out=300, ducking=1)
+    for bad in (dict(narration_gain=2.1), dict(music_gain=-.1), dict(fade_in=301), dict(ducking=1.1)):
+        with pytest.raises(ValidationError):
+            AudioEdit(**{**dict(narration_gain=1, music_gain=1, fade_in=0, fade_out=0, ducking=0), **bad})

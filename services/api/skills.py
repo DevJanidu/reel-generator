@@ -40,6 +40,11 @@ def load_skills(root=ROOT):
     if rules['visuals'].get('transition') not in ('cut','profile_defined'):
         raise ValueError('Configuration contradicts the approved ODD FRAME production policy (transition)')
     profiles_hash=manifest.get('editing_profiles_sha256')
+    taxonomy_hash=manifest.get('genre_taxonomy_sha256')
+    if taxonomy_hash:
+        from . import genres
+        if sha((root/genres.PATH).read_bytes())!=taxonomy_hash:raise ValueError('Story taxonomy changed without a reviewed manifest update')
+        genres.load(root)
     if profiles_hash:
         profiles_path=root/'brand/EDITING_PROFILES.json'
         if sha(profiles_path.read_bytes())!=profiles_hash:
@@ -79,7 +84,13 @@ def model_request(task, payload, config, root=ROOT):
     if not master.strip() or not stage.strip():
         raise ValueError('Master or task prompt is empty')
     full='\n\n'.join(f'=== FULL AUTHORITATIVE DOCUMENT {d["reading_order"]}: {d["canonical_path"]} ===\n{d["text"]}\n=== END FULL DOCUMENT ===' for d in docs)
-    system=full+'\n\n=== MASTER PROMPT ===\n'+master+'\n\n=== CURRENT OVERRIDES: HIGHEST AUTHORITY ===\n'+json.dumps(rules,ensure_ascii=False)+'\n\n=== TASK ===\n'+stage
+    taxonomy=None
+    if (root/'brand/STORY_GENRES.json').exists():
+        from . import genres
+        taxonomy=genres.load(root)
+    system=full+'\n\n=== MASTER PROMPT ===\n'+master+'\n\n=== CURRENT OVERRIDES: HIGHEST AUTHORITY ===\n'+json.dumps(rules,ensure_ascii=False)
+    if taxonomy is not None:system+='\n\n=== COMPLETE PINNED STORY GENRE TAXONOMY ===\n'+json.dumps(taxonomy,ensure_ascii=False)
+    system+='\n\n=== TASK ===\n'+stage
     messages=[dict(role='system',content=system),dict(role='user',content=json.dumps(payload,ensure_ascii=False))]
     # One UTF-8 byte per token is deliberately conservative, including task input/output reserve.
     bound=sum(len(m['content'].encode('utf-8')) for m in messages)+config['output_tokens']+512
@@ -93,4 +104,5 @@ def model_request(task, payload, config, root=ROOT):
                   override_version=rules['version'],override_sha256=sha(json.dumps(rules,sort_keys=True)),
                   task=task, stage_prompt_sha256=sha(stage), full_read_validated=True, context_byte_upper_bound=bound,
                   request_sha256=sha(json.dumps(messages,ensure_ascii=False)))
+    if taxonomy is not None:evidence['genre_taxonomy']=dict(version=taxonomy['version'],sha256=sha((root/'brand/STORY_GENRES.json').read_bytes()))
     return messages,evidence

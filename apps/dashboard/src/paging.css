@@ -1,0 +1,11 @@
+.paged-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}
+.paged-tools input[type=search]{flex:1;min-width:180px}
+.pager{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 0 2px;font-size:12px;color:#a7b0be}
+.pager-count{margin-right:auto}
+.pager button.small{padding:5px 10px;min-height:0}
+.pager-size select{margin-left:4px}
+.export-select{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid #31373e;font-size:12px}
+.export input[type=checkbox]{width:18px;height:18px;flex:none}
+.export.selected{background:#2a2420;box-shadow:inset 3px 0 0 #d98b6a}
+.danger{background:#7b2f2a;border-color:#b24a42;color:#fff}
+.danger:disabled{opacity:.5}

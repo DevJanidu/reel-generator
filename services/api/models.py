@@ -53,11 +53,31 @@ class Scene(Strict):
     continuity: str=Field(min_length=20)
     protected_regions: list[Region]=Field(min_length=1)
     caption_y: float=Field(default=.46,ge=.2,le=.7)
-    # Cinematic Flow editing hints. The renderer only trusts values validated here; unknown names are rejected.
-    transition_in: Literal['cut','crossfade','dip_to_dark']='cut'
+    # Editing hints (AI editorial plan). The renderer only trusts values validated here; unknown names are rejected.
+    # ODD_FRAME_CINEMATIC_TRANSITIONS_V1 names, plus the v1.1 names kept for packages authored before it.
+    transition_in: Literal['hard_cut','short_crossfade','emotional_crossfade','dip_to_charcoal','graphic_match_cut','cut','crossfade','dip_to_dark']='hard_cut'
     transition_reason: str=Field(default='',max_length=240)
     caption_style: Literal['default','soft_fade']='default'
     emphasis_phrase: str=Field(default='',max_length=80)
+
+TransitionName=Literal['hard_cut','short_crossfade','emotional_crossfade','dip_to_charcoal','graphic_match_cut']
+
+class TransitionDecision(Strict):
+    """One validated editorial decision for one scene boundary (data only; never renderer code)."""
+    from_scene: str=Field(pattern=r'^S\d{3}$')
+    to_scene: str=Field(pattern=r'^S\d{3}$')
+    transition: TransitionName
+    duration_frames: int=Field(ge=0,le=30,strict=True)
+    narrative_purpose: str=Field(default='',max_length=120)
+    narrative_reason: str=Field(min_length=3,max_length=240)
+
+class TransitionPlan(Strict):
+    profile_id: Literal['ODD_FRAME_CINEMATIC_TRANSITIONS_V1']
+    version: Literal['1.0.0']
+    author: str=Field(min_length=3,max_length=160)
+    created: str=Field(min_length=10,max_length=40)
+    method: str=Field(default='',max_length=400)
+    decisions: list[TransitionDecision]=Field(min_length=1,max_length=200)
 
 class AuditItem(Strict):
     criterion: Literal['Opening attention','Curiosity','Emotional stakes','Mid-story progression','Visual comprehensibility','Micro-payoffs','Ending satisfaction','Shareability','Originality','Brand consistency']

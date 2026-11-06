@@ -90,8 +90,25 @@ def main():
                 if message!=last:print(message,flush=True);last=message
                 if state=='FAILED':raise RuntimeError(detail['data'].get('error'))
                 if state=='EDIT_READY' and not render_requested:
-                    saved=client.get(prefix+'/editor').json()
-                    post(prefix+'/editor/render',{'revision':saved['state']['revision']});render_requested=True
+                    # Official Remotion Studio flow: the station built the project; start the REAL Studio, then the owner edits source.
+                    info=client.get(prefix+'/studio').json();assert info['exists'] and info['valid'] and not info['source_errors'],info
+                    post(prefix+'/studio/open');launch=None
+                    for _ in range(240):
+                        launch=client.get(prefix+'/studio').json()
+                        if launch['launch'] and launch['launch'].get('status') in ('READY','FAILED'):break
+                        time.sleep(1)
+                    assert launch['launch']['status']=='READY',launch['launch']
+                    studio_url=launch['session']['url'];studio_seconds=launch['launch'].get('startup_seconds')
+                    page=httpx.get(studio_url,timeout=30);assert page.status_code==200 and 'remotion' in page.text.lower()
+                    print(f'Official Remotion Studio answered at {studio_url} after {studio_seconds}s',flush=True)
+                    episode_dir=RUN/'episodes'/next((RUN/'episodes').glob('OF_R001*')).name
+                    episode_tsx=episode_dir/'06_edit/studio/src/Episode.tsx';text=episode_tsx.read_text(encoding='utf-8')
+                    import re
+                    first=re.search(r'(<CaptionSwitcher text=\{[^\n]*? y=\{)([0-9.]+)(\})',text);assert first,'caption not found'
+                    original_y=float(first.group(2));edited_y=0.2
+                    episode_tsx.write_text(text[:first.start(2)]+str(edited_y)+text[first.end(2):],encoding='utf-8')  # the owner's Studio edit
+                    post(prefix+'/studio/stop')
+                    post(prefix+'/studio/render');render_requested=True
                 if state=='COMPLETE':break
                 time.sleep(2)
             else:raise TimeoutError('Render did not finish in 15 minutes')
@@ -99,6 +116,7 @@ def main():
             qc=read_json(RUN/detail['path']/'07_export/QC_REPORT.json')
             mix=read_json(RUN/detail['path']/'06_edit/audio_mix.json')
             assert qc['valid'] and qc['decoded']
+            assert qc['studio']['owner_edited_files']==['src/Episode.tsx'] and qc['studio']['composition_id']=='OF-R001',qc['studio']
             assert qc['video']['width']==1080 and qc['video']['height']==1920 and qc['video']['r_frame_rate']=='30/1'
             assert qc['audio']['codec_name']=='aac' and qc['video']['codec_name']=='h264'
             assert mix['sources']==['narration','instrumental'] and not mix['sfx']
@@ -111,12 +129,17 @@ def main():
                 command(['ffmpeg','-y','-v','error','-ss',str(at),'-i',finalpath,'-frames:v','1',RUN/f'{tag}.png'])
             with Image.open(RUN/'hold_a.png') as a,Image.open(RUN/'hold_b.png') as b,Image.open(RUN/'entrance.png') as entrance:
                 static_diff=sum(ImageStat.Stat(ImageChops.difference(a.crop((0,1050,1080,1920)),b.crop((0,1050,1080,1920)))).mean)/3
-                text_diff=sum(ImageStat.Stat(ImageChops.difference(a.crop((95,500,985,800)),entrance.crop((95,500,985,800)))).mean)/3
+                text_diff=sum(ImageStat.Stat(ImageChops.difference(a.crop((95,int(1920*edited_y)-150,985,int(1920*edited_y)+150)),entrance.crop((95,int(1920*edited_y)-150,985,int(1920*edited_y)+150)))).mean)/3
             assert static_diff<1.5,('Unexpected image-region motion',static_diff)
+            # The owner's Studio edit (caption moved up to y=.2) must be visible in the final export.
+            with Image.open(RUN/'hold_a.png').convert('L') as g:
+                def bright(y0,y1):return sum(1 for px in g.crop((95,y0,985,y1)).getdata() if px>245)
+                moved=bright(int(1920*edited_y)-90,int(1920*edited_y)+90);old=bright(int(1920*original_y)-90,int(1920*original_y)+90)
+            assert moved>2500 and moved>old*2,('Studio edit not reflected in the final render',moved,old)
             assert text_diff>.5,('Caption entrance did not change frames',text_diff)
             summary=dict(result='PASS',synthetic_qa_only=True,store=str(RUN),export=str(RUN/final['path']),duration_seconds=total,
                          video=dict(width=1080,height=1920,fps=30,codec='h264'),audio=dict(codec='aac',lufs=qc['loudness']['input_i'],true_peak=qc['loudness']['input_tp'],gap_db=mix['measured_integrated_gap_db']),
-                         frame_checks=dict(static_region_mean_difference=static_diff,caption_entrance_mean_difference=text_diff),
+                         frame_checks=dict(studio_edit_caption_pixels_at_new_position=moved,caption_pixels_at_old_position=old,static_region_mean_difference=static_diff,caption_entrance_mean_difference=text_diff),
                          executed=['HTTP story selection','owner draft import','single script approval','full four-skill loading','manual Package import','all preproduction documents','bulk image upload','audio/SRT/music imports','automatic editable draft','measured audio ducking','explicit render from saved revision','Remotion preview and final','FFprobe and complete decode','black-frame check','static image region comparison','animated caption entrance frame comparison'],
                          limitations=['Synthetic QA speech and illustrations, not genuine ElevenLabs/Google Flow production assets','No live paid model call','No acoustic forced alignment or subjective creative quality proof'])
             write_json(RUN/'RESULT.json',summary)
