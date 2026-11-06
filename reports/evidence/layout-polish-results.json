@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "checks": [
+    "Recent Reel and next-action hovers stay neutral with readable text; header status gap >=12px; expanded logo does not overlap",
+    "Collapsed logo fits within the icon sidebar",
+    "Saved-session and generation-batch label/control gaps >=8px",
+    "Production history heading and search field have a real gap",
+    "Authorization alert has top/bottom spacing and precedes content; short pages align to top; axe passes",
+    "Mobile layout and sidebar logo spacing pass"
+  ],
+  "errors": []
+}

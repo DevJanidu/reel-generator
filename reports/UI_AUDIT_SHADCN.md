@@ -122,3 +122,7 @@ All 42 modifications, one deletion and 27 untracked paths are listed below and S
 
 Generated/runtime files: none in these 70 paths. Secrets/private configuration: none detected in the selected paths; .env, auth stores, data, episodes, exports, caches and node_modules excluded. Uncertain files: none excluded; scripts/ui_pages_seed.py and transition helper are retained as development utilities and not executed against production. Automated pattern screening is limited and does not constitute a credential audit. Existing tracked source uploads remain tracked and unchanged.
 
+## Follow-up evidence
+
+After the reviewed snapshot, fresh original-screen captures were obtained with an automated Chromium browser and a disposable manual-mode backend before frontend edits. No production state or live model usage was involved. Selected original/new evidence is retained in [OLD_VS_NEW_UI.md](OLD_VS_NEW_UI.md). The subsequent route, manual-workflow, accessibility and regression results are recorded in [UI_REGRESSION_TESTS.md](UI_REGRESSION_TESTS.md); they are separate from the initial read-only findings above.
+

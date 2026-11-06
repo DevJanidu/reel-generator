@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "checks": [
+    "Home route and desktop layout",
+    "Master Prompt route and desktop layout",
+    "Ideas route and desktop layout",
+    "Script Studio route and desktop layout",
+    "Episode Workspace route and desktop layout",
+    "Google Flow Prompts route and desktop layout",
+    "Asset Manager route and desktop layout",
+    "Edit Studio route and desktop layout",
+    "Exports route and desktop layout",
+    "Analytics route and desktop layout",
+    "Settings route and desktop layout",
+    "Production Queue route and desktop layout",
+    "AI Activity route and desktop layout",
+    "System Health route and desktop layout",
+    "How to Use route and desktop layout",
+    "Neutral Help accordion, subtle open state and readable expanded content",
+    "Refresh and browser back/forward",
+    "Visible Reel link labels, neutral primary buttons and 6px sidebar hover gaps",
+    "Sidebar preference and collapsed tooltip",
+    "Mobile Sheet navigation and every route layout",
+    "Activity Sheet Escape",
+    "Request failure and explicit retry recovery",
+    "Cross-origin mutation protection preserved"
+  ],
+  "errors": []
+}

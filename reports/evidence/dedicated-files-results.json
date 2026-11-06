@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "checks": [
+    "manager has expanded status and no embedded explorer",
+    "episode route and refresh/back/forward",
+    "selected file download",
+    "unsupported type and duplicate cancellation",
+    "full-height workspace without page overflow",
+    "mobile folder drawer",
+    "manager Upload Files opens destination dialog"
+  ]
+}

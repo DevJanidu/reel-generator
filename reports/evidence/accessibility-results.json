@@ -1,0 +1,58 @@
+[
+  {
+    "route": "/",
+    "violations": []
+  },
+  {
+    "route": "/ideas",
+    "violations": []
+  },
+  {
+    "route": "/script",
+    "violations": []
+  },
+  {
+    "route": "/workspace",
+    "violations": []
+  },
+  {
+    "route": "/flow",
+    "violations": []
+  },
+  {
+    "route": "/assets",
+    "violations": []
+  },
+  {
+    "route": "/studio",
+    "violations": []
+  },
+  {
+    "route": "/exports",
+    "violations": []
+  },
+  {
+    "route": "/analytics",
+    "violations": []
+  },
+  {
+    "route": "/settings",
+    "violations": []
+  },
+  {
+    "route": "/queue",
+    "violations": []
+  },
+  {
+    "route": "/activity",
+    "violations": []
+  },
+  {
+    "route": "/health",
+    "violations": []
+  },
+  {
+    "route": "/help",
+    "violations": []
+  }
+]
