@@ -1,0 +1,566 @@
+{
+  "head": "af891b2d2a18f2fc103f312899adffd84f526a72",
+  "status": " M AI_PROVIDERS.md\n M README.md\n M WORKFLOW.md\n M apps/dashboard/src/activity.tsx\n M apps/dashboard/src/api.ts\n D apps/dashboard/src/editor.tsx\n M apps/dashboard/src/main.tsx\n M apps/dashboard/src/router.tsx\n M brand/EDITING_PROFILES.json\n M brand/ODD_FRAME_RULES.json\n M brand/SKILLS_MANIFEST.json\n M package-lock.json\n M prompts/00_MASTER_PROMPT.md\n M prompts/01_IDEA_GENERATION.md\n M prompts/02_SCRIPT_WRITING.md\n M prompts/03_SCRIPT_REVIEW.md\n M prompts/04_CHARACTER_BIBLE.md\n M prompts/05_STORYBOARD.md\n M prompts/08_REMOTION_EDIT.md\n M scripts/cli_worker.py\n M scripts/production_worker.py\n M scripts/render_smoke.py\n M scripts/ui-smoke.mjs\n M scripts/write_stage_prompts.py\n M services/api/activity.py\n M services/api/core.py\n M services/api/creative.py\n M services/api/editor.py\n M services/api/main.py\n M services/api/media.py\n M services/api/models.py\n M services/api/providers.py\n M services/api/skills.py\n M services/api/snapshots.py\n M services/api/styles.py\n M services/api/worker.py\n M tests/test_editor_activity.py\n M tests/test_style.py\n M video/remotion/package.json\n M video/remotion/src/composition.tsx\n M video/remotion/src/index.tsx\n M workflows/REEL-CREATE.md\n M workflows/REEL-EDIT.md\n?? EDITING_TRANSITIONS.md\n?? REMOTION_STUDIO.md\n?? STORY_IDEAS.md\n?? apps/dashboard/src/exports.tsx\n?? apps/dashboard/src/ideas.css\n?? apps/dashboard/src/ideas.tsx\n?? apps/dashboard/src/paging.css\n?? apps/dashboard/src/paging.tsx\n?? apps/dashboard/src/studio.tsx\n?? brand/STORY_GENRES.json\n?? scripts/apply_transition_decisions.py\n?? scripts/genre-ui-smoke.mjs\n?? scripts/transitions_verify.py\n?? scripts/ui_pages_seed.py\n?? services/api/genres.py\n?? services/api/idea_models.py\n?? services/api/story_ideas.py\n?? services/api/studio.py\n?? tests/genre_fixtures.py\n?? tests/test_credentials.py\n?? tests/test_exports_delete.py\n?? tests/test_genre_ideas.py\n?? tests/test_studio.py\n?? tests/test_transitions.py\n?? video/remotion/preview-studio.mjs\n?? video/remotion/render-studio.mjs\n?? video/remotion/src/library.tsx\n",
+  "files": [
+    {
+      "status": " M",
+      "path": "AI_PROVIDERS.md",
+      "category": "Tests and documentation",
+      "bytes": 6891,
+      "sha256": "6632dc457e59fc5a6c7237d70d88bf7f9a34e3a1970f3a7dd377dc4b82c346f5",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "README.md",
+      "category": "Tests and documentation",
+      "bytes": 8613,
+      "sha256": "ac28ccfb990bfac0b7e8c196c2f7ce92122941c79f24b2396c5829ced89e5502",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "WORKFLOW.md",
+      "category": "Tests and documentation",
+      "bytes": 4614,
+      "sha256": "496ac69cd42cb1cbdf87352cb6c0d3b802e59eaaf3780f183871681f28ab5cd7",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "apps/dashboard/src/activity.tsx",
+      "category": "Intended application source",
+      "bytes": 10060,
+      "sha256": "2d4b1c575a84ced8a379ba9305530aa8b66489f58af773bdd8abb8ded24b840a",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "apps/dashboard/src/api.ts",
+      "category": "Intended application source",
+      "bytes": 544,
+      "sha256": "e5fb80393954b18884d67c8f44e48db09582cb6998c0c92fffe770b56cf1a879",
+      "secret_pattern": false
+    },
+    {
+      "status": " D",
+      "path": "apps/dashboard/src/editor.tsx",
+      "category": "Intended application source",
+      "bytes": 0,
+      "sha256": null,
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "apps/dashboard/src/main.tsx",
+      "category": "Intended application source",
+      "bytes": 106359,
+      "sha256": "773ed4e8226264ebf1edc6d7df9152a453f589712df49555d0705bbd8518a417",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "apps/dashboard/src/router.tsx",
+      "category": "Intended application source",
+      "bytes": 1639,
+      "sha256": "06026e2404eb5638f9db34d488f2865ea2ce61c94be832e54bd40a44935e16ca",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "brand/EDITING_PROFILES.json",
+      "category": "Required configuration and dependencies",
+      "bytes": 6863,
+      "sha256": "fdcf22b01917899fb553260fe7426b4ab433ad458660850bc87c9f6c4823430f",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "brand/ODD_FRAME_RULES.json",
+      "category": "Required configuration and dependencies",
+      "bytes": 3140,
+      "sha256": "7e485cabcf4134a854f138cb2bb04b089bef0eecc985da957f6e41f5487f774d",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "brand/SKILLS_MANIFEST.json",
+      "category": "Required configuration and dependencies",
+      "bytes": 3830,
+      "sha256": "3d36cbcbaa320982ee2cb56df0c46d560c7be8109b28f476852500372db06420",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "package-lock.json",
+      "category": "Required configuration and dependencies",
+      "bytes": 190950,
+      "sha256": "ca8cd7b8b4dd20e91f4fddc76390a9d15d5384f7f1adf01c8b4e6fb1516cc3f1",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "prompts/00_MASTER_PROMPT.md",
+      "category": "Required configuration and dependencies",
+      "bytes": 17152,
+      "sha256": "42694446ea57f6e5624003f2973ac628827d29ec89a093648c0d397e707101bf",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "prompts/01_IDEA_GENERATION.md",
+      "category": "Required configuration and dependencies",
+      "bytes": 5319,
+      "sha256": "46a62f3d892e17ddf39f3fff930c0b363f2bdc93bd488ce834a79fc4ee448a7c",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "prompts/02_SCRIPT_WRITING.md",
+      "category": "Required configuration and dependencies",
+      "bytes": 5364,
+      "sha256": "e40941362c96bf29f9f67286080c078aeda5cda2674c756ca438a455102ca12c",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "prompts/03_SCRIPT_REVIEW.md",
+      "category": "Required configuration and dependencies",
+      "bytes": 5420,
+      "sha256": "11aca1424cfaff130aa3b9d5048f602b1dc65cd3c692b38a00752482203254aa",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "prompts/04_CHARACTER_BIBLE.md",
+      "category": "Required configuration and dependencies",
+      "bytes": 2654,
+      "sha256": "63fae6fe58b18f36d45cc16ec8290b62f6f5dd1eeb1113dc7ee37a7d27f91d61",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "prompts/05_STORYBOARD.md",
+      "category": "Required configuration and dependencies",
+      "bytes": 7480,
+      "sha256": "76fa66ffcd9468c7962168e35e3caf9d4478e4b824e09017582728d5b509ca1d",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "prompts/08_REMOTION_EDIT.md",
+      "category": "Required configuration and dependencies",
+      "bytes": 6783,
+      "sha256": "cbad7712cbd5b21708456c9e1c9d9842fddc4d056611675995a5ff2471d27738",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "scripts/cli_worker.py",
+      "category": "Intended application source",
+      "bytes": 7283,
+      "sha256": "2a31ba0286e482d24556b5f62eadf0b83e741103bf086ff42b9c452ab4c88886",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "scripts/production_worker.py",
+      "category": "Intended application source",
+      "bytes": 2843,
+      "sha256": "eb42755a537166ba2fa2a95858f6742552f5854641a2dc17a1a657a4c41a65c4",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "scripts/render_smoke.py",
+      "category": "Tests and documentation",
+      "bytes": 11937,
+      "sha256": "5d894cfcfc9eb34f00883e3657a00485c3a709e35fb27552402b7bcee7e0641c",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "scripts/ui-smoke.mjs",
+      "category": "Tests and documentation",
+      "bytes": 9423,
+      "sha256": "da4835d428b4f6007feb35c10345f8c8af942f8941abe34cd4b2c393df49f79d",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "scripts/write_stage_prompts.py",
+      "category": "Intended application source",
+      "bytes": 20671,
+      "sha256": "61888681a366a7458fb8a3ffdd78c07d2ac510d51e75799cd51021bf29a1e41c",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/activity.py",
+      "category": "Intended application source",
+      "bytes": 6513,
+      "sha256": "d3449915e67663214a7278e0d3a77f07f1b9aea46933715afaa86a35735cc261",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/core.py",
+      "category": "Intended application source",
+      "bytes": 8848,
+      "sha256": "8adc6b2ef725787b0991138382f484bd84828b162dc123e0b06051fb8665881c",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/creative.py",
+      "category": "Intended application source",
+      "bytes": 30146,
+      "sha256": "49c77dc453b6948a064c96f0748f03b0f5431a1b0bee5617209b2ea659fcc650",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/editor.py",
+      "category": "Intended application source",
+      "bytes": 13380,
+      "sha256": "0528b8b90e401e3b1d06a8203fc4d5cfb3371910f172d81c264a6a91c6cfa2ca",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/main.py",
+      "category": "Intended application source",
+      "bytes": 47961,
+      "sha256": "8d8c4f1ecb113d3e5d808faef399308f33fecc96125b0a463c240bcac6c664d1",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/media.py",
+      "category": "Intended application source",
+      "bytes": 24389,
+      "sha256": "2802fe314d0bfde551281ad19f944b110efc3dcb5ba41e1c94b8a75f9d388181",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/models.py",
+      "category": "Intended application source",
+      "bytes": 4321,
+      "sha256": "524c4ca0b02a2047dc242ca976759521298115a6d7cb95a279c9ff2fe2c9d365",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/providers.py",
+      "category": "Intended application source",
+      "bytes": 17352,
+      "sha256": "add115c451f9b7fec3a00fc99613100c659bf0d0b7f4c48efb84907cc908e5e3",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/skills.py",
+      "category": "Intended application source",
+      "bytes": 7476,
+      "sha256": "e27b27708b29c091ecd56e02dcea37469b29662c6fd54d7205a66f25a3f5f667",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/snapshots.py",
+      "category": "Intended application source",
+      "bytes": 6194,
+      "sha256": "d4a0b3f9faeaf2c3c980539d8de6f743708bb025ec87ee06bb2f3c74a3700373",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/styles.py",
+      "category": "Intended application source",
+      "bytes": 24442,
+      "sha256": "647128ed8434b6b2f576c954759f5f10dd6508a898b06b2b1e9da191c2bd8a1a",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "services/api/worker.py",
+      "category": "Intended application source",
+      "bytes": 32937,
+      "sha256": "6c27c758c0fd3bfc9ca2bf16157bf11eb76e50f79fad6c5f38e1962655d8010f",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "tests/test_editor_activity.py",
+      "category": "Tests and documentation",
+      "bytes": 7260,
+      "sha256": "4f2219b2ab8caf4f0c21664b58a4baff36d6b57024d0f30144fbba4114bb67be",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "tests/test_style.py",
+      "category": "Tests and documentation",
+      "bytes": 18299,
+      "sha256": "ec0f91a1fed8bfa369c717c21e8c99895cf479bc0ba06811e0e1c4f43d899d52",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "video/remotion/package.json",
+      "category": "Required configuration and dependencies",
+      "bytes": 419,
+      "sha256": "7a400434c504337ece12826824dda23500f0c34f04006b22035bb82dbe22820b",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "video/remotion/src/composition.tsx",
+      "category": "Intended application source",
+      "bytes": 16724,
+      "sha256": "e4654488e9fed0d5b09b2deaec09da5ecc88cff7b5ccd1e3926d3b8ffe876730",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "video/remotion/src/index.tsx",
+      "category": "Intended application source",
+      "bytes": 855,
+      "sha256": "654fb37c39c812a05e9685524973d88d93fbb8f724e34681cd507900aec02086",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "workflows/REEL-CREATE.md",
+      "category": "Tests and documentation",
+      "bytes": 2182,
+      "sha256": "0ea927d89a983537688dc5176dce68a99252cb634f48522df996efaa169f4f2a",
+      "secret_pattern": false
+    },
+    {
+      "status": " M",
+      "path": "workflows/REEL-EDIT.md",
+      "category": "Tests and documentation",
+      "bytes": 3703,
+      "sha256": "b7cb4ecbcde7a86de340816696e1779acb6180b8526d41dd0754401f507b378c",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "EDITING_TRANSITIONS.md",
+      "category": "Tests and documentation",
+      "bytes": 4191,
+      "sha256": "5075bda036ec3dde6d389d31a5c234762c13adef8636b998e9a319a13e703269",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "REMOTION_STUDIO.md",
+      "category": "Tests and documentation",
+      "bytes": 5440,
+      "sha256": "e38aff096dd06bb386ae4d82f0f4ba14ca85145d96dbd1b412f47d54561d6aba",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "STORY_IDEAS.md",
+      "category": "Tests and documentation",
+      "bytes": 4853,
+      "sha256": "52ac95c2b41d3640be8e350538ffcf5a856ef54ef8ccc0773b027d62f87445f5",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "apps/dashboard/src/exports.tsx",
+      "category": "Intended application source",
+      "bytes": 5956,
+      "sha256": "2b62d973aec6cbd293916b086ca8f509f11cd4a03fde127afd5c2099be7d7439",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "apps/dashboard/src/ideas.css",
+      "category": "Intended application source",
+      "bytes": 7813,
+      "sha256": "f56fdd38c2aeffb66efd3d82d20e9b7d4a9fbffea319fc091f6b9032ee0f550e",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "apps/dashboard/src/ideas.tsx",
+      "category": "Intended application source",
+      "bytes": 21445,
+      "sha256": "dd4f1e2bd4ac20b75ad5142f38e44527c2da939ac974981385a351bfe8711ba7",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "apps/dashboard/src/paging.css",
+      "category": "Intended application source",
+      "bytes": 730,
+      "sha256": "7a40cdccc32282f5ff763da616bcd43735cdb9e2d72f14ea121c838560cdc6e6",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "apps/dashboard/src/paging.tsx",
+      "category": "Intended application source",
+      "bytes": 4311,
+      "sha256": "9bbc505634e224012aec2e70fc1f9b3e49c9e3c7bcb9bfe2584b3aa8d58b9d7f",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "apps/dashboard/src/studio.tsx",
+      "category": "Intended application source",
+      "bytes": 10880,
+      "sha256": "fcd242f76f4a9e17b9ca75801f032a1edb6a140c6c1637c5f4658709f42534d3",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "brand/STORY_GENRES.json",
+      "category": "Required configuration and dependencies",
+      "bytes": 6388,
+      "sha256": "475019d180e8550379f61d1b1ea946e6158e4cff01632ad830f6cf204521ed49",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "scripts/apply_transition_decisions.py",
+      "category": "Intended application source",
+      "bytes": 2643,
+      "sha256": "25d16f3911aae5e31d59030f8b16b93955667df31e2c0afbebd58378cece84f4",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "scripts/genre-ui-smoke.mjs",
+      "category": "Tests and documentation",
+      "bytes": 10960,
+      "sha256": "5487b6a2c8f54ae65123aea8acef88ab51d92e0c1f73b7bba2ca800e33de1cac",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "scripts/transitions_verify.py",
+      "category": "Tests and documentation",
+      "bytes": 9715,
+      "sha256": "a5d82b0672b6aebf65f20dbf6d351e658c5f425b942bae17569c5d573bbc7102",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "scripts/ui_pages_seed.py",
+      "category": "Tests and documentation",
+      "bytes": 2107,
+      "sha256": "304fe46e349ce8f5c9b581ed7f067532a9604dc4e114db7a09be04a669f22375",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "services/api/genres.py",
+      "category": "Intended application source",
+      "bytes": 1714,
+      "sha256": "d6e8ab1af6b878058c6c3ab46ce6a88a09952338648d194aa1e899d8034b2fa4",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "services/api/idea_models.py",
+      "category": "Intended application source",
+      "bytes": 2529,
+      "sha256": "7c281ddcf7e9476a2a1fccdbbd5983e5104dce4d0ac7932a071188d525bd25e2",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "services/api/story_ideas.py",
+      "category": "Intended application source",
+      "bytes": 19353,
+      "sha256": "183d56be5b3b48c076fa34723dc4debccdbc4578dd2f08b570449ad20370296e",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "services/api/studio.py",
+      "category": "Intended application source",
+      "bytes": 33393,
+      "sha256": "e73b56d58ff36f1c87f7f02524b2bbb089226dac3ce3a4ffa6372292244128e0",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "tests/genre_fixtures.py",
+      "category": "Tests and documentation",
+      "bytes": 4049,
+      "sha256": "3722e9f6124ed7a5325326b17ace89bc28c3bf499c5cd6e1d9d5334743808c90",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "tests/test_credentials.py",
+      "category": "Tests and documentation",
+      "bytes": 3832,
+      "sha256": "7e3569e5e287affa076aea52753639cd00102ac7442189e601243828bdc93c83",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "tests/test_exports_delete.py",
+      "category": "Tests and documentation",
+      "bytes": 3955,
+      "sha256": "abeb7805a7912a81cf18227c3482dfe86d09251dcdce613ea479e5808331de99",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "tests/test_genre_ideas.py",
+      "category": "Tests and documentation",
+      "bytes": 12319,
+      "sha256": "166f729e63397e488a5f952d78eeb6ca00851dc70937ae3835a896018e55a190",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "tests/test_studio.py",
+      "category": "Tests and documentation",
+      "bytes": 6563,
+      "sha256": "201df362016d66721ca97c79f1a33224f2ca6ca254855a1848b38c699752fb95",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "tests/test_transitions.py",
+      "category": "Tests and documentation",
+      "bytes": 15269,
+      "sha256": "773bb8c2bed1d7c510c8e19db0e9419a001206c2b73be964c7dfff8561d8f78d",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "video/remotion/preview-studio.mjs",
+      "category": "Intended application source",
+      "bytes": 3451,
+      "sha256": "1645899ef74751f1494abb2971acc10036473b51cfa2875ad3d47c8c666f94f8",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "video/remotion/render-studio.mjs",
+      "category": "Intended application source",
+      "bytes": 2859,
+      "sha256": "7468e9327598e87c954e2dce7f04dce579b8011b8b709c7ffa4a2755162c826c",
+      "secret_pattern": false
+    },
+    {
+      "status": "??",
+      "path": "video/remotion/src/library.tsx",
+      "category": "Intended application source",
+      "bytes": 9140,
+      "sha256": "8e6581924175fd060ac9f1ecd5275d0dcf31674b7cbcde905d65de6531391586",
+      "secret_pattern": false
+    }
+  ]
+}
