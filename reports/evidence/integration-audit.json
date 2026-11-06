@@ -1,0 +1,515 @@
+{
+  "original_head": "af891b2d2a18f2fc103f312899adffd84f526a72",
+  "feature_head": "8834a9440932f8ef273636c6c70981aa7d1b757d",
+  "integration_head": "1efeeac1764106a43881d2fedd866977901085cc",
+  "reviewed_files": [
+    {
+      "path": "AI_PROVIDERS.md",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "README.md",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "WORKFLOW.md",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "apps/dashboard/src/activity.tsx",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "apps/dashboard/src/api.ts",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "apps/dashboard/src/editor.tsx",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " D"
+    },
+    {
+      "path": "apps/dashboard/src/main.tsx",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "apps/dashboard/src/router.tsx",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "brand/EDITING_PROFILES.json",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "brand/ODD_FRAME_RULES.json",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "brand/SKILLS_MANIFEST.json",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "package-lock.json",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "prompts/00_MASTER_PROMPT.md",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "prompts/01_IDEA_GENERATION.md",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "prompts/02_SCRIPT_WRITING.md",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "prompts/03_SCRIPT_REVIEW.md",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "prompts/04_CHARACTER_BIBLE.md",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "prompts/05_STORYBOARD.md",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "prompts/08_REMOTION_EDIT.md",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "scripts/cli_worker.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "scripts/production_worker.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "scripts/render_smoke.py",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "scripts/ui-smoke.mjs",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "scripts/write_stage_prompts.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/activity.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/core.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/creative.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/editor.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/main.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/media.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/models.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/providers.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/skills.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/snapshots.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/styles.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "services/api/worker.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "tests/test_editor_activity.py",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "tests/test_style.py",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "video/remotion/package.json",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "video/remotion/src/composition.tsx",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "video/remotion/src/index.tsx",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "workflows/REEL-CREATE.md",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "workflows/REEL-EDIT.md",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": " M"
+    },
+    {
+      "path": "EDITING_TRANSITIONS.md",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "REMOTION_STUDIO.md",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "STORY_IDEAS.md",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "apps/dashboard/src/exports.tsx",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "apps/dashboard/src/ideas.css",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "apps/dashboard/src/ideas.tsx",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "apps/dashboard/src/paging.css",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "apps/dashboard/src/paging.tsx",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "apps/dashboard/src/studio.tsx",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "brand/STORY_GENRES.json",
+      "category": "Required configuration and dependencies",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "scripts/apply_transition_decisions.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "scripts/genre-ui-smoke.mjs",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "scripts/transitions_verify.py",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "scripts/ui_pages_seed.py",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "services/api/genres.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "services/api/idea_models.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "services/api/story_ideas.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "services/api/studio.py",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "tests/genre_fixtures.py",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "tests/test_credentials.py",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "tests/test_exports_delete.py",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "tests/test_genre_ideas.py",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "tests/test_studio.py",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "tests/test_transitions.py",
+      "category": "Tests and documentation",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "video/remotion/preview-studio.mjs",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "video/remotion/render-studio.mjs",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    },
+    {
+      "path": "video/remotion/src/library.tsx",
+      "category": "Intended application source",
+      "snapshot_matches": true,
+      "status": "??"
+    }
+  ],
+  "ignored_roots": [
+    ".env",
+    ".pytest_cache/",
+    ".venv/",
+    "apps/dashboard/dist/",
+    "artifacts/",
+    "data/",
+    "data/controller-access.json",
+    "data/odd_frame.sqlite",
+    "data/remotion-bundle/",
+    "episodes/",
+    "episodes/OF_R001_the-key-was-outside/",
+    "episodes/_ideas/",
+    "episodes/_provider_tests/",
+    "node_modules/",
+    "scripts/__pycache__/",
+    "services/__pycache__/",
+    "services/api/__pycache__/",
+    "tests/__pycache__/",
+    "video/remotion/node_modules/",
+    "video/remotion/runtime-binaries/"
+  ],
+  "ignored_entries": 81583,
+  "unreadable_ignored": [
+    "artifacts\\studio-upgrade\\pytest-activity-priority",
+    "artifacts\\studio-upgrade\\pytest-all-3",
+    "artifacts\\studio-upgrade\\pytest-cache",
+    "artifacts\\studio-upgrade\\pytest-cancel-final",
+    "artifacts\\studio-upgrade\\pytest-complete",
+    "artifacts\\studio-upgrade\\pytest-editor-1",
+    "artifacts\\studio-upgrade\\pytest-editor-2",
+    "artifacts\\studio-upgrade\\pytest-final",
+    "artifacts\\studio-upgrade\\pytest-http-final",
+    "artifacts\\studio-upgrade\\pytest-rebuild",
+    "artifacts\\studio-upgrade\\pytest-transport"
+  ],
+  "production_schema": {
+    "user_version": 0,
+    "schema_version": 13,
+    "objects": [
+      [
+        "index",
+        "active_job",
+        "CREATE UNIQUE INDEX active_job ON jobs(episode_id,kind) WHERE status IN ('QUEUED','RUNNING')"
+      ],
+      [
+        "index",
+        "one_active_creative",
+        "CREATE UNIQUE INDEX one_active_creative ON runs(episode_id) WHERE episode_id IS NOT NULL AND status IN ('QUEUED','RUNNING')"
+      ],
+      [
+        "table",
+        "episodes",
+        "CREATE TABLE episodes (id INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT UNIQUE, path TEXT UNIQUE, title TEXT, status TEXT, data TEXT, updated TEXT)"
+      ],
+      [
+        "table",
+        "events",
+        "CREATE TABLE events (id INTEGER PRIMARY KEY, episode_id INTEGER, at TEXT, stage TEXT, message TEXT)"
+      ],
+      [
+        "table",
+        "idea_sessions",
+        "CREATE TABLE idea_sessions (id TEXT PRIMARY KEY, path TEXT UNIQUE NOT NULL, created TEXT NOT NULL, updated TEXT NOT NULL)"
+      ],
+      [
+        "table",
+        "jobs",
+        "CREATE TABLE jobs (id INTEGER PRIMARY KEY, episode_id INTEGER, kind TEXT, status TEXT, progress REAL DEFAULT 0, stage TEXT, error TEXT, created TEXT, updated TEXT)"
+      ],
+      [
+        "table",
+        "metrics",
+        "CREATE TABLE metrics (id INTEGER PRIMARY KEY, episode_id INTEGER, payload TEXT, created TEXT)"
+      ],
+      [
+        "table",
+        "runs",
+        "CREATE TABLE runs (id TEXT PRIMARY KEY, episode_id INTEGER, task TEXT, status TEXT, request TEXT, provenance TEXT, result TEXT, error TEXT, created TEXT, workspace TEXT, stage TEXT, progress REAL DEFAULT 0, provider TEXT)"
+      ],
+      [
+        "table",
+        "settings",
+        "CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT)"
+      ]
+    ]
+  },
+  "original_preserved": true
+}

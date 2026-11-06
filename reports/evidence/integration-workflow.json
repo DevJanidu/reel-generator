@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "checks": [
+    "8 groups, 24 genres, official Dialog focus/Escape, five validated manual concepts",
+    "Story selection, episode URL and refresh persistence",
+    "Draft save, single approval, immutable wording, complete package import and Flow download",
+    "Real asset validation and missing-asset feedback",
+    "Real multipart upload into disposable episode",
+    "Backend job states and generated outputs",
+    "Authorized settings save to disposable database",
+    "Independent persisted job states across three disposable Reel workflows; no live workers"
+  ],
+  "errors": [],
+  "episode": 2,
+  "limitations": [
+    "Manual synthetic import covers generation contracts; no paid/live model call",
+    "Actual render and native enforcement were not exercised by this browser script"
+  ]
+}

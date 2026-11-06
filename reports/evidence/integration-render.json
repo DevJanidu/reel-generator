@@ -1,0 +1,48 @@
+{
+  "result": "PASS",
+  "synthetic_qa_only": true,
+  "store": "E:\\facebook-integration-20261106\\artifacts\\render-smoke\\20261106-120035",
+  "export": "E:\\facebook-integration-20261106\\artifacts\\render-smoke\\20261106-120035\\episodes\\OF_R001_disposable-qa-the-open-door\\07_export\\final\\OF_R001_v002.mp4",
+  "duration_seconds": 4.922767,
+  "video": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "codec": "h264"
+  },
+  "audio": {
+    "codec": "aac",
+    "lufs": "-16.02",
+    "true_peak": "-2.50",
+    "gap_db": 21.040000000000003
+  },
+  "frame_checks": {
+    "studio_edit_caption_pixels_at_new_position": 17642,
+    "caption_pixels_at_old_position": 0,
+    "static_region_mean_difference": 0.0012161203348942811,
+    "caption_entrance_mean_difference": 24.472350811485644
+  },
+  "executed": [
+    "HTTP story selection",
+    "owner draft import",
+    "single script approval",
+    "full four-skill loading",
+    "manual Package import",
+    "all preproduction documents",
+    "bulk image upload",
+    "audio/SRT/music imports",
+    "automatic editable draft",
+    "measured audio ducking",
+    "explicit render from saved revision",
+    "Remotion preview and final",
+    "FFprobe and complete decode",
+    "black-frame check",
+    "static image region comparison",
+    "animated caption entrance frame comparison"
+  ],
+  "limitations": [
+    "Synthetic QA speech and illustrations, not genuine ElevenLabs/Google Flow production assets",
+    "No live paid model call",
+    "No acoustic forced alignment or subjective creative quality proof"
+  ]
+}

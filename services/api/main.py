@@ -162,7 +162,9 @@ def detail(eid:int):
     for job in ep['jobs']:
         local=directory/f'.production/jobs/{job["id"]}.json'
         if local.exists():_overlay_job(job,read_json(local))
-    ep['files']=[str(p.relative_to(directory)).replace('\\','/') for p in directory.rglob('*') if p.is_file() and not p.name.endswith('.tmp') and '.production' not in p.relative_to(directory).parts]
+    from .file_catalog import public_catalog
+    ep['file_entries']=public_catalog(directory)
+    ep['files']=[entry['path'] for entry in ep['file_entries'] if entry['kind']=='file']
     ep['isolation']=isolation.status(directory)
     ep['input_snapshot']=read_json(directory/'.production/provenance.json') if (directory/'.production/provenance.json').exists() else None
     ep['style_info']=_style_summary(ep)

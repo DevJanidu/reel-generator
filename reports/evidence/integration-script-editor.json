@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "checks": [
+    "empty/running/failed/import-only states hide editor",
+    "generation action still queues",
+    "review in progress locks inputs",
+    "successful generation permits edits",
+    "save and approval carry edited wording",
+    "approved script stays read-only after refresh, including legacy approvals"
+  ],
+  "mutations": "Intercepted fixtures only; no provider calls or episode writes"
+}

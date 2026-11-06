@@ -1,7 +1,57 @@
+@layer theme, base, legacy, components, utilities;
 @import "tailwindcss";
 @import "@fontsource/atkinson-hyperlegible-next/400.css";
 @import "@fontsource/atkinson-hyperlegible-next/600.css";
 @import "@fontsource/barlow-condensed/800.css";
+@import "tw-animate-css";
+@import "./shadcn.css";
+
+@custom-variant dark (&:is(.dark *));
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Atkinson Hyperlegible Next', sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+
+@layer legacy {
 .provider-tests {
   margin-top: 28px;
 }
@@ -36,11 +86,11 @@ textarea,
 select {
   outline-offset: 4px;
 }
-button,
+button:not([data-slot]),
 .button {
-  border: 1px solid #ffd43b;
-  background: #ffd43b;
-  color: #171812;
+  border: 1px solid var(--foreground);
+  background: var(--foreground);
+  color: var(--muted);
   padding: 11px 16px;
   border-radius: 7px;
   font-weight: 600;
@@ -53,11 +103,11 @@ button,
   transition: background 0.15s;
   white-space: nowrap;
 }
-button:hover,
+button:not([data-slot]):hover,
 .button:hover {
   filter: brightness(1.07);
 }
-button:disabled,
+button:not([data-slot]):disabled,
 .disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -74,7 +124,7 @@ button:disabled,
 .text-button {
   background: transparent;
   border: 0;
-  color: #c7b67c;
+  color: var(--foreground);
   padding: 4px;
   font-size: 12px;
 }
@@ -96,7 +146,7 @@ button:disabled,
   display: flex;
   align-items: center;
   gap: 11px;
-  color: #f3f1e9;
+  color: var(--foreground);
   text-decoration: none;
   margin: 0 9px 43px;
   font-size: 19px;
@@ -113,8 +163,8 @@ button:disabled,
 .brand-symbol {
   height: 39px;
   width: 36px;
-  border: 3px solid #ffd43b;
-  color: #ffd43b;
+  border: 3px solid var(--foreground);
+  color: var(--foreground);
   position: relative;
   line-height: 29px;
   font-weight: 800;
@@ -149,16 +199,16 @@ button:disabled,
   gap: 12px;
 }
 .nav-item.active {
-  background: #ffd43b13;
-  color: #ffda58;
-  border: 1px solid #ffd43b29;
+  background: color-mix(in srgb, var(--foreground) 7.5%, transparent);
+  color: var(--foreground);
+  border: 1px solid color-mix(in srgb, var(--foreground) 16.1%, transparent);
   padding: 11px 13px;
 }
 .nav-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #ffd43b;
+  background: var(--foreground);
   margin-left: auto;
 }
 .sidebar-bottom {
@@ -214,9 +264,9 @@ button:disabled,
 }
 .avatar {
   margin-left: 22px;
-  border: 1px solid #51472c;
-  background: #ffd43b14;
-  color: #ffe58b;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--foreground) 7.8%, transparent);
+  color: var(--foreground);
   border-radius: 50%;
   width: 30px;
   height: 30px;
@@ -243,7 +293,7 @@ main {
   font-weight: 600;
 }
 .gold {
-  color: #ffd43b;
+  color: var(--foreground);
 }
 h1 {
   font-size: 30px;
@@ -270,7 +320,7 @@ h3 {
 }
 .hero {
   background: #191c22;
-  border: 1px solid #37352b;
+  border: 1px solid var(--muted);
   border-radius: 11px;
   position: relative;
   overflow: hidden;
@@ -298,19 +348,19 @@ h3 {
   position: absolute;
   inset: 0 0 0 46%;
   background:
-    radial-gradient(ellipse at 55% 48%, #67572b28, transparent 63%),
+    radial-gradient(ellipse at 55% 48%, color-mix(in srgb, var(--foreground) 15.7%, transparent), transparent 63%),
     linear-gradient(120deg, transparent, #101318);
 }
 .hero-orb {
   position: absolute;
   width: 120px;
   height: 159px;
-  border: 1px solid #c0a25244;
+  border: 1px solid color-mix(in srgb, var(--foreground) 26.7%, transparent);
   border-radius: 62px 62px 0 0;
   left: 48%;
   top: 48px;
-  background: linear-gradient(145deg, #ffda5c16, #ffd43b04);
-  box-shadow: 0 0 90px #ffce3020;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--foreground) 8.6%, transparent), color-mix(in srgb, var(--foreground) 1.6%, transparent));
+  box-shadow: 0 0 90px color-mix(in srgb, var(--foreground) 12.5%, transparent);
   transform: rotate(6deg);
 }
 .hero-orb:after {
@@ -318,7 +368,7 @@ h3 {
   display: block;
   position: absolute;
   inset: 15px;
-  border: 1px solid #ffd43b33;
+  border: 1px solid color-mix(in srgb, var(--foreground) 20.0%, transparent);
   border-radius: 50px 50px 0 0;
 }
 .hero-line {
@@ -327,14 +377,14 @@ h3 {
   right: -30%;
   top: 78%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #88702b55, transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--foreground) 33.3%, transparent), transparent);
   transform: rotate(-15deg);
 }
 .hero-small-square {
   position: absolute;
   width: 39px;
   height: 39px;
-  background: #ffd43b;
+  background: var(--foreground);
   left: 40%;
   top: 55%;
   transform: rotate(-12deg);
@@ -344,21 +394,21 @@ h3 {
   position: absolute;
   width: 27px;
   height: 27px;
-  border-color: #655a38;
+  border-color: var(--border);
 }
 .tl {
   border-left: 1px solid;
   border-top: 1px solid;
   left: 27%;
   top: 38px;
-  color: #5b5136;
+  color: var(--border);
 }
 .br {
   border-bottom: 1px solid;
   border-right: 1px solid;
   right: 10%;
   bottom: 40px;
-  color: #5b5136;
+  color: var(--border);
 }
 .hero-caption {
   position: absolute;
@@ -477,9 +527,9 @@ h3 {
   font-size: 8px;
   line-height: 1.4;
   letter-spacing: 0.6px;
-  color: #dbc778;
-  background: #dbb33c13;
-  border: 1px solid #be9c362d;
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 7.5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--foreground) 17.6%, transparent);
   border-radius: 4px;
   padding: 4px 6px;
   white-space: nowrap;
@@ -536,8 +586,8 @@ h3 {
   display: grid;
   place-items: center;
   border-radius: 3px;
-  background: #2c2b22;
-  color: #c4af64;
+  background: var(--muted);
+  color: var(--foreground);
 }
 .episode-row > .badge {
   margin-left: auto;
@@ -561,7 +611,7 @@ h3 {
 }
 progress {
   height: 5px;
-  accent-color: #ffd43b;
+  accent-color: var(--foreground);
 }
 footer {
   display: flex;
@@ -605,13 +655,13 @@ label select {
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: #bfa14b;
-  outline: 1px solid #bfa14b;
+  border-color: var(--foreground);
+  outline: 1px solid var(--foreground);
 }
 input[type="checkbox"] {
   width: 16px;
   display: inline-block;
-  accent-color: #ffd43b;
+  accent-color: var(--foreground);
   margin: 0;
 }
 .checkbox {
@@ -658,8 +708,8 @@ input[type="checkbox"] {
   border: 1px solid #6aaa8033;
 }
 .loading {
-  background: #ffd43b14;
-  color: #e5ce83;
+  background: color-mix(in srgb, var(--foreground) 7.8%, transparent);
+  color: var(--foreground);
 }
 .spin {
   animation: spin 1s linear infinite;
@@ -743,7 +793,7 @@ pre {
 .finding svg {
   margin-top: 4px;
   flex-shrink: 0;
-  color: #baaa6e;
+  color: var(--foreground);
 }
 .approval {
   display: flex;
@@ -805,7 +855,7 @@ pre {
   min-width: 0;
 }
 .asset-card > svg {
-  color: #a79864;
+  color: var(--foreground);
   margin-bottom: 15px;
 }
 .asset-card h3 {
@@ -853,12 +903,12 @@ pre {
   overflow: hidden;
 }
 .timeline > div {
-  background: #49452d;
-  border: 1px solid #766a37;
+  background: var(--border);
+  border: 1px solid var(--border);
   padding: 10px 3px;
   font-size: 10px;
   min-width: 5px;
-  color: #e4d384;
+  color: var(--foreground);
 }
 .preview {
   display: block;
@@ -888,7 +938,7 @@ summary {
   cursor: pointer;
 }
 details a {
-  color: #ddc56a;
+  color: var(--foreground);
 }
 @media (min-width: 1600px) {
   main {
@@ -1042,7 +1092,7 @@ details a {
 }
 
 .live-run {
-  border-color: var(--gold, #f5c518);
+  border-color: var(--gold, var(--foreground));
 }
 .live-run h3 {
   display: flex;
@@ -1084,7 +1134,7 @@ details a {
 }
 .pipeline .steps li.current {
   opacity: 1;
-  color: #f5c518;
+  color: var(--foreground);
   font-weight: 700;
 }
 .pipeline .live-run {
@@ -1105,7 +1155,7 @@ details a {
   inset: 0 auto 0 0;
   width: 35%;
   border-radius: 2px;
-  background: #f5c518;
+  background: var(--foreground);
   animation: indeterminate-slide 1.3s ease-in-out infinite;
 }
 @keyframes indeterminate-slide {
@@ -1126,7 +1176,7 @@ details a {
   align-items: flex-start;
 }
 .todo li > span {
-  color: #f5c518;
+  color: var(--foreground);
   font-size: 16px;
   line-height: 1.3;
 }
@@ -1192,3 +1242,18 @@ details a {
   align-items: center;
   gap: 12px;
 }
+}
+
+:root,.dark {
+ --background:#0a0a0a; --foreground:#f5f5f5; --card:#171717; --card-foreground:#f5f5f5;
+ --popover:#202020; --popover-foreground:#f5f5f5; --primary:#e5e5e5; --primary-foreground:#171717;
+ --secondary:#262626; --secondary-foreground:#f5f5f5; --muted:#262626; --muted-foreground:#b0b0b0;
+ --accent:#292929; --accent-foreground:#fafafa; --destructive:#fca5a5; --border:#303030; --input:#3d3d3d; --ring:#d4d4d4;
+ --sidebar:#111111; --sidebar-foreground:#d4d4d4; --sidebar-primary:#e5e5e5; --sidebar-primary-foreground:#171717;
+ --sidebar-accent:#292929; --sidebar-accent-foreground:#fafafa; --sidebar-border:#292929; --sidebar-ring:#d4d4d4;
+ --success:#86efac; --success-background:rgb(34 197 94 / .1); --success-border:rgb(34 197 94 / .25);
+ --error:#fca5a5; --error-background:rgb(239 68 68 / .1); --error-border:rgb(239 68 68 / .25);
+ --warning:#fde047; --warning-background:rgb(234 179 8 / .1); --warning-border:rgb(234 179 8 / .25);
+ --radius:1rem; font-family:'Atkinson Hyperlegible Next',sans-serif; font-size:16px; color-scheme:dark;
+}
+@layer base { * { @apply border-border; } body { @apply bg-background text-foreground; } }

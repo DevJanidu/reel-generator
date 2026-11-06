@@ -1,5 +1,32 @@
+import { uploadAssetFiles } from "./api";
+import { AssetExplorer } from "./asset-explorer";
+import { JobStatus } from "./status-badge";
 import React, { useEffect, useState } from "react";
-import { mountStudio, queryClient } from "./router";
+import { mountStudio, queryClient, useWorkspaceRoute } from "./router";
+import { useQuery } from "@tanstack/react-query";
+import { api, stationApi, queryKeys } from "./api";
+import { AppSidebar } from "./app-sidebar";
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge as StatusBadge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { QueuePage, HealthPage, HelpPage } from "./operations";
+import { ActivityPage } from "./activity";
+import { toast } from "sonner";
+import "./redesign.css";
 import { StudioPanel } from "./studio";
 import { IdeasStudio } from "./ideas";
 import { Paged } from "./paging";
@@ -36,7 +63,11 @@ const controllerFromLaunch = new URLSearchParams(
 if (controllerFromLaunch) {
   sessionStorage.setItem("odd-frame-controller", controllerFromLaunch);
   localStorage.setItem("odd-frame-controller", controllerFromLaunch);
-  history.replaceState(null, "", window.location.pathname);
+  history.replaceState(
+    null,
+    "",
+    window.location.pathname + window.location.search,
+  );
 }
 
 type Data = Record<string, any>;
@@ -53,64 +84,23 @@ const pages = [
   ["Analytics", BarChart3],
   ["Settings", Settings],
 ] as const;
-async function api(path: string, method = "GET", body?: any) {
-  const res = await fetch("/api" + path, {
-    method,
-    headers:
-      body instanceof FormData
-        ? {
-            "X-Odd-Controller":
-              (localStorage.getItem("odd-frame-controller") || sessionStorage.getItem("odd-frame-controller") || ""),
-          }
-        : {
-            "Content-Type": "application/json",
-            "X-Odd-Controller":
-              (localStorage.getItem("odd-frame-controller") || sessionStorage.getItem("odd-frame-controller") || ""),
-          },
-    body:
-      body === undefined
-        ? undefined
-        : body instanceof FormData
-          ? body
-          : JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok)
-    throw Error(
-      typeof data.detail === "string"
-        ? data.detail
-        : JSON.stringify(data.detail),
-    );
-  return data;
-}
 const assetTodo = (errors: string[] = []) => {
   const missing = (e: string) => /found 0/.test(e);
   const images = errors.filter((e) => /^S\d+:/.test(e) && missing(e)).length;
-  const narration = errors.some((e) => e.startsWith("narration:") && missing(e));
+  const narration = errors.some(
+    (e) => e.startsWith("narration:") && missing(e),
+  );
   const music = errors.some((e) => e.startsWith("music:") && missing(e));
-  const subtitles = errors.some((e) => e.startsWith("subtitles:") && missing(e));
+  const subtitles = errors.some(
+    (e) => e.startsWith("subtitles:") && missing(e),
+  );
   const confirmMusic = errors.some((e) => e.startsWith("Music: confirm"));
   const other = errors.filter(
     (e) => !missing(e) && !e.startsWith("Music: confirm"),
   );
   return { images, narration, music, subtitles, confirmMusic, other };
 };
-const Badge = ({ value }: { value: string }) => (
-  <span
-    className={
-      "badge " +
-      (value === "COMPLETE" || value === "LOADED" || value === "SUCCEEDED"
-        ? "green"
-        : value.includes("FAIL") ||
-            (value.includes("BLOCK") && value !== "ASSETS_BLOCKED") ||
-            value === "MISSING"
-          ? "red"
-          : "")
-    }
-  >
-    {value === "ASSETS_BLOCKED" ? "NEEDS ASSETS" : value.replaceAll("_", " ")}
-  </span>
-);
+const Badge = JobStatus;
 const Empty = ({ text }: { text: string }) => (
   <div className="empty">
     <Clapperboard size={34} />
@@ -119,13 +109,50 @@ const Empty = ({ text }: { text: string }) => (
 );
 
 function App() {
-  const [page, setPage] = useState("Home"),
-    [status, setStatus] = useState<Data>(),
-    [episodes, setEpisodes] = useState<Data[]>([]),
-    [selected, setSelected] = useState<number>(),
-    [ep, setEp] = useState<Data>(),
-    [runs, setRuns] = useState<Data[]>([]),
-    [ideas, setIdeas] = useState<Data[]>([]),
+  const { page, setPage, selected, setSelected, selectEpisode, openFiles } =
+    useWorkspaceRoute();
+  const [sidebarOpen, setSidebarOpen] = useState(
+    () => localStorage.getItem("odd-sidebar") !== "collapsed",
+  );
+  const statusQuery = useQuery({
+    queryKey: queryKeys.status,
+    queryFn: ({ signal }) => stationApi.status(signal),
+    refetchInterval: 5000,
+  });
+  const episodesQuery = useQuery({
+    queryKey: queryKeys.episodes,
+    queryFn: ({ signal }) => stationApi.episodes(signal),
+    refetchInterval: 5000,
+  });
+  const runsQuery = useQuery({
+    queryKey: queryKeys.runs,
+    queryFn: ({ signal }) => stationApi.runs(signal),
+    refetchInterval: 5000,
+  });
+  const episodeQuery = useQuery({
+    queryKey: queryKeys.episode(selected),
+    queryFn: ({ signal }) => stationApi.episode(selected!, signal),
+    enabled: !!selected,
+    refetchInterval: 5000,
+  });
+  const status = statusQuery.data,
+    episodes = episodesQuery.data || [],
+    runs = runsQuery.data || [],
+    ep = episodeQuery.data;
+  const hasGeneratedScript =
+    !!ep?.data.script?.narration?.trim() &&
+    ep?.runs?.some(
+      (r: Data) =>
+        ["script", "review"].includes(r.task) && r.status === "SUCCEEDED",
+    );
+  const scriptInProgress = ep?.runs?.some(
+    (r: Data) =>
+      ["script", "review"].includes(r.task) &&
+      ["QUEUED", "RUNNING"].includes(r.status),
+  );
+  const setStatus = (fn: (v: any) => any) =>
+    queryClient.setQueryData(queryKeys.status, fn);
+  const [ideas, setIdeas] = useState<Data[]>([]),
     [master, setMaster] = useState(""),
     [busy, setBusy] = useState(""),
     [error, setError] = useState(""),
@@ -163,34 +190,29 @@ function App() {
       return r;
     } finally {
       setTesting("");
-      api("/providers").then(setProviderInfo).catch(() => {});
+      api("/providers")
+        .then(setProviderInfo)
+        .catch(() => {});
     }
   };
   const [accessKey, setAccessKey] = useState("");
   const checkAuthorization = () =>
-    api("/controller/status").then((r) => setAuthorized(!!r.authorized)).catch(() => setAuthorized(null));
+    api("/controller/status")
+      .then((r) => setAuthorized(!!r.authorized))
+      .catch(() => setAuthorized(null));
   const [tokenDraft, setTokenDraft] = useState<Record<string, string>>({});
   const [connectionResults, setConnectionResults] = useState<
     Record<string, Data>
   >({});
   const reload = async () => {
-    const [s, e, r] = await Promise.all([
-      queryClient.fetchQuery({queryKey:["status"],queryFn:()=>api("/status")}),
-      queryClient.fetchQuery({queryKey:["episodes"],queryFn:()=>api("/episodes")}),
-      queryClient.fetchQuery({queryKey:["runs"],queryFn:()=>api("/runs")}),
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.status }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.episodes }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.runs }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.episode(selected) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.activity }),
     ]);
-    setStatus(s);
-    setEpisodes(e);
-    setRuns(r);
-    if (selected) {
-      setEp(await queryClient.fetchQuery({queryKey:["episode",selected],queryFn:()=>api("/episodes/" + selected)}));
-    }
   };
-  useEffect(() => {
-    reload().catch((e) => setError(e.message));
-    const t = setInterval(() => reload().catch(() => {}), 5000);
-    return () => clearInterval(t);
-  }, [selected]);
   const [nowMs, setNowMs] = useState(Date.now());
   const [musicDb, setMusicDb] = useState(0);
   const [previewMix, setPreviewMix] = useState<Data | null>(null);
@@ -207,23 +229,26 @@ function App() {
       setMusicDb(Number(ep.data?.music_mix?.offset_db ?? 0));
   }, [ep?.id, ep?.data?.music_mix?.offset_db]);
   useEffect(() => setPreviewMix(null), [selected]);
-  const anyActiveRun = runs.some((r) =>
-    ["QUEUED", "RUNNING"].includes(r.status),
-  );
   useEffect(() => {
-    if (!anyActiveRun) return;
-    const fast = setInterval(() => {
-      setNowMs(Date.now());
-      reload().catch(() => {});
-    }, 1500);
-    return () => clearInterval(fast);
-  }, [anyActiveRun, selected]);
+    const t = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
   useEffect(() => {
-    api("/master").then((v) => setMaster(v.content));
-    api("/settings").then(setPrefs);
-    api("/metrics").then(setMetricRows);
-    api("/providers").then(setProviderInfo);
-    api("/providers/credentials").then((r) => setCredentials(r.credentials));
+    api("/master")
+      .then((v) => setMaster(v.content))
+      .catch((e) => setError(e.message));
+    api("/settings")
+      .then(setPrefs)
+      .catch((e) => setError(e.message));
+    api("/metrics")
+      .then(setMetricRows)
+      .catch((e) => setError(e.message));
+    api("/providers")
+      .then(setProviderInfo)
+      .catch((e) => setError(e.message));
+    api("/providers/credentials")
+      .then((r) => setCredentials(r.credentials))
+      .catch((e) => setError(e.message));
     checkAuthorization();
   }, []);
   useEffect(() => {
@@ -249,6 +274,7 @@ function App() {
       const result = await fn();
       await reload();
       setNotice(result?.message || label + " completed");
+      toast.success(result?.message || label + " completed");
       return result;
     } catch (e: any) {
       setError(e.message);
@@ -261,8 +287,7 @@ function App() {
       api("/episodes", "POST", idea),
     );
     if (result) {
-      setSelected(result.id);
-      setPage("Script Studio");
+      selectEpisode(result.id, "Script Studio");
       if (status?.settings?.provider !== "manual") {
         const generated = await act("Queue script and retention review", () =>
           api("/episodes/" + result.id + "/script", "POST"),
@@ -271,13 +296,15 @@ function App() {
       }
     }
   };
-  const generate = () => {setPage("Ideas");setError("");};
+  const generate = () => {
+    setPage("Ideas");
+    setError("");
+  };
   const liveIdeasRun = runs.find((r) => r.id === runId && r.task === "ideas");
   const liveRun =
     runs.find(
       (r) =>
-        r.episode_id === selected &&
-        ["QUEUED", "RUNNING"].includes(r.status),
+        r.episode_id === selected && ["QUEUED", "RUNNING"].includes(r.status),
     ) || runs.find((r) => r.id === runId);
   const taskLabel = (t?: string) =>
     t === "ideas"
@@ -298,7 +325,9 @@ function App() {
     "Render",
     "Export",
   ];
-  const stepInfo = (e: Data): { step: number; text: string; warn?: boolean } => {
+  const stepInfo = (
+    e: Data,
+  ): { step: number; text: string; warn?: boolean } => {
     const s = e.status;
     const err = e.data?.error;
     switch (s) {
@@ -356,7 +385,10 @@ function App() {
           text: "Export complete. Open Exports to download the video.",
         };
       case "EDIT_READY":
-        return {step:5,text:"Automatic edit ready. Open it in Remotion Studio from Edit Studio, make small adjustments, then render the final video."};
+        return {
+          step: 5,
+          text: "Automatic edit ready. Open it in Remotion Studio from Edit Studio, make small adjustments, then render the final video.",
+        };
       case "FAILED":
         return {
           step: 5,
@@ -370,7 +402,10 @@ function App() {
         return {
           step: 2,
           warn: true,
-          text: "Blocked: " + (err || "see the error below") + ". You can retry once fixed.",
+          text:
+            "Blocked: " +
+            (err || "see the error below") +
+            ". You can retry once fixed.",
         };
       default:
         return { step: 0, text: String(s) };
@@ -393,24 +428,27 @@ function App() {
   };
   const historyText = (h: Data, e: Data) => {
     const raw = String(h.message || "");
-    const text =
-      !raw || raw === h.stage ? HISTORY_TEXT[h.stage] || raw : raw;
+    const text = !raw || raw === h.stage ? HISTORY_TEXT[h.stage] || raw : raw;
     const latest = e.history?.[e.history.length - 1]?.id === h.id;
     const first = e.data?.asset_errors?.[0];
-    return h.stage === "ASSETS_BLOCKED" && latest && first &&
+    return h.stage === "ASSETS_BLOCKED" &&
+      latest &&
+      first &&
       assetTodo(e.data?.asset_errors).other.length
-      ? text + " First issue: " + String(assetTodo(e.data?.asset_errors).other[0])
+      ? text +
+          " First issue: " +
+          String(assetTodo(e.data?.asset_errors).other[0])
       : text;
   };
   const AssetChecklist = () => {
-    const total = ep?.data?.package?.scenes?.length || 18;
+    const total = ep?.data?.package?.scenes?.length;
     const t = assetTodo(ep?.data?.asset_errors);
     const fresh = !ep?.data?.asset_errors;
     const rows: [boolean, string, string][] = [
       [
         !fresh && t.images === 0,
-        `Generate ${total} still images in Google Flow (S001…)`,
-        `Google Flow Prompts → download the Flow JSON, generate, then upload. ${fresh ? "" : total - t.images + " of " + total + " uploaded."}`,
+        `Generate ${total ?? "the required"} still images in Google Flow (S001…)`,
+        `Google Flow Prompts → download the Flow JSON, generate, then upload. ${fresh ? "" : (total === undefined ? "Unknown" : total - t.images) + " of " + (total ?? "unknown") + " uploaded."}`,
       ],
       [
         !fresh && !t.narration,
@@ -464,7 +502,11 @@ function App() {
           ))}
         </ol>
         <p className={info.warn ? "error" : "muted"}>{info.text}</p>
-        {ep.status==='EDIT_READY'&&<button onClick={()=>setPage("Edit Studio")}>Open in Remotion Studio</button>}
+        {ep.status === "EDIT_READY" && (
+          <Button onClick={() => setPage("Edit Studio")}>
+            Open in Remotion Studio
+          </Button>
+        )}
         {["AWAITING_ASSETS", "ASSETS_BLOCKED"].includes(ep.status) &&
           AssetChecklist()}
         {LiveIdeasPanel()}
@@ -478,10 +520,10 @@ function App() {
           )}
         {jobs.map((j: Data) => (
           <div className="job" key={j.id}>
-            <strong>
-              {j.stage}
-            </strong>
-            {['QUEUED','RUNNING'].includes(j.status) && <progress aria-label={j.stage} />}
+            <strong>{j.stage}</strong>
+            {["QUEUED", "RUNNING"].includes(j.status) && (
+              <progress aria-label={j.stage} />
+            )}
           </div>
         ))}
       </section>
@@ -499,14 +541,19 @@ function App() {
     const r = override || liveRun;
     if (!r) return null;
     const active = ["QUEUED", "RUNNING"].includes(r.status);
-    const who = r.provider === "codex_cli" ? "Codex" : r.provider === "claude_cli" ? "Claude" : r.provider;
+    const who =
+      r.provider === "codex_cli"
+        ? "Codex"
+        : r.provider === "claude_cli"
+          ? "Claude"
+          : r.provider;
     return (
       <section className="panel live-run" role="status" aria-live="polite">
         <div className="section-heading">
           <h3>
             {active && <RefreshCw className="spin" size={16} />}{" "}
             {active
-              ? who + " · " + (r.stage || 'Waiting to start')
+              ? who + " · " + (r.stage || "Waiting to start")
               : r.status === "SUCCEEDED"
                 ? "Ready: " + taskLabel(r.task)
                 : "Generation " + r.status.toLowerCase()}
@@ -521,7 +568,9 @@ function App() {
             : r.status === "SUCCEEDED"
               ? r.task === "ideas"
                 ? "Scroll down to review the ten concepts."
-                : "The story brief and narration are filled in below. Review and edit them before approving."
+                : r.task === "prepare"
+                  ? "Production package saved. Add the required assets to continue."
+                  : "The story brief and narration are filled in below. Review and edit them before approving."
               : ""}
         </p>
         <strong>
@@ -542,8 +591,7 @@ function App() {
     "/file/" +
     relative.split("/").map(encodeURIComponent).join("/");
   const selectEp = (e: Data, destination = "Episode Workspace") => {
-    setSelected(e.id);
-    setPage(destination);
+    selectEpisode(e.id, destination);
   };
   const activeRuns = runs.filter(
     (r) => !selected || r.episode_id === selected || !r.episode_id,
@@ -561,11 +609,13 @@ function App() {
           <strong>
             {r.task} · {r.provider || "manual"} · {r.stage || r.status}
           </strong>
-          {['QUEUED','RUNNING'].includes(r.status) && <progress aria-label={r.stage || r.status} />}
+          {["QUEUED", "RUNNING"].includes(r.status) && (
+            <progress aria-label={r.stage || r.status} />
+          )}
           <Badge value={r.status} />
           {r.error && <p className="error">{r.error}</p>}
           {["QUEUED", "RUNNING"].includes(r.status) && (
-            <button
+            <Button
               className="secondary small"
               onClick={() =>
                 act("Cancel AI job", () =>
@@ -574,10 +624,10 @@ function App() {
               }
             >
               Cancel job
-            </button>
+            </Button>
           )}
           {["FAILED", "CANCELLED"].includes(r.status) && (
-            <button
+            <Button
               className="secondary small"
               onClick={() =>
                 act("Retry AI job", async () => {
@@ -588,7 +638,7 @@ function App() {
               }
             >
               Retry generation
-            </button>
+            </Button>
           )}
         </div>
       ))}
@@ -617,12 +667,21 @@ function App() {
             onChange={(e) => setRunId(e.target.value)}
           >
             <option value="">
-              {activeRuns.some((r) => r.task !== "genre_ideas" && r.status === "AWAITING_MANUAL")
+              {activeRuns.some(
+                (r) =>
+                  r.task !== "genre_ideas" && r.status === "AWAITING_MANUAL",
+              )
                 ? "Select a run waiting for your AI response"
                 : "No runs waiting — press Generate first"}
             </option>
             {activeRuns
-              .filter((r) => r.task !== "genre_ideas" && (r.status === "AWAITING_MANUAL" || r.id === runId || (r.task === "ideas" && r.status === "SUCCEEDED")))
+              .filter(
+                (r) =>
+                  r.task !== "genre_ideas" &&
+                  (r.status === "AWAITING_MANUAL" ||
+                    r.id === runId ||
+                    (r.task === "ideas" && r.status === "SUCCEEDED")),
+              )
               .map((r) => (
                 <option value={r.id} key={r.id}>
                   {r.task} ·{" "}
@@ -646,7 +705,7 @@ function App() {
         </div>
         {runId && (
           <>
-            <textarea
+            <Textarea
               aria-label="AI JSON response"
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
@@ -656,7 +715,7 @@ function App() {
             <div className="row">
               <label className="button secondary">
                 Load JSON file
-                <input
+                <Input
                   hidden
                   type="file"
                   accept=".json"
@@ -666,7 +725,7 @@ function App() {
                   }}
                 />
               </label>
-              <button
+              <Button
                 disabled={!!busy || !importText}
                 onClick={() =>
                   act("Import AI result", async () => {
@@ -683,8 +742,9 @@ function App() {
                 }
               >
                 Validate & import JSON
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="outline"
                 className="secondary"
                 onClick={() =>
                   act("Load saved result", async () => {
@@ -695,7 +755,7 @@ function App() {
                 }
               >
                 Load saved result
-              </button>
+              </Button>
             </div>
           </>
         )}
@@ -708,7 +768,7 @@ function App() {
           <span className="eyebrow">CREATIVE FOUNDATION</span>
           <h3>ODD FRAME AI Skills</h3>
         </div>
-        <button
+        <Button
           className="secondary small"
           disabled={!!busy}
           onClick={() =>
@@ -725,7 +785,7 @@ function App() {
         >
           <RefreshCw size={14} />
           Validate skills
-        </button>
+        </Button>
       </div>
       <div className="skill-list">
         {status?.skills?.documents?.map((d: Data, i: number) => (
@@ -770,75 +830,93 @@ function App() {
   );
 
   return (
-    <div className="shell">
-      <aside className="sidebar">
-        <a
-          className="brand"
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            setPage("Home");
-          }}
-        >
-          <span className="brand-symbol">
-            O<span>F</span>
-          </span>
-          <div>
-            ODD FRAME<small>REEL WORKFLOW STATION</small>
-          </div>
-        </a>
-        <div className="nav-label">PRODUCTION</div>
-        <nav>
-          {pages.map(([name, Icon]) => (
-            <button
-              className={"nav-item " + (page === name ? "active" : "")}
-              key={name}
-              onClick={() => setPage(name)}
-            >
-              <Icon size={18} />
-              {name}
-              {page === name && <span className="nav-dot" />}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="local-dot" />
-          Local workspace<small>E:\facebook · Station v1.0</small>
-        </div>
-      </aside>
-      <div className="main">
+    <SidebarProvider
+      open={sidebarOpen}
+      onOpenChange={(open) => {
+        setSidebarOpen(open);
+        localStorage.setItem("odd-sidebar", open ? "expanded" : "collapsed");
+      }}
+    >
+      <a className="skip-link" href="#page-content">
+        Skip to content
+      </a>
+      <AppSidebar pages={pages} page={page} onNavigate={setPage} />
+      <SidebarInset className="workspace-content">
         <header className="topbar">
           <div className="crumb">
-            Workspace <ChevronRight size={14} />
-            <strong>{page}</strong>
+            <SidebarTrigger />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="crumb-root">
+                  Workspace
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{page}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
           <div className="top-status">
-            <span className="local-dot" />
-            {status?.settings?.provider === "manual"
-              ? "Manual AI mode"
-              : "AI provider configured"}
+            <StatusBadge variant="outline">
+              {status?.skills.valid ? "Inputs validated" : "Check health"}
+            </StatusBadge>
+            <span className="header-provider">
+              {status?.settings?.provider === "manual"
+                ? "Manual AI mode"
+                : status?.settings.provider
+                  ? "Provider: " + status.settings.provider
+                  : "Connecting"}
+            </span>
             <span className="avatar">OF</span>
           </div>
         </header>
-        <main>
+        <div
+          id="page-content"
+          className={page === "File Explorer" ? "files-page" : undefined}
+          tabIndex={-1}
+        >
           <div className="page-heading">
             <div>
               <span className="eyebrow">SMALL STORIES. BIG EMOTIONS.</span>
-              <h1>{page === "Home" ? "Your next story starts here." : page === "Ideas" ? "What Kind of Story Are We Creating?" : page}</h1>
+              <h1>
+                {page === "Home"
+                  ? "Your next story starts here."
+                  : page === "Ideas"
+                    ? "What Kind of Story Are We Creating?"
+                    : page}
+              </h1>
               <p>
                 {page === "Home"
                   ? "One workspace. From the first spark to the final frame."
-                  : page === "Ideas" ? "Choose your genre. Discover five original story ideas."
-                  : selected && ep
-                    ? ep.code + " / " + ep.title
-                    : "Create, prepare and produce original ODD FRAME stories."}
+                  : page === "Ideas"
+                    ? "Choose your genre. Discover five original story ideas."
+                    : selected && ep
+                      ? ep.code + " / " + ep.title
+                      : "Create, prepare and produce original ODD FRAME stories."}
               </p>
             </div>
-            <button disabled={!!busy || !valid} onClick={generate}>
+            <Button disabled={!!busy || !valid} onClick={generate}>
               <Plus size={17} />
               Create New Reel
-            </button>
+            </Button>
           </div>
+          {statusQuery.isPending && (
+            <div role="status" aria-label="Loading station">
+              <Skeleton className="h-24 w-full" />
+              <span className="sr-only">Loading station</span>
+            </div>
+          )}
+          {[statusQuery, episodesQuery, runsQuery, episodeQuery].some(
+            (q) => q.isError,
+          ) && (
+            <div role="alert" className="error">
+              Station data could not load.{" "}
+              <Button variant="outline" onClick={() => void reload()}>
+                Retry connection
+              </Button>
+            </div>
+          )}
           {busy && (
             <div className="loading" role="status">
               <RefreshCw className="spin" size={16} />
@@ -849,12 +927,14 @@ function App() {
             <div className="error" role="alert">
               <AlertCircle size={17} />
               <div>
-                <strong>This browser window is not authorized to make changes.</strong>{" "}
-                Open the dashboard with <code>scriptsstart.ps1</code>, or paste the
-                access key from <code>datantroller-access.json</code> (the
-                "token" value) here. It is kept in this browser only.
+                <strong>
+                  This browser window is not authorized to make changes.
+                </strong>{" "}
+                Open the dashboard with <code>scripts/start.ps1</code>, or paste
+                the access key from <code>data/controller-access.json</code>{" "}
+                (the "token" value) here. It is kept in this browser only.
                 <div className="row">
-                  <input
+                  <Input
                     type="password"
                     autoComplete="off"
                     aria-label="Controller access key"
@@ -862,16 +942,19 @@ function App() {
                     value={accessKey}
                     onChange={(e) => setAccessKey(e.target.value)}
                   />
-                  <button
+                  <Button
                     disabled={!accessKey.trim()}
                     onClick={() => {
-                      localStorage.setItem("odd-frame-controller", accessKey.trim());
+                      localStorage.setItem(
+                        "odd-frame-controller",
+                        accessKey.trim(),
+                      );
                       setAccessKey("");
                       checkAuthorization();
                     }}
                   >
                     Authorize
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -882,39 +965,38 @@ function App() {
               {error}
             </div>
           )}
-          {notice && (
-            <div className="notice" role="status">
-              <Check size={17} />
-              {notice}
-            </div>
+          {page === "Production Queue" && (
+            <QueuePage
+              status={status}
+              runs={runs}
+              onEpisode={(id) => selectEpisode(id, "Episode Workspace")}
+            />
           )}
+          {page === "System Health" && (
+            <HealthPage
+              status={status}
+              onSettings={() => setPage("Settings")}
+            />
+          )}
+          {page === "How to Use" && <HelpPage onNavigate={setPage} />}
+          {page === "AI Activity" && <ActivityPage />}
           {page === "Home" && (
             <>
-              <section className="hero">
-                <div className="hero-art">
-                  <span className="frame-corner tl" />
-                  <span className="frame-corner br" />
-                  <span className="hero-orb" />
-                  <span className="hero-line" />
-                  <span className="hero-small-square" />
-                </div>
-                <div className="hero-copy">
-                  <span className="eyebrow gold">THE NEXT FRAME IS YOURS</span>
-                  <h2>
-                    Find the story.
-                    <br />
-                    Make them feel it.
-                  </h2>
+              <section className="home-intro">
+                <div>
+                  <span className="eyebrow gold">YOUR PRODUCTION DESK</span>
+                  <h2>Small stories. Big emotions.</h2>
                   <p>
-                    Original 2D stories. A purposeful golden detail.
-                    <br />
-                    One script approval, then a clear path to export.
+                    Choose a story, approve the script, then bring every frame
+                    to life.
                   </p>
-                  <button disabled={!!busy || !valid} onClick={generate}>
-                    Start story creation <ArrowRight size={17} />
-                  </button>
                 </div>
-                <span className="hero-caption">MIDNIGHT GOLD / 01</span>
+                <Button
+                  onClick={() => setPage("Production Queue")}
+                  variant="outline"
+                >
+                  View production queue <ArrowRight size={16} />
+                </Button>
               </section>
               <div className="stats">
                 {[
@@ -960,7 +1042,7 @@ function App() {
                 ].map(([label, n]) => (
                   <div className="stat" key={label}>
                     <span>{label}</span>
-                    <strong>{String(n).padStart(2, "0")}</strong>
+                    <strong>{episodesQuery.isPending ? "?" : String(n)}</strong>
                   </div>
                 ))}
               </div>
@@ -971,17 +1053,26 @@ function App() {
                     <span className="muted">Your production shelf</span>
                   </div>
                   {!episodes.length ? (
-                    <Empty text="Your first story is waiting to be told." />
+                    <Empty
+                      text={
+                        episodesQuery.isPending
+                          ? "Loading Reels?"
+                          : "Your first story is waiting to be told."
+                      }
+                    />
                   ) : (
                     <Paged
                       items={episodes}
                       size={5}
                       label="reels"
-                      getText={(e: Data) => e.title + " " + e.code + " " + e.status}
+                      getText={(e: Data) =>
+                        e.title + " " + e.code + " " + e.status
+                      }
                     >
                       {(rows) =>
                         rows.map((e) => (
-                          <button
+                          <Button
+                            variant="ghost"
                             className="episode-row"
                             key={e.id}
                             onClick={() => selectEp(e)}
@@ -998,13 +1089,58 @@ function App() {
                             </div>
                             <Badge value={e.status} />
                             <ChevronRight size={16} />
-                          </button>
+                          </Button>
                         ))
                       }
                     </Paged>
                   )}
                 </section>
-                {skillsPanel}
+                <section className="panel">
+                  <h3>Next actions</h3>
+                  {episodes
+                    .filter((e) =>
+                      [
+                        "AWAITING_APPROVAL",
+                        "SCRIPT_REVIEW",
+                        "AWAITING_ASSETS",
+                        "ASSETS_BLOCKED",
+                        "EDIT_READY",
+                        "BLOCKED",
+                        "FAILED",
+                      ].includes(e.status),
+                    )
+                    .slice(0, 4)
+                    .map((e) => (
+                      <Button
+                        variant="ghost"
+                        className="episode-row"
+                        key={e.id}
+                        onClick={() => selectEp(e)}
+                      >
+                        <div>
+                          <strong>{e.title}</strong>
+                          <small>{stepInfo(e).text}</small>
+                        </div>
+                        <ChevronRight size={16} />
+                      </Button>
+                    ))}
+                  {!episodes.some((e) =>
+                    [
+                      "AWAITING_APPROVAL",
+                      "SCRIPT_REVIEW",
+                      "AWAITING_ASSETS",
+                      "ASSETS_BLOCKED",
+                      "EDIT_READY",
+                      "BLOCKED",
+                      "FAILED",
+                    ].includes(e.status),
+                  ) && (
+                    <p className="muted">
+                      No pending approvals or asset actions. Create a Reel to
+                      begin.
+                    </p>
+                  )}
+                </section>
               </div>
               <section className="panel">
                 <div className="section-heading">
@@ -1023,7 +1159,9 @@ function App() {
                     items={status.jobs as Data[]}
                     size={5}
                     label="jobs"
-                    getText={(j: Data) => `#${j.id} episode ${j.episode_id} ${j.kind || ""} ${j.stage} ${j.status} ${j.error || ""}`}
+                    getText={(j: Data) =>
+                      `#${j.id} episode ${j.episode_id} ${j.kind || ""} ${j.stage} ${j.status} ${j.error || ""}`
+                    }
                   >
                     {(rows) =>
                       rows.map((j: Data) => (
@@ -1032,7 +1170,9 @@ function App() {
                             #{j.id} · Episode {j.episode_id}
                           </span>
                           <strong>{j.stage}</strong>
-                          {['QUEUED','RUNNING'].includes(j.status) && <progress aria-label={j.stage} />}
+                          {["QUEUED", "RUNNING"].includes(j.status) && (
+                            <progress aria-label={j.stage} />
+                          )}
                           <Badge value={j.status} />
                           {j.error && <p className="error">{j.error}</p>}
                         </div>
@@ -1049,9 +1189,9 @@ function App() {
               <section className="panel">
                 <div className="section-heading">
                   <h3>Creative Director · current source version</h3>
-                  <button disabled={!!busy || !valid} onClick={generate}>
+                  <Button disabled={!!busy || !valid} onClick={generate}>
                     Start Story Creation <ArrowRight size={15} />
-                  </button>
+                  </Button>
                 </div>
                 <p>
                   Provider: <strong>{status?.settings?.provider}</strong> ·
@@ -1064,9 +1204,48 @@ function App() {
             </>
           )}
           {page === "Ideas" && (
-            <IdeasStudio legacyHandoff={<>{ManualPanel()}{ideas.length > 0 && <section className="panel"><h3>Saved general story concepts · legacy format</h3><p>These earlier concepts keep their original titles and metadata.</p><div className="cards">{ideas.map((idea, index) => <article className="panel" key={index}><h3>{idea.title}</h3><span className="tag">{idea.genre}</span><p>{idea.premise}</p><p><strong>Opening hook:</strong> {idea.visual_hook}</p><p><strong>Conflict:</strong> {idea.conflict}</p><button disabled={!!busy} onClick={() => choose(idea)}>Select Legacy Story</button></article>)}</div></section>}</>} onSelected={(eid, pendingRun) => {
-              setSelected(eid);setPage("Script Studio");if(pendingRun)setRunId(pendingRun);reload().catch(e=>setError(e.message));
-            }}/>
+            <IdeasStudio
+              legacyHandoff={
+                <>
+                  {ManualPanel()}
+                  {ideas.length > 0 && (
+                    <section className="panel">
+                      <h3>Saved general story concepts · legacy format</h3>
+                      <p>
+                        These earlier concepts keep their original titles and
+                        metadata.
+                      </p>
+                      <div className="cards">
+                        {ideas.map((idea, index) => (
+                          <article className="panel" key={index}>
+                            <h3>{idea.title}</h3>
+                            <span className="tag">{idea.genre}</span>
+                            <p>{idea.premise}</p>
+                            <p>
+                              <strong>Opening hook:</strong> {idea.visual_hook}
+                            </p>
+                            <p>
+                              <strong>Conflict:</strong> {idea.conflict}
+                            </p>
+                            <Button
+                              disabled={!!busy}
+                              onClick={() => choose(idea)}
+                            >
+                              Select Legacy Story
+                            </Button>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </>
+              }
+              onSelected={(eid, pendingRun) => {
+                selectEpisode(eid, "Script Studio");
+                if (pendingRun) setRunId(pendingRun);
+                reload().catch((e) => setError(e.message));
+              }}
+            />
           )}
           {![
             "Home",
@@ -1074,6 +1253,11 @@ function App() {
             "Ideas",
             "Settings",
             "Analytics",
+            "Production Queue",
+            "AI Activity",
+            "System Health",
+            "How to Use",
+            "File Explorer",
           ].includes(page) && (
             <div className="episode-picker">
               <label>
@@ -1100,6 +1284,11 @@ function App() {
             "Ideas",
             "Settings",
             "Analytics",
+            "Production Queue",
+            "AI Activity",
+            "System Health",
+            "How to Use",
+            "File Explorer",
           ].includes(page) && PipelineTracker()}
           {[
             "Script Studio",
@@ -1113,7 +1302,7 @@ function App() {
               <section className="panel">
                 <div className="row">
                   <Search size={16} />
-                  <input
+                  <Input
                     placeholder="Search projects"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -1144,7 +1333,8 @@ function App() {
                 >
                   {(rows) =>
                     rows.map((e) => (
-                      <button
+                      <Button
+                        variant="ghost"
                         className="episode-row"
                         key={e.id}
                         onClick={() => selectEp(e, page)}
@@ -1154,7 +1344,7 @@ function App() {
                         </strong>
                         <Badge value={e.status} />
                         <ChevronRight size={15} />
-                      </button>
+                      </Button>
                     ))
                   }
                 </Paged>
@@ -1164,8 +1354,12 @@ function App() {
             <>
               <section className="panel">
                 <div className="section-heading">
-                  <h3>The story, in your words</h3>
-                  <button
+                  <h3>
+                    {hasGeneratedScript || ep.data.approval
+                      ? "Review your script"
+                      : "Generate your script"}
+                  </h3>
+                  <Button
                     className="secondary"
                     disabled={
                       !!busy ||
@@ -1185,95 +1379,120 @@ function App() {
                   >
                     <Sparkles size={15} />
                     Generate Script
-                  </button>
+                  </Button>
                 </div>
-                <label>
-                  Story brief
-                  <textarea
-                    value={brief}
-                    onChange={(e) => setBrief(e.target.value)}
-                    disabled={!!ep.data.approval}
-                    rows={3}
-                  />
-                </label>
-                <label>
-                  Full narration
-                  <textarea
-                    className="script"
-                    aria-label="Full narration"
-                    value={script}
-                    disabled={!!ep.data.approval}
-                    onChange={(e) => setScript(e.target.value)}
-                    rows={12}
-                    placeholder="Generate or paste the complete narration. Its exact wording is frozen at approval."
-                  />
-                </label>
-                <p className="muted">
-                  {script.split(/\s+/).filter(Boolean).length} words · duration
-                  is provisional until real audio is uploaded.
-                </p>
-                {ep.data.script?.findings?.map((f: string, i: number) => (
-                  <p className="finding" key={i}>
-                    <Check size={14} />
-                    {f}
-                  </p>
-                ))}
-                <div className="row">
-                  {!ep.data.approval ? (
-                    <>
-                      <button
-                        className="secondary"
-                        disabled={
-                          !!busy ||
-                          script.length < 30 ||
-                          brief.length < 10 ||
-                          !validForEpisode
-                        }
-                        onClick={() =>
-                          act("Save owner draft", () =>
-                            api(selectedPath + "/draft", "POST", {
-                              narration: script,
-                              brief,
-                              findings: [
-                                "Owner-imported/edited draft. AI review is not claimed unless a successful review run exists.",
-                              ],
-                            }),
-                          )
-                        }
-                      >
-                        Save / Import Draft
-                      </button>
-                      <button
-                        disabled={
-                          !!busy ||
-                          !ep.data.script ||
-                          script.length < 30 ||
-                          !validForEpisode ||
-                          ep.status !== "AWAITING_APPROVAL"
-                        }
-                        onClick={() =>
-                          act("Approve script & prepare episode", async () => {
-                            const r = await api(
-                              selectedPath + "/approve",
-                              "POST",
-                              { narration: script, brief },
-                            );
-                            if (r.run_id) setRunId(r.run_id);
-                            return r;
-                          })
-                        }
-                      >
-                        <ShieldCheck size={16} />
-                        APPROVE SCRIPT & CONTINUE
-                      </button>
-                    </>
-                  ) : (
-                    <div className="approval">
-                      <ShieldCheck size={18} />
-                      {ep.data.approval.revoked?'Export authorization revoked':<>Approved · {ep.data.approval.sha256.slice(0, 16)} · automatic export authorized</>}
+                {hasGeneratedScript || ep.data.approval ? (
+                  <>
+                    <label>
+                      Story brief
+                      <Textarea
+                        aria-label="Story brief"
+                        value={brief}
+                        onChange={(e) => setBrief(e.target.value)}
+                        disabled={!!ep.data.approval || scriptInProgress}
+                        rows={3}
+                      />
+                    </label>
+                    <label>
+                      Full narration
+                      <Textarea
+                        className="script"
+                        aria-label="Full narration"
+                        value={script}
+                        disabled={!!ep.data.approval || scriptInProgress}
+                        onChange={(e) => setScript(e.target.value)}
+                        rows={12}
+                        placeholder="Review the generated narration. Its exact wording is frozen at approval."
+                      />
+                    </label>
+                    <p className="muted">
+                      {script.split(/\s+/).filter(Boolean).length} words ·
+                      duration is provisional until real audio is uploaded.
+                    </p>
+                    {ep.data.script?.findings?.map((f: string, i: number) => (
+                      <p className="finding" key={i}>
+                        <Check size={14} />
+                        {f}
+                      </p>
+                    ))}
+                    <div className="row">
+                      {!ep.data.approval ? (
+                        <>
+                          <Button
+                            className="secondary"
+                            disabled={
+                              !!busy ||
+                              scriptInProgress ||
+                              script.length < 30 ||
+                              brief.length < 10 ||
+                              !validForEpisode
+                            }
+                            onClick={() =>
+                              act("Save owner draft", () =>
+                                api(selectedPath + "/draft", "POST", {
+                                  narration: script,
+                                  brief,
+                                  findings: [
+                                    "Owner-imported/edited draft. AI review is not claimed unless a successful review run exists.",
+                                  ],
+                                }),
+                              )
+                            }
+                          >
+                            Save Edits
+                          </Button>
+                          <Button
+                            disabled={
+                              !!busy ||
+                              scriptInProgress ||
+                              !ep.data.script ||
+                              script.length < 30 ||
+                              !validForEpisode ||
+                              ep.status !== "AWAITING_APPROVAL"
+                            }
+                            onClick={() =>
+                              act(
+                                "Approve script & prepare episode",
+                                async () => {
+                                  const r = await api(
+                                    selectedPath + "/approve",
+                                    "POST",
+                                    { narration: script, brief },
+                                  );
+                                  if (r.run_id) setRunId(r.run_id);
+                                  return r;
+                                },
+                              )
+                            }
+                          >
+                            <ShieldCheck size={16} />
+                            APPROVE SCRIPT & CONTINUE
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="approval">
+                          <ShieldCheck size={18} />
+                          {ep.data.approval.revoked ? (
+                            "Export authorization revoked"
+                          ) : (
+                            <>
+                              Approved · {ep.data.approval.sha256.slice(0, 16)}{" "}
+                              · automatic export authorized
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </>
+                ) : (
+                  <p className="muted" role="status">
+                    {scriptInProgress
+                      ? "Your script is being generated and reviewed. The editor will appear when a script is available."
+                      : "Generate a script with your configured provider first. Then review and edit the story brief and narration before approving."}
+                    {ep.data.script &&
+                      " An existing imported draft is preserved; it has not been identified as a completed generation."}
+                  </p>
+                )}
               </section>
               {ManualPanel()}
             </>
@@ -1303,7 +1522,7 @@ function App() {
                   </div>
                   {ep.data.error && <p className="error">{ep.data.error}</p>}
                   <div className="row">
-                    <button
+                    <Button
                       className="secondary"
                       disabled={!!busy || !ep.data.approval}
                       onClick={() =>
@@ -1316,8 +1535,8 @@ function App() {
                     >
                       <RefreshCw size={15} />
                       Retry / Resume
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       className="secondary"
                       disabled={!!busy}
                       onClick={() =>
@@ -1327,8 +1546,8 @@ function App() {
                       }
                     >
                       Validate pinned inputs
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       className="secondary"
                       disabled={!ep.data.approval || !!busy}
                       onClick={() =>
@@ -1338,7 +1557,7 @@ function App() {
                       }
                     >
                       Revoke export authorization
-                    </button>
+                    </Button>
                   </div>
                 </section>
                 <section className="panel">
@@ -1356,7 +1575,7 @@ function App() {
                       ? "The native process boundary passed actual write-denial checks. Workers write only into this episode."
                       : "Automatic workers must pass the episode-specific OS boundary probe before execution."}
                   </p>
-                  <button
+                  <Button
                     className="secondary small"
                     disabled={!!busy}
                     onClick={() =>
@@ -1366,7 +1585,7 @@ function App() {
                     }
                   >
                     Verify Episode Isolation
-                  </button>
+                  </Button>
                   {ep.input_snapshot && (
                     <p className="finding">
                       Pinned master v{ep.input_snapshot.master_prompt_version} ·
@@ -1451,7 +1670,8 @@ function App() {
                     rows.map((h: Data) => (
                       <p className="history" key={h.id}>
                         <Clock size={14} />
-                        {new Date(h.at).toLocaleString()} <Badge value={h.stage} />
+                        {new Date(h.at).toLocaleString()}{" "}
+                        <Badge value={h.stage} />
                         {historyText(h, ep)}
                       </p>
                     ))
@@ -1481,7 +1701,9 @@ function App() {
                 S001.png, S002.jpg, etc. No website automation or video jobs.
               </p>
               <Paged
-                items={((ep.files || []) as string[]).filter((f) => f.startsWith("04_google_flow/batches/"))}
+                items={((ep.files || []) as string[]).filter((f) =>
+                  f.startsWith("04_google_flow/batches/"),
+                )}
                 size={10}
                 label="prompt batches"
                 getText={(f: string) => f}
@@ -1490,7 +1712,12 @@ function App() {
                 {(rows) => (
                   <div className="row">
                     {rows.map((f: string) => (
-                      <a className="button secondary small" key={f} href={fileURL(f)} download>
+                      <a
+                        className="button secondary small"
+                        key={f}
+                        href={fileURL(f)}
+                        download
+                      >
                         {f.split("/").pop()}
                       </a>
                     ))}
@@ -1502,7 +1729,9 @@ function App() {
                 size={10}
                 label="scenes"
                 placeholder="Search scenes (S005, a word from the story...)"
-                getText={(s: Data) => s.scene_id + " " + s.beat + " " + s.narration_text}
+                getText={(s: Data) =>
+                  s.scene_id + " " + s.beat + " " + s.narration_text
+                }
                 empty={<></>}
               >
                 {(rows) =>
@@ -1538,12 +1767,63 @@ function App() {
               )}
             </section>
           )}
+          {page === "File Explorer" && (
+            <div className="dedicated-files">
+              <div className="files-page-actions">
+                <Button
+                  variant="outline"
+                  onClick={() => selectEpisode(selected!, "Asset Manager")}
+                >
+                  Back to Asset Manager
+                </Button>
+                <Button variant="outline" onClick={() => void reload()}>
+                  Refresh files
+                </Button>
+              </div>
+              {episodeQuery.isPending ? (
+                <Skeleton className="h-64" />
+              ) : ep ? (
+                <>
+                  {" "}
+                  <AssetExplorer
+                    episodeId={ep.id}
+                    episodeCode={ep.code}
+                    entries={ep.file_entries || []}
+                    disabled={!!busy}
+                    canUpload={!!ep.data.package}
+                    fileURL={fileURL}
+                    onUpload={(kind, files, progress) =>
+                      act("Import " + kind, () =>
+                        uploadAssetFiles(ep.id, kind, files, progress),
+                      )
+                    }
+                    onRemove={(path) =>
+                      act("Remove asset", () =>
+                        api(
+                          selectedPath +
+                            "/assets/" +
+                            path.split("/")[1] +
+                            "/" +
+                            encodeURIComponent(path.split("/").at(-1)!),
+                          "DELETE",
+                        ),
+                      )
+                    }
+                  />
+                </>
+              ) : (
+                <p role="alert">
+                  The episode could not load. Use Retry connection above.
+                </p>
+              )}
+            </div>
+          )}
           {page === "Asset Manager" && selected && ep && (
             <>
               <section className="panel">
                 <div className="section-heading">
-                  <h3>Bring your story to life</h3>
-                  <button
+                  <h3>Asset controls</h3>
+                  <Button
                     className="secondary"
                     disabled={!!busy || !ep.data.package}
                     onClick={() =>
@@ -1554,102 +1834,26 @@ function App() {
                   >
                     <RefreshCw size={15} />
                     Refresh Assets
-                  </button>
+                  </Button>
                 </div>
                 <p className="muted">
                   Folders are scanned every 10 seconds. Matching is isolated to
                   this episode. All valid assets automatically enter the edit
                   queue.
                 </p>
-                <div className="asset-grid">
-                  {[
-                    ["images", "Still illustrations", "S001.png · 9:16"],
-                    ["narration", "Narration", "One ElevenLabs audio file"],
-                    ["subtitles", "Subtitles", "SRT · 1–4 words per cue"],
-                    ["music", "Instrumental music", "One background track"],
-                  ].map(([kind, label, help]) => (
-                    <div className="asset-card" key={kind}>
-                      <Upload size={22} />
-                      <h3>{label}</h3>
-                      <p>{help}</p>
-                      <label
-                        className={
-                          "button secondary " +
-                          (!ep.data.package ? "disabled" : "")
-                        }
-                      >
-                        Import {kind}
-                        <input
-                          aria-label={"Import " + kind}
-                          hidden
-                          type="file"
-                          multiple={kind === "images"}
-                          disabled={!!busy || !ep.data.package}
-                          accept={
-                            kind === "images"
-                              ? ".png,.jpg,.jpeg,.webp"
-                              : kind === "subtitles"
-                                ? ".srt"
-                                : ".wav,.mp3,.m4a,.aac,.flac,.ogg"
-                          }
-                          onChange={(e) => {
-                            if (e.target.files) {
-                              const fd = new FormData();
-                              Array.from(e.target.files).forEach((f) =>
-                                fd.append("files", f),
-                              );
-                              act("Import " + kind, () =>
-                                api(
-                                  selectedPath + "/assets/" + kind,
-                                  "POST",
-                                  fd,
-                                ),
-                              );
-                              e.target.value = "";
-                            }
-                          }}
-                        />
-                      </label>
-                      <Paged
-                        items={((ep.files || []) as string[]).filter((f) =>
-                          f.startsWith("05_assets/" + kind + "/"),
-                        )}
-                        size={5}
-                        label={kind + " files"}
-                        getText={kind === "images" ? (f: string) => f : undefined}
-                        resetKey={kind}
-                        empty={<></>}
-                      >
-                        {(rows) =>
-                          rows.map((f: string) => (
-                            <div className="asset-file" key={f}>
-                              <a href={fileURL(f)}>{f.split("/").pop()}</a>
-                              <button
-                                className="text-button"
-                                onClick={() =>
-                                  act("Remove asset", () =>
-                                    api(
-                                      selectedPath +
-                                        "/assets/" +
-                                        kind +
-                                        "/" +
-                                        encodeURIComponent(f.split("/").pop()!),
-                                      "DELETE",
-                                    ),
-                                  )
-                                }
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          ))
-                        }
-                      </Paged>
-                    </div>
-                  ))}
+                <div className="row">
+                  <Button onClick={() => openFiles(ep.id)}>
+                    Open File Explorer
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => openFiles(ep.id, true)}
+                  >
+                    Upload Files
+                  </Button>
                 </div>
                 <label className="checkbox">
-                  <input
+                  <Input
                     type="checkbox"
                     checked={instrumental}
                     onChange={(e) => setInstrumental(e.target.checked)}
@@ -1659,13 +1863,13 @@ function App() {
                 </label>
                 <label>
                   Music rights evidence / license reference
-                  <input
+                  <Input
                     value={rights}
                     onChange={(e) => setRights(e.target.value)}
                     placeholder="License URL, receipt or ownership note (missing evidence is flagged)"
                   />
                 </label>
-                <button
+                <Button
                   className="secondary"
                   onClick={() =>
                     act("Save music declaration", () =>
@@ -1677,7 +1881,7 @@ function App() {
                   }
                 >
                   Save music declaration
-                </button>
+                </Button>
               </section>
               <section className="panel">
                 <h3>Asset validation</h3>
@@ -1734,7 +1938,7 @@ function App() {
               <section className="panel">
                 <div className="section-heading">
                   <h3>Timeline & render</h3>
-                  <button
+                  <Button
                     className="secondary"
                     disabled={
                       !!busy ||
@@ -1749,7 +1953,7 @@ function App() {
                     }
                   >
                     Validate & prepare draft
-                  </button>
+                  </Button>
                 </div>
                 {(() => {
                   const jobs: Data[] = ep.jobs || [];
@@ -1766,9 +1970,13 @@ function App() {
                   const row = (j: Data) => (
                     <div className="job" key={j.id}>
                       <strong>
-                        {j.status === "FAILED" ? "Render attempt failed" : j.stage}
+                        {j.status === "FAILED"
+                          ? "Render attempt failed"
+                          : j.stage}
                       </strong>
-                      {['QUEUED','RUNNING'].includes(j.status) && <progress aria-label={j.stage} />}
+                      {["QUEUED", "RUNNING"].includes(j.status) && (
+                        <progress aria-label={j.stage} />
+                      )}
                       <Badge value={j.status} />
                       {j.status === "RUNNING" && (
                         <div className="indeterminate" aria-hidden="true" />
@@ -1787,7 +1995,12 @@ function App() {
                             Earlier failed attempts ({old.length}) — already
                             superseded
                           </summary>
-                          <Paged items={old} size={5} label="earlier attempts" empty={<></>}>
+                          <Paged
+                            items={old}
+                            size={5}
+                            label="earlier attempts"
+                            empty={<></>}
+                          >
                             {(rows) => rows.map(row)}
                           </Paged>
                         </details>
@@ -1846,8 +2059,7 @@ function App() {
                           : ep.style_info.source === "owner_adopted"
                             ? "adopted by you"
                             : "chosen by you"}
-                      ). Changing the global default never changes this
-                      episode.
+                      ). Changing the global default never changes this episode.
                     </p>
                     <div className="row">
                       <select
@@ -1866,19 +2078,24 @@ function App() {
                           </option>
                         ))}
                       </select>
-                      {["COMPLETE", "FAILED", "AWAITING_ASSETS", "ASSETS_BLOCKED"].includes(
-                        ep.status,
-                      ) && (
+                      {[
+                        "COMPLETE",
+                        "FAILED",
+                        "AWAITING_ASSETS",
+                        "ASSETS_BLOCKED",
+                      ].includes(ep.status) && (
                         <label className="inline">
-                          <input
+                          <Input
                             type="checkbox"
                             checked={rerenderOnSave}
-                            onChange={(e) => setRerenderOnSave(e.target.checked)}
+                            onChange={(e) =>
+                              setRerenderOnSave(e.target.checked)
+                            }
                           />{" "}
                           Re-render as a new export version
                         </label>
                       )}
-                      <button
+                      <Button
                         disabled={
                           !!busy ||
                           ["QUEUED", "RENDERING"].includes(ep.status) ||
@@ -1898,7 +2115,7 @@ function App() {
                         }
                       >
                         Apply style
-                      </button>
+                      </Button>
                     </div>
                     {ep.style_info.adoptable.some(
                       (p: Data) => p.id === styleSel,
@@ -1911,7 +2128,7 @@ function App() {
                       </p>
                     )}
                     <div className="row">
-                      <button
+                      <Button
                         className="secondary"
                         disabled={
                           !!busy || ["QUEUED", "RENDERING"].includes(ep.status)
@@ -1928,7 +2145,7 @@ function App() {
                         }
                       >
                         Preview style: Classic vs Cinematic Transitions
-                      </button>
+                      </Button>
                       <span className="muted">
                         Renders about 7 seconds of your real footage in both
                         styles. Never overwrites your export.
@@ -1955,12 +2172,14 @@ function App() {
                                   "/api/media/" +
                                   p.file +
                                   "?v=" +
-                                  encodeURIComponent(ep.style_info.preview.created)
+                                  encodeURIComponent(
+                                    ep.style_info.preview.created,
+                                  )
                                 }
                               />
                               <p className="muted">
-                                {p.seconds}s · captions: {p.presets.join(", ")} ·
-                                transitions:{" "}
+                                {p.seconds}s · captions: {p.presets.join(", ")}{" "}
+                                · transitions:{" "}
                                 {p.transitions.length
                                   ? p.transitions
                                       .map(
@@ -1984,13 +2203,14 @@ function App() {
                       <summary>Scene transitions</summary>
                       <p className="muted">
                         Hard cut is the default. Use a crossfade for gentle
-                        continuous moments and a dip to charcoal sparingly.
-                        The pinned style limits how many are used; anything
-                        over the limit becomes a hard cut and is reported.
+                        continuous moments and a dip to charcoal sparingly. The
+                        pinned style limits how many are used; anything over the
+                        limit becomes a hard cut and is reported.
                       </p>
                       {ep.timeline?.style?.notes?.length > 0 && (
                         <p className="muted">
-                          Last render notes: {ep.timeline.style.notes.join(" · ")}
+                          Last render notes:{" "}
+                          {ep.timeline.style.notes.join(" · ")}
                         </p>
                       )}
                       <div className="transition-list">
@@ -2005,7 +2225,10 @@ function App() {
                               <span>
                                 {s.scene_id}
                                 {s.transition_reason && (
-                                  <span className="muted"> — {s.transition_reason}</span>
+                                  <span className="muted">
+                                    {" "}
+                                    — {s.transition_reason}
+                                  </span>
                                 )}
                               </span>
                               <select
@@ -2018,14 +2241,16 @@ function App() {
                                 }
                               >
                                 <option value="cut">Hard cut</option>
-                                <option value="crossfade">Smooth crossfade</option>
+                                <option value="crossfade">
+                                  Smooth crossfade
+                                </option>
                                 <option value="dip_to_dark">Dip to dark</option>
                               </select>
                             </label>
                           );
                         })}
                       </div>
-                      <button
+                      <Button
                         className="secondary"
                         disabled={
                           !!busy ||
@@ -2035,13 +2260,15 @@ function App() {
                         onClick={() =>
                           act("Save scene transitions", async () => {
                             const full: Record<string, string> = {};
-                            ep.data.package.scenes.slice(1).forEach((s: Data) => {
-                              full[s.scene_id] =
-                                trDraft?.[s.scene_id] ??
-                                ep.style_info.overrides?.[s.scene_id] ??
-                                s.transition_in ??
-                                "cut";
-                            });
+                            ep.data.package.scenes
+                              .slice(1)
+                              .forEach((s: Data) => {
+                                full[s.scene_id] =
+                                  trDraft?.[s.scene_id] ??
+                                  ep.style_info.overrides?.[s.scene_id] ??
+                                  s.transition_in ??
+                                  "cut";
+                              });
                             const r = await api(
                               selectedPath + "/transitions",
                               "PUT",
@@ -2053,7 +2280,7 @@ function App() {
                         }
                       >
                         Save transitions
-                      </button>
+                      </Button>
                     </details>
                   </section>
                 )}
@@ -2069,7 +2296,7 @@ function App() {
                     </p>
                     <div className="row">
                       <span>Quieter</span>
-                      <input
+                      <Input
                         type="range"
                         aria-label="Music level offset in dB"
                         min={-12}
@@ -2083,14 +2310,14 @@ function App() {
                         {musicDb > 0 ? "+" : ""}
                         {musicDb.toFixed(1)} dB
                       </strong>
-                      <button
+                      <Button
                         className="secondary small"
                         onClick={() => setMusicDb(0)}
                         disabled={musicDb === 0}
                       >
                         Reset
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         disabled={
                           !!busy ||
                           ["QUEUED", "RENDERING"].includes(ep.status) ||
@@ -2105,28 +2332,42 @@ function App() {
                         }
                       >
                         Save music level
-                      </button>
+                      </Button>
                     </div>
                     <div className="audio-test">
                       <h4>Listen before you render</h4>
                       {(() => {
                         const f: string[] = ep.files || [];
-                        const nar = f.find((x) => x.startsWith("05_assets/narration/"));
-                        const mus = f.find((x) => x.startsWith("05_assets/music/"));
+                        const nar = f.find((x) =>
+                          x.startsWith("05_assets/narration/"),
+                        );
+                        const mus = f.find((x) =>
+                          x.startsWith("05_assets/music/"),
+                        );
                         return (
                           <div className="audio-grid">
                             <label>
                               Narration only (your uploaded file)
                               {nar ? (
-                                <audio controls preload="none" src={fileURL(nar)} />
+                                <audio
+                                  controls
+                                  preload="none"
+                                  src={fileURL(nar)}
+                                />
                               ) : (
-                                <span className="muted">No narration uploaded</span>
+                                <span className="muted">
+                                  No narration uploaded
+                                </span>
                               )}
                             </label>
                             <label>
                               Background music only (your uploaded file)
                               {mus ? (
-                                <audio controls preload="none" src={fileURL(mus)} />
+                                <audio
+                                  controls
+                                  preload="none"
+                                  src={fileURL(mus)}
+                                />
                               ) : (
                                 <span className="muted">No music uploaded</span>
                               )}
@@ -2135,27 +2376,31 @@ function App() {
                         );
                       })()}
                       <div className="row">
-                        <button
+                        <Button
+                          variant="outline"
                           className="secondary"
                           disabled={
                             !!busy ||
                             ["QUEUED", "RENDERING"].includes(ep.status)
                           }
                           onClick={() =>
-                            act("Build audio preview (narration + music)", async () => {
-                              const r = await api(
-                                selectedPath + "/audio-preview",
-                                "POST",
-                                { offset_db: musicDb },
-                              );
-                              setPreviewMix(r);
-                              return r;
-                            })
+                            act(
+                              "Build audio preview (narration + music)",
+                              async () => {
+                                const r = await api(
+                                  selectedPath + "/audio-preview",
+                                  "POST",
+                                  { offset_db: musicDb },
+                                );
+                                setPreviewMix(r);
+                                return r;
+                              },
+                            )
                           }
                         >
                           Preview mix at {musicDb > 0 ? "+" : ""}
                           {musicDb.toFixed(1)} dB
-                        </button>
+                        </Button>
                         <span className="muted">
                           Takes a few seconds. Nothing is saved and no video is
                           rendered.
@@ -2210,7 +2455,7 @@ function App() {
                         );
                       }}
                     >
-                      <textarea
+                      <Textarea
                         aria-label="Caption-safe regions JSON"
                         name="regions"
                         rows={12}
@@ -2224,7 +2469,7 @@ function App() {
                           2,
                         )}
                       />
-                      <button
+                      <Button
                         disabled={
                           !!busy ||
                           ep.status === "QUEUED" ||
@@ -2232,7 +2477,7 @@ function App() {
                         }
                       >
                         Save caption regions & revalidate
-                      </button>
+                      </Button>
                     </form>
                   </details>
                 )}
@@ -2251,7 +2496,10 @@ function App() {
                 Empty={Empty}
                 onDelete={(ids) =>
                   act("Delete exports", () =>
-                    api(selectedPath + "/exports/delete", "POST", {job_ids: ids, confirm: true}),
+                    api(selectedPath + "/exports/delete", "POST", {
+                      job_ids: ids,
+                      confirm: true,
+                    }),
                   )
                 }
               />
@@ -2278,7 +2526,7 @@ function App() {
                   ))}
                 </select>
               </label>
-              <textarea
+              <Textarea
                 rows={5}
                 value={metrics}
                 onChange={(e) => setMetrics(e.target.value)}
@@ -2289,7 +2537,7 @@ function App() {
               <div className="row">
                 <label className="button secondary">
                   Load metrics JSON
-                  <input
+                  <Input
                     hidden
                     type="file"
                     accept=".json"
@@ -2299,7 +2547,7 @@ function App() {
                     }}
                   />
                 </label>
-                <button
+                <Button
                   disabled={!selected || !metrics || !!busy}
                   onClick={() =>
                     act("Record real metrics", async () => {
@@ -2315,7 +2563,7 @@ function App() {
                   }
                 >
                   Save actual metrics
-                </button>
+                </Button>
               </div>
               <Paged
                 items={metricRows as Data[]}
@@ -2323,7 +2571,11 @@ function App() {
                 label="recorded metrics"
                 getText={(m: Data) => JSON.stringify(m)}
               >
-                {(rows) => rows.map((m: Data) => <pre key={m.id}>{JSON.stringify(m, null, 2)}</pre>)}
+                {(rows) =>
+                  rows.map((m: Data) => (
+                    <pre key={m.id}>{JSON.stringify(m, null, 2)}</pre>
+                  ))
+                }
               </Paged>
             </section>
           )}
@@ -2342,9 +2594,10 @@ function App() {
               <section className="panel">
                 <h3>AI provider</h3>
                 <p className="muted">
-                  Codex CLI uses its existing authenticated login without a separate API key.
-                  Claude Code CLI needs CLAUDE_CODE_OAUTH_TOKEN from claude setup-token, or ANTHROPIC_API_KEY.
-                  API mode requires its own credential.
+                  Codex CLI uses its existing authenticated login without a
+                  separate API key. Claude Code CLI needs
+                  CLAUDE_CODE_OAUTH_TOKEN from claude setup-token, or
+                  ANTHROPIC_API_KEY. API mode requires its own credential.
                 </p>
                 <div className="form-grid">
                   <label>
@@ -2372,7 +2625,7 @@ function App() {
                   </label>
                   <label>
                     Model
-                    <input
+                    <Input
                       value={prefs.model}
                       onChange={(e) =>
                         setPrefs({ ...prefs, model: e.target.value })
@@ -2381,7 +2634,7 @@ function App() {
                   </label>
                   <label>
                     API base URL
-                    <input
+                    <Input
                       value={prefs.base_url}
                       onChange={(e) =>
                         setPrefs({ ...prefs, base_url: e.target.value })
@@ -2390,7 +2643,7 @@ function App() {
                   </label>
                   <label>
                     Context tokens
-                    <input
+                    <Input
                       type="number"
                       value={prefs.context_tokens}
                       onChange={(e) =>
@@ -2403,7 +2656,7 @@ function App() {
                   </label>
                   <label>
                     Output token reserve
-                    <input
+                    <Input
                       type="number"
                       value={prefs.output_tokens}
                       onChange={(e) =>
@@ -2416,7 +2669,7 @@ function App() {
                   </label>
                   <label>
                     AI timeout (seconds)
-                    <input
+                    <Input
                       type="number"
                       value={prefs.timeout_seconds || 300}
                       onChange={(e) =>
@@ -2429,7 +2682,7 @@ function App() {
                   </label>
                   <label>
                     Concurrent AI jobs
-                    <input
+                    <Input
                       type="number"
                       min="1"
                       max="4"
@@ -2444,7 +2697,7 @@ function App() {
                   </label>
                   <label>
                     Music preferences
-                    <input
+                    <Input
                       value={prefs.music_preferences}
                       onChange={(e) =>
                         setPrefs({
@@ -2462,7 +2715,7 @@ function App() {
                     : "not configured"}{" "}
                   · Settings never expose its value.
                 </p>
-                <button
+                <Button
                   disabled={!!busy}
                   onClick={() =>
                     act("Save settings", async () => {
@@ -2487,58 +2740,82 @@ function App() {
                   }
                 >
                   Save settings
-                </button>
+                </Button>
                 <div className="provider-tests credentials-panel">
                   <h3>AI credentials</h3>
                   <p className="muted">
                     Paste a token here instead of editing <code>.env</code>. It
                     is saved to this computer's <code>.env</code>, applies
                     immediately (no restart) and is never shown again, only its
-                    last four characters. <strong>Codex CLI needs no token</strong>:
-                    it uses your own ChatGPT sign-in (run <code>codex login</code>{" "}
-                    once in a terminal, then use Test below).
+                    last four characters.{" "}
+                    <strong>Codex CLI needs no token</strong>: it uses your own
+                    ChatGPT sign-in (run <code>codex login</code> once in a
+                    terminal, then use Test below).
                   </p>
                   {credentials.map((c: Data) => (
                     <div className="panel" key={c.name}>
                       <strong>{c.label}</strong>{" "}
                       <span className="muted">
                         {c.configured
-                          ? "✓ Already saved " + c.hint + (c.stored_in_env_file ? " · in .env, ready to use" : " · from environment")
+                          ? "✓ Already saved " +
+                            c.hint +
+                            (c.stored_in_env_file
+                              ? " · in .env, ready to use"
+                              : " · from environment")
                           : "not set"}
                       </span>
                       <div className="row">
-                        <input
+                        <Input
                           type="password"
                           autoComplete="off"
                           aria-label={c.label}
-                          placeholder={c.configured ? "Paste a new token to replace" : "Paste token"}
+                          placeholder={
+                            c.configured
+                              ? "Paste a new token to replace"
+                              : "Paste token"
+                          }
                           value={tokenDraft[c.name] || ""}
                           onChange={(e) =>
-                            setTokenDraft({ ...tokenDraft, [c.name]: e.target.value })
+                            setTokenDraft({
+                              ...tokenDraft,
+                              [c.name]: e.target.value,
+                            })
                           }
                         />
-                        <button
-                          disabled={!!busy || authorized === false || !(tokenDraft[c.name] || "").trim()}
+                        <Button
+                          disabled={
+                            !!busy ||
+                            authorized === false ||
+                            !(tokenDraft[c.name] || "").trim()
+                          }
                           onClick={() =>
-                            act("Save token and test " + c.provider, async () => {
-                              const saved = await api(
-                                "/providers/credentials/" + c.name,
-                                "PUT",
-                                { value: tokenDraft[c.name] },
-                              );
-                              setTokenDraft({ ...tokenDraft, [c.name]: "" });
-                              setCredentials(saved.credentials);
-                              api("/providers").then(setProviderInfo);
-                              return { message: "Token saved to this computer and kept for future runs. Testing the connection…" };
-                            }).then((saved) => {
+                            act(
+                              "Save token and test " + c.provider,
+                              async () => {
+                                const saved = await api(
+                                  "/providers/credentials/" + c.name,
+                                  "PUT",
+                                  { value: tokenDraft[c.name] },
+                                );
+                                setTokenDraft({ ...tokenDraft, [c.name]: "" });
+                                setCredentials(saved.credentials);
+                                api("/providers")
+                                  .then(setProviderInfo)
+                                  .catch((e) => setError(e.message));
+                                return {
+                                  message:
+                                    "Token saved to this computer and kept for future runs. Testing the connection…",
+                                };
+                              },
+                            ).then((saved) => {
                               if (saved) void runTest(c.provider);
                             })
                           }
                         >
                           Save &amp; test
-                        </button>
+                        </Button>
                         {c.configured && c.stored_in_env_file && (
-                          <button
+                          <Button
                             className="secondary"
                             disabled={!!busy}
                             onClick={() =>
@@ -2548,13 +2825,15 @@ function App() {
                                   "DELETE",
                                 );
                                 setCredentials(r.credentials);
-                                api("/providers").then(setProviderInfo);
+                                api("/providers")
+                                  .then(setProviderInfo)
+                                  .catch((e) => setError(e.message));
                                 return r;
                               })
                             }
                           >
                             Remove
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -2571,13 +2850,16 @@ function App() {
                     <div className="panel" key={p.provider}>
                       <div className="section-heading">
                         <strong>{p.provider}</strong>
-                        <button
+                        <Button
+                          variant="outline"
                           className="secondary"
                           disabled={!!busy || !!testing}
                           onClick={() => void runTest(p.provider)}
                         >
-                          {testing === p.provider ? "Testing…" : "Test AI Connection · " + p.provider}
-                        </button>
+                          {testing === p.provider
+                            ? "Testing…"
+                            : "Test AI Connection · " + p.provider}
+                        </Button>
                       </div>
                       <p className="muted">
                         {p.version || p.auth_method} ·{" "}
@@ -2591,8 +2873,8 @@ function App() {
                       )}
                       {testing === p.provider && (
                         <p className="notice" role="status">
-                          <RefreshCw className="spin" size={14} /> Sending a real
-                          short request with all four instructions to{" "}
+                          <RefreshCw className="spin" size={14} /> Sending a
+                          real short request with all four instructions to{" "}
                           {p.provider}. This usually takes 20–90 seconds; the
                           result appears here.
                         </p>
@@ -2630,13 +2912,13 @@ function App() {
               {skillsPanel}
             </>
           )}
-        </main>
+        </div>
         <footer>
           ODD FRAME <span>Small Stories. Big Emotions.</span>
           <span>LOCAL-FIRST PRODUCTION · v1.0</span>
         </footer>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
 mountStudio(App);

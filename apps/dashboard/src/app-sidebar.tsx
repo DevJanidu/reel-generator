@@ -1,0 +1,108 @@
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { pagePaths } from "./router";
+import { Activity, BookOpen, ShieldCheck, ListOrdered } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+export function AppSidebar({
+  pages,
+  page,
+  onNavigate,
+}: {
+  pages: readonly (readonly [string, LucideIcon])[];
+  page: string;
+  onNavigate: (name: string) => void;
+}) {
+  const { isMobile, setOpenMobile } = useSidebar();
+  const extras: [string, LucideIcon][] = [
+    ["Production Queue", ListOrdered],
+    ["AI Activity", Activity],
+    ["System Health", ShieldCheck],
+    ["How to Use", BookOpen],
+  ];
+  const groups = [
+    ["CREATE", pages.slice(0, 7)],
+    ["PRODUCE", [...pages.slice(7, 10), extras[0], extras[1]]],
+    ["WORKSPACE", [pages[10], extras[2], extras[3]]],
+  ] as const;
+  return (
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="app-sidebar-header p-4">
+        <a
+          className="sidebar-brand flex items-center gap-3 text-foreground"
+          href="/"
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigate("Home");
+          }}
+        >
+          <img
+            className="sidebar-brand-mark"
+            src="/favicon.svg?v=of1"
+            alt=""
+            width="36"
+            height="36"
+          />
+          <span className="sidebar-brand-copy whitespace-nowrap font-semibold group-data-[collapsible=icon]:hidden">
+            ODD FRAME
+            <small className="block text-xs font-normal text-muted-foreground">
+              Creative production station
+            </small>
+          </span>
+        </a>
+      </SidebarHeader>
+      <SidebarContent>
+        {groups.map(([title, items]) => (
+          <SidebarGroup key={title}>
+            <SidebarGroupLabel>{title}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-1.5">
+                {items.map(([name, Icon]) => (
+                  <SidebarMenuItem key={name}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={
+                        page === name ||
+                        (page === "File Explorer" && name === "Asset Manager")
+                      }
+                      tooltip={name}
+                      className="h-11 text-[15px]"
+                    >
+                      <a
+                        href={pagePaths[name]}
+                        aria-current={page === name ? "page" : undefined}
+                        onClick={(e) => {
+                          if (e.ctrlKey || e.metaKey) return;
+                          e.preventDefault();
+                          onNavigate(name);
+                          if (isMobile) setOpenMobile(false);
+                        }}
+                      >
+                        <Icon aria-hidden="true" />
+                        <span>{name}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+      <SidebarFooter className="p-4 text-sm text-muted-foreground group-data-[collapsible=icon]:hidden">
+        Local station
+        <span className="text-xs">Original stories. Every frame matters.</span>
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
