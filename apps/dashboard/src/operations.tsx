@@ -1,43 +1,386 @@
-import {useState} from 'react';
-import {Card,CardHeader,CardTitle,CardDescription,CardContent} from '@/components/ui/card';
-import {Table,TableHeader,TableRow,TableHead,TableBody,TableCell} from '@/components/ui/table';
-import {Badge} from '@/components/ui/badge';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {Accordion,AccordionItem,AccordionTrigger,AccordionContent} from '@/components/ui/accordion';
-import type {StationStatus,Run} from './api';
-const active=(s:string)=>['QUEUED','RUNNING'].includes(s);
-export function QueuePage({status,runs,onEpisode}:{status?:StationStatus;runs:Run[];onEpisode:(id:number)=>void}){
- const jobs=status?.jobs||[];const ai=runs.filter(r=>active(r.status)),render=jobs.filter(j=>active(j.status));
- return <div className="space-y-6"><div className="grid gap-4 sm:grid-cols-2"><Card><CardHeader><CardDescription>AI capacity</CardDescription><CardTitle>{ai.filter(r=>r.status==='RUNNING').length} running / {status?.settings.max_concurrent_jobs??'—'} slots</CardTitle></CardHeader><CardContent>{ai.filter(r=>r.status==='QUEUED').length} queued · Provider and isolation checks still apply.</CardContent></Card><Card><CardHeader><CardDescription>Render capacity</CardDescription><CardTitle>{render.filter(j=>j.status==='RUNNING').length} running / 1 slot</CardTitle></CardHeader><CardContent>Independent from AI capacity. No estimated completion percentage.</CardContent></Card></div><Card><CardHeader><CardTitle>Independent Reel workflows</CardTitle><CardDescription>Actual job states from this station. Select a Reel for its next action.</CardDescription></CardHeader><CardContent className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Reel</TableHead><TableHead>Work</TableHead><TableHead>Provider / stage</TableHead><TableHead>Status</TableHead></TableRow></TableHeader><TableBody>{[...runs.map(r=>({...r,key:'ai-'+r.id,label:r.task,detail:r.provider,episode:r.episode_id})),...jobs.map(j=>({...j,key:'render-'+j.id,label:j.kind||'render',detail:j.stage,episode:j.episode_id,status:String(j.status),error:j.error}))].map(j=><TableRow key={j.key}><TableCell>{j.episode?<Button variant="link" onClick={()=>onEpisode(j.episode)}>OF_R{String(j.episode).padStart(3,'0')}</Button>:'Ideas / diagnostic'}</TableCell><TableCell>{j.label}</TableCell><TableCell>{j.detail}{j.error&&<p role="alert">{j.error}</p>}</TableCell><TableCell><Badge variant="outline">{j.status.replaceAll('_',' ')}</Badge></TableCell></TableRow>)}</TableBody></Table>{!runs.length&&!jobs.length&&<p className="py-6 text-muted-foreground">No recorded jobs. Create a story to begin a workflow.</p>}</CardContent></Card></div>
+import { ProgressHelp } from "./activity";
+import { useState } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+import type { StationStatus, Run } from "./api";
+const active = (s: string) => ["QUEUED", "RUNNING"].includes(s);
+export function QueuePage({
+  status,
+  runs,
+  onEpisode,
+}: {
+  status?: StationStatus;
+  runs: Run[];
+  onEpisode: (id: number) => void;
+}) {
+  const jobs = status?.jobs || [];
+  const ai = runs.filter((r) => active(r.status)),
+    render = jobs.filter((j) => active(j.status));
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardDescription>AI capacity</CardDescription>
+            <CardTitle>
+              {ai.filter((r) => r.status === "RUNNING").length} running /{" "}
+              {status?.settings.max_concurrent_jobs ?? "—"} slots
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {ai.filter((r) => r.status === "QUEUED").length} queued · Provider
+            and isolation checks still apply.
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Render capacity</CardDescription>
+            <CardTitle>
+              {render.filter((j) => j.status === "RUNNING").length} running / 1
+              slot
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            Independent from AI capacity. No estimated completion percentage.
+          </CardContent>
+        </Card>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Independent Reel workflows</CardTitle>
+          <CardDescription>
+            Actual job states from this station. Select a Reel for its next
+            action.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Reel</TableHead>
+                <TableHead>Work</TableHead>
+                <TableHead>Provider / stage</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[
+                ...runs.map((r) => ({
+                  ...r,
+                  key: "ai-" + r.id,
+                  label: r.task,
+                  detail: r.provider,
+                  episode: r.episode_id,
+                })),
+                ...jobs.map((j) => ({
+                  ...j,
+                  key: "render-" + j.id,
+                  label: j.kind || "render",
+                  detail: j.stage,
+                  episode: j.episode_id,
+                  status: String(j.status),
+                  error: j.error,
+                })),
+              ].map((j) => (
+                <TableRow key={j.key}>
+                  <TableCell>
+                    {j.episode ? (
+                      <Button
+                        variant="link"
+                        onClick={() => onEpisode(j.episode)}
+                      >
+                        OF_R{String(j.episode).padStart(3, "0")}
+                      </Button>
+                    ) : (
+                      "Ideas / diagnostic"
+                    )}
+                  </TableCell>
+                  <TableCell>{j.label}</TableCell>
+                  <TableCell>
+                    {j.detail}
+                    {j.error && <p role="alert">{j.error}</p>}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {j.status.replaceAll("_", " ")}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {!runs.length && !jobs.length && (
+            <p className="py-6 text-muted-foreground">
+              No recorded jobs. Create a story to begin a workflow.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
-export function HealthPage({status,onSettings}:{status?:StationStatus;onSettings:()=>void}){return <div className="grid gap-4 md:grid-cols-2"><Card><CardHeader><CardTitle>Production foundation</CardTitle><CardDescription>Reported by the controller; unavailable is never treated as isolated.</CardDescription></CardHeader><CardContent className="space-y-4"><p>Creative inputs: <Badge variant="outline">{status?.skills.valid?'Validated':'Unavailable / invalid'}</Badge></p><p>Master prompt: {status?.master_exists?'Available':'Unavailable'}</p><p>Remotion dependencies: {status?.remotion_installed?'Installed':'Unavailable'}</p><p>Isolation: {String(status?.isolation?.message||status?.isolation?.status||'Not verified here')}</p></CardContent></Card><Card><CardHeader><CardTitle>Tools and provider</CardTitle></CardHeader><CardContent className="space-y-4">{Object.entries(status?.tools||{}).map(([name,ok])=><p key={name}>{name}: <Badge variant="outline">{ok?'Detected':'Not detected'}</Badge></p>)}<p>Configured provider: {status?.settings.provider||'Unknown'}</p><Button variant="outline" onClick={onSettings}>Review provider settings</Button><p className="text-sm text-muted-foreground">Detection does not prove authentication, native isolation, licensing or render quality.</p></CardContent></Card></div>}
-const guide=[
- ['A · Approve a script','Script approval starts here: read the complete narration in Script Studio. APPROVE SCRIPT & CONTINUE freezes the wording and authorizes the validated preparation/export workflow.','Script Studio'],
- ['B · Batch history','Ideas keeps earlier five-story batches. Select a batch to review its original concepts and provider provenance.','Ideas'],
- ['C · Create a Reel','Choose one of eight category groups and 24 genres, review the provider and confirm five ideas. You may also develop your own premise.','Ideas'],
- ['D · Draft and review','Generate narration and internal retention review, or use the full manual request/import workflow. No provider is silently substituted.','Script Studio'],
- ['E · Exports','Finished versions appear only after backend confirmation. Download the final MP4 and review technical QC. Nothing publishes to Facebook.','Exports'],
- ['F · Flow images','Download image-only Flow jobs. Generate strict 2D still images outside this application; prompt files do not mean images exist.','Google Flow Prompts'],
- ['G · Genres','Genre choice persists across refresh. Surprise Me resolves within the selected group. Another batch preserves history.','Ideas'],
- ['H · Health','Review tool detection, creative input validation and reported isolation. Automatic workers remain unavailable when enforcement fails.','System Health'],
- ['I · Import assets','Upload scene-ID stills, one narration and trustworthy 1–4-word SRT cues. Add rights evidence for the pinned instrumental.','Asset Manager'],
- ['J · Jobs and capacity','AI and render capacity are separate. Every job keeps its own episode, provider, actual status and error.','Production Queue'],
- ['K · Keyboard navigation','Use Tab and Shift+Tab to move through controls, Enter to activate and Escape to close dialogs. Ctrl+B toggles the sidebar.','Home'],
- ['L · Live activity','The activity control streams saved status events, elapsed time and verified outputs. Reconnection does not imply completion.','AI Activity'],
- ['M · Manual mode','Download the complete pinned request and schema, then import structured JSON. Manual mode never claims automatic generation.','Ideas'],
- ['N · Narration','Approved narration is immutable. Existing episodes retain their pinned creative inputs. New global inputs apply to new episodes.','Script Studio'],
- ['O · Open Remotion Studio','Select an edit-ready episode and use Open in Remotion Studio. Real readiness and launch errors come from the backend.','Edit Studio'],
- ['P · Production pipeline','Open the episode workspace for its next required action, missing assets, history and public production files.','Episode Workspace'],
- ['Q · Quality control','Technical decode and QC are separate from story quality, rights, acoustic sync and audience analytics. Review the actual export.','Exports'],
- ['R · Retry and recovery','Fix the reported problem before retrying. A retry creates a new AI run; it never rewrites approved narration.','AI Activity'],
- ['S · Settings','Provider tests can consume real model usage. Save only authorized settings; secrets are never returned by the server.','Settings'],
- ['T · Timing','Use supplied trustworthy SRT timing. The interface must not invent word alignment or generation percentages.','Asset Manager'],
- ['U · Upload validation','Refresh assets to check decode, coverage and missing files. Validation errors must be fixed before editing.','Asset Manager'],
- ['V · Versions','Earlier snapshots and exports remain independent. Studio rebuilds must preserve or explicitly archive owner edits.','Edit Studio'],
- ['W · Workspace','Each episode has its own immutable inputs, assets, runs and exports. Workers cannot write sibling episodes or the global database.','Episode Workspace'],
- ['X · Export authorization','The script approval authorizes validated export. Render final MP4 uses the saved official Studio source.','Edit Studio'],
- ['Y · Your analytics','Analytics stores owner-supplied real values only. Empty data is not a predicted retention score.','Analytics'],
- ['Z · Zero automatic publishing','ODD FRAME produces local files. Publishing and audience claims remain under owner control.','Exports'],
+export function HealthPage({
+  status,
+  onSettings,
+}: {
+  status?: StationStatus;
+  onSettings: () => void;
+}) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle>Production foundation</CardTitle>
+          <CardDescription>
+            Reported by the controller; unavailable is never treated as
+            isolated.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>
+            Creative inputs:{" "}
+            <Badge variant="outline">
+              {status?.skills.valid ? "Validated" : "Unavailable / invalid"}
+            </Badge>
+          </p>
+          <p>
+            Master prompt: {status?.master_exists ? "Available" : "Unavailable"}
+          </p>
+          <p>
+            Remotion dependencies:{" "}
+            {status?.remotion_installed ? "Installed" : "Unavailable"}
+          </p>
+          <p>
+            Isolation:{" "}
+            {String(
+              status?.isolation?.message ||
+                status?.isolation?.status ||
+                "Not verified here",
+            )}
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Tools and provider</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {Object.entries(status?.tools || {}).map(([name, ok]) => (
+            <p key={name}>
+              {name}:{" "}
+              <Badge variant="outline">
+                {ok ? "Detected" : "Not detected"}
+              </Badge>
+            </p>
+          ))}
+          <p>Configured provider: {status?.settings.provider || "Unknown"}</p>
+          <Button variant="outline" onClick={onSettings}>
+            Review provider settings
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            Detection does not prove authentication, native isolation, licensing
+            or render quality.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+const guide = [
+  [
+    "A · Approve a script",
+    "Script approval starts here: read the complete narration in Script Studio. APPROVE SCRIPT & CONTINUE freezes the wording and authorizes the validated preparation/export workflow.",
+    "Script Studio",
+  ],
+  [
+    "B · Batch history",
+    "Ideas keeps earlier five-story batches. Select a batch to review its original concepts and provider provenance.",
+    "Ideas",
+  ],
+  [
+    "C · Create a Reel",
+    "Choose one of eight category groups and 24 genres, review the provider and confirm five ideas. You may also develop your own premise.",
+    "Ideas",
+  ],
+  [
+    "D · Draft and review",
+    "Generate narration and internal retention review, or use the full manual request/import workflow. No provider is silently substituted.",
+    "Script Studio",
+  ],
+  [
+    "E · Exports",
+    "Finished versions appear only after backend confirmation. Download the final MP4 and review technical QC. Nothing publishes to Facebook.",
+    "Exports",
+  ],
+  [
+    "F · Flow images",
+    "Download image-only Flow jobs. Generate strict 2D still images outside this application; prompt files do not mean images exist.",
+    "Google Flow Prompts",
+  ],
+  [
+    "G · Genres",
+    "Genre choice persists across refresh. Surprise Me resolves within the selected group. Another batch preserves history.",
+    "Ideas",
+  ],
+  [
+    "H · Health",
+    "Review tool detection, creative input validation and reported isolation. Automatic workers remain unavailable when enforcement fails.",
+    "System Health",
+  ],
+  [
+    "I · Import assets",
+    "Upload scene-ID stills, one narration and trustworthy 1–4-word SRT cues. Add rights evidence for the pinned instrumental.",
+    "Asset Manager",
+  ],
+  [
+    "J · Jobs and capacity",
+    "AI and render capacity are separate. Every job keeps its own episode, provider, actual status and error.",
+    "Production Queue",
+  ],
+  [
+    "K · Keyboard navigation",
+    "Use Tab and Shift+Tab to move through controls, Enter to activate and Escape to close dialogs. Ctrl+B toggles the sidebar.",
+    "Home",
+  ],
+  [
+    "L · Live activity",
+    "The activity control streams saved status events, elapsed time and verified outputs. Reconnection does not imply completion.",
+    "AI Activity",
+  ],
+  [
+    "M · Manual mode",
+    "Download the complete pinned request and schema, then import structured JSON. Manual mode never claims automatic generation.",
+    "Ideas",
+  ],
+  [
+    "N · Narration",
+    "Approved narration is immutable. Existing episodes retain their pinned creative inputs. New global inputs apply to new episodes.",
+    "Script Studio",
+  ],
+  [
+    "O · Open Remotion Studio",
+    "Select an edit-ready episode and use Open in Remotion Studio. Real readiness and launch errors come from the backend.",
+    "Edit Studio",
+  ],
+  [
+    "P · Production pipeline",
+    "Open the episode workspace for its next required action, missing assets, history and public production files.",
+    "Episode Workspace",
+  ],
+  [
+    "Q · Quality control",
+    "Technical decode and QC are separate from story quality, rights, acoustic sync and audience analytics. Review the actual export.",
+    "Exports",
+  ],
+  [
+    "R · Retry and recovery",
+    "Fix the reported problem before retrying. A retry creates a new AI run; it never rewrites approved narration.",
+    "AI Activity",
+  ],
+  [
+    "S · Settings",
+    "Provider tests can consume real model usage. Save only authorized settings; secrets are never returned by the server.",
+    "Settings",
+  ],
+  [
+    "T · Timing",
+    "Use supplied trustworthy SRT timing. The interface must not invent word alignment or generation percentages.",
+    "Asset Manager",
+  ],
+  [
+    "U · Upload validation",
+    "Refresh assets to check decode, coverage and missing files. Validation errors must be fixed before editing.",
+    "Asset Manager",
+  ],
+  [
+    "V · Versions",
+    "Earlier snapshots and exports remain independent. Studio rebuilds must preserve or explicitly archive owner edits.",
+    "Edit Studio",
+  ],
+  [
+    "W · Workspace",
+    "Each episode has its own immutable inputs, assets, runs and exports. Workers cannot write sibling episodes or the global database.",
+    "Episode Workspace",
+  ],
+  [
+    "X · Export authorization",
+    "The script approval authorizes validated export. Render final MP4 uses the saved official Studio source.",
+    "Edit Studio",
+  ],
+  [
+    "Y · Your analytics",
+    "Analytics stores owner-supplied real values only. Empty data is not a predicted retention score.",
+    "Analytics",
+  ],
+  [
+    "Z · Zero automatic publishing",
+    "ODD FRAME produces local files. Publishing and audience claims remain under owner control.",
+    "Exports",
+  ],
 ];
-export function HelpPage({onNavigate}:{onNavigate:(name:string)=>void}){const [query,setQuery]=useState('');const rows=guide.filter(r=>r.join(' ').toLowerCase().includes(query.toLowerCase()));return <Card><CardHeader><CardTitle>From the first idea to the final frame</CardTitle><CardDescription>Search the A–Z workflow guide.</CardDescription><Input aria-label="Search help" placeholder="Try approvals, assets or Remotion…" value={query} onChange={e=>setQuery(e.target.value)}/></CardHeader><CardContent><Accordion type="multiple">{rows.map(([title,text,page])=><AccordionItem value={title} key={title}><AccordionTrigger className="text-base">{title}</AccordionTrigger><AccordionContent className="text-base leading-relaxed"><p>{text}</p><Button variant="link" onClick={()=>onNavigate(page)}>Open {page}</Button></AccordionContent></AccordionItem>)}</Accordion>{!rows.length&&<p>No guide entries match. Try another search.</p>}</CardContent></Card>}
+export function HelpPage({
+  onNavigate,
+}: {
+  onNavigate: (name: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const rows = guide.filter((r) =>
+    r.join(" ").toLowerCase().includes(query.toLowerCase()),
+  );
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>From the first idea to the final frame</CardTitle>
+        <CardDescription>Search the A–Z workflow guide.</CardDescription>
+        <Input
+          aria-label="Search help"
+          placeholder="Try approvals, assets or Remotion…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </CardHeader>
+      <CardContent>
+        <Accordion type="multiple">
+          {rows.map(([title, text, page]) => (
+            <AccordionItem value={title} key={title}>
+              <AccordionTrigger className="text-base">{title}</AccordionTrigger>
+              <AccordionContent className="text-base leading-relaxed">
+                <p>{text}</p>
+                <Button variant="link" onClick={() => onNavigate(page)}>
+                  Open {page}
+                </Button>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+        <details className="mt-6">
+          <summary>Detailed job progress and audio reference</summary>
+          <ProgressHelp />
+        </details>
+        {!rows.length && <p>No guide entries match. Try another search.</p>}
+      </CardContent>
+    </Card>
+  );
+}

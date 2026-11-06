@@ -86,7 +86,7 @@ textarea,
 select {
   outline-offset: 4px;
 }
-button,
+button:not([data-slot]),
 .button {
   border: 1px solid #ffd43b;
   background: #ffd43b;
@@ -103,11 +103,11 @@ button,
   transition: background 0.15s;
   white-space: nowrap;
 }
-button:hover,
+button:not([data-slot]):hover,
 .button:hover {
   filter: brightness(1.07);
 }
-button:disabled,
+button:not([data-slot]):disabled,
 .disabled {
   opacity: 0.4;
   cursor: not-allowed;

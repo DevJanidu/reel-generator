@@ -1,3 +1,4 @@
+@layer theme, base, legacy, components, utilities;
 @layer legacy {
 .live-studio{padding:24px;max-width:1920px;margin:auto;color:#f1ebdd;font-size:16px}
 .studio-header{display:flex;justify-content:space-between;align-items:center;gap:20px;padding-right:225px;min-height:80px}.studio-header h1{font-size:24px;margin:6px 0}.studio-actions,.studio-row{display:flex;align-items:center;gap:10px;justify-content:space-between}.studio-actions{flex-wrap:wrap;justify-content:flex-end}.studio-actions button,.studio-inspector button,.transport button,.activity-drawer button{font-size:15px;min-height:38px}.studio-notice{min-height:38px;padding:10px 0;color:#dec681}.studio-notice[role=alert]{color:#ffaaa3}

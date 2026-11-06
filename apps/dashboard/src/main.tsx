@@ -1,18 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { mountStudio, queryClient, useWorkspaceRoute } from "./router";
-import {useQuery} from '@tanstack/react-query';
-import {api,stationApi,queryKeys} from './api';
-import {AppSidebar} from './app-sidebar';
-import {SidebarProvider,SidebarInset,SidebarTrigger} from '@/components/ui/sidebar';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {Textarea} from '@/components/ui/textarea';
-import {Badge as StatusBadge} from '@/components/ui/badge';
-import {Skeleton} from '@/components/ui/skeleton';
-import {QueuePage,HealthPage,HelpPage} from './operations';
-import {ActivityPage} from './activity';
-import {toast} from 'sonner';
-import './redesign.css';
+import { useQuery } from "@tanstack/react-query";
+import { api, stationApi, queryKeys } from "./api";
+import { AppSidebar } from "./app-sidebar";
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge as StatusBadge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { QueuePage, HealthPage, HelpPage } from "./operations";
+import { ActivityPage } from "./activity";
+import { toast } from "sonner";
+import "./redesign.css";
 import { StudioPanel } from "./studio";
 import { IdeasStudio } from "./ideas";
 import { Paged } from "./paging";
@@ -49,7 +60,11 @@ const controllerFromLaunch = new URLSearchParams(
 if (controllerFromLaunch) {
   sessionStorage.setItem("odd-frame-controller", controllerFromLaunch);
   localStorage.setItem("odd-frame-controller", controllerFromLaunch);
-  history.replaceState(null, "", window.location.pathname + window.location.search);
+  history.replaceState(
+    null,
+    "",
+    window.location.pathname + window.location.search,
+  );
 }
 
 type Data = Record<string, any>;
@@ -69,9 +84,13 @@ const pages = [
 const assetTodo = (errors: string[] = []) => {
   const missing = (e: string) => /found 0/.test(e);
   const images = errors.filter((e) => /^S\d+:/.test(e) && missing(e)).length;
-  const narration = errors.some((e) => e.startsWith("narration:") && missing(e));
+  const narration = errors.some(
+    (e) => e.startsWith("narration:") && missing(e),
+  );
   const music = errors.some((e) => e.startsWith("music:") && missing(e));
-  const subtitles = errors.some((e) => e.startsWith("subtitles:") && missing(e));
+  const subtitles = errors.some(
+    (e) => e.startsWith("subtitles:") && missing(e),
+  );
   const confirmMusic = errors.some((e) => e.startsWith("Music: confirm"));
   const other = errors.filter(
     (e) => !missing(e) && !e.startsWith("Music: confirm"),
@@ -102,14 +121,38 @@ const Empty = ({ text }: { text: string }) => (
 );
 
 function App() {
-  const {page,setPage,selected,setSelected,selectEpisode}=useWorkspaceRoute();
-  const [sidebarOpen,setSidebarOpen]=useState(()=>localStorage.getItem('odd-sidebar')!=='collapsed');
-  const statusQuery=useQuery({queryKey:queryKeys.status,queryFn:({signal})=>stationApi.status(signal),refetchInterval:5000});
-  const episodesQuery=useQuery({queryKey:queryKeys.episodes,queryFn:({signal})=>stationApi.episodes(signal),refetchInterval:5000});
-  const runsQuery=useQuery({queryKey:queryKeys.runs,queryFn:({signal})=>stationApi.runs(signal),refetchInterval:5000});
-  const episodeQuery=useQuery({queryKey:queryKeys.episode(selected),queryFn:({signal})=>stationApi.episode(selected!,signal),enabled:!!selected,refetchInterval:5000});
-  const status=statusQuery.data,episodes=episodesQuery.data||[],runs=runsQuery.data||[],ep=episodeQuery.data;
-  const setStatus=(fn:(v:any)=>any)=>queryClient.setQueryData(queryKeys.status,fn);
+  const { page, setPage, selected, setSelected, selectEpisode } =
+    useWorkspaceRoute();
+  const [sidebarOpen, setSidebarOpen] = useState(
+    () => localStorage.getItem("odd-sidebar") !== "collapsed",
+  );
+  const statusQuery = useQuery({
+    queryKey: queryKeys.status,
+    queryFn: ({ signal }) => stationApi.status(signal),
+    refetchInterval: 5000,
+  });
+  const episodesQuery = useQuery({
+    queryKey: queryKeys.episodes,
+    queryFn: ({ signal }) => stationApi.episodes(signal),
+    refetchInterval: 5000,
+  });
+  const runsQuery = useQuery({
+    queryKey: queryKeys.runs,
+    queryFn: ({ signal }) => stationApi.runs(signal),
+    refetchInterval: 5000,
+  });
+  const episodeQuery = useQuery({
+    queryKey: queryKeys.episode(selected),
+    queryFn: ({ signal }) => stationApi.episode(selected!, signal),
+    enabled: !!selected,
+    refetchInterval: 5000,
+  });
+  const status = statusQuery.data,
+    episodes = episodesQuery.data || [],
+    runs = runsQuery.data || [],
+    ep = episodeQuery.data;
+  const setStatus = (fn: (v: any) => any) =>
+    queryClient.setQueryData(queryKeys.status, fn);
   const [ideas, setIdeas] = useState<Data[]>([]),
     [master, setMaster] = useState(""),
     [busy, setBusy] = useState(""),
@@ -148,17 +191,29 @@ function App() {
       return r;
     } finally {
       setTesting("");
-      api("/providers").then(setProviderInfo).catch(() => {});
+      api("/providers")
+        .then(setProviderInfo)
+        .catch(() => {});
     }
   };
   const [accessKey, setAccessKey] = useState("");
   const checkAuthorization = () =>
-    api("/controller/status").then((r) => setAuthorized(!!r.authorized)).catch(() => setAuthorized(null));
+    api("/controller/status")
+      .then((r) => setAuthorized(!!r.authorized))
+      .catch(() => setAuthorized(null));
   const [tokenDraft, setTokenDraft] = useState<Record<string, string>>({});
   const [connectionResults, setConnectionResults] = useState<
     Record<string, Data>
   >({});
-  const reload=async()=>{await Promise.all([queryClient.invalidateQueries({queryKey:queryKeys.status}),queryClient.invalidateQueries({queryKey:queryKeys.episodes}),queryClient.invalidateQueries({queryKey:queryKeys.runs}),queryClient.invalidateQueries({queryKey:queryKeys.episode(selected)}),queryClient.invalidateQueries({queryKey:queryKeys.activity})])};
+  const reload = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.status }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.episodes }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.runs }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.episode(selected) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.activity }),
+    ]);
+  };
   const [nowMs, setNowMs] = useState(Date.now());
   const [musicDb, setMusicDb] = useState(0);
   const [previewMix, setPreviewMix] = useState<Data | null>(null);
@@ -175,13 +230,26 @@ function App() {
       setMusicDb(Number(ep.data?.music_mix?.offset_db ?? 0));
   }, [ep?.id, ep?.data?.music_mix?.offset_db]);
   useEffect(() => setPreviewMix(null), [selected]);
-  useEffect(()=>{const t=setInterval(()=>setNowMs(Date.now()),1000);return()=>clearInterval(t)},[]);
   useEffect(() => {
-    api("/master").then((v) => setMaster(v.content)).catch(e=>setError(e.message));
-    api("/settings").then(setPrefs).catch(e=>setError(e.message));
-    api("/metrics").then(setMetricRows).catch(e=>setError(e.message));
-    api("/providers").then(setProviderInfo).catch(e=>setError(e.message));
-    api("/providers/credentials").then((r) => setCredentials(r.credentials)).catch(e=>setError(e.message));
+    const t = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  useEffect(() => {
+    api("/master")
+      .then((v) => setMaster(v.content))
+      .catch((e) => setError(e.message));
+    api("/settings")
+      .then(setPrefs)
+      .catch((e) => setError(e.message));
+    api("/metrics")
+      .then(setMetricRows)
+      .catch((e) => setError(e.message));
+    api("/providers")
+      .then(setProviderInfo)
+      .catch((e) => setError(e.message));
+    api("/providers/credentials")
+      .then((r) => setCredentials(r.credentials))
+      .catch((e) => setError(e.message));
     checkAuthorization();
   }, []);
   useEffect(() => {
@@ -220,7 +288,7 @@ function App() {
       api("/episodes", "POST", idea),
     );
     if (result) {
-      selectEpisode(result.id,"Script Studio");
+      selectEpisode(result.id, "Script Studio");
       if (status?.settings?.provider !== "manual") {
         const generated = await act("Queue script and retention review", () =>
           api("/episodes/" + result.id + "/script", "POST"),
@@ -229,13 +297,15 @@ function App() {
       }
     }
   };
-  const generate = () => {setPage("Ideas");setError("");};
+  const generate = () => {
+    setPage("Ideas");
+    setError("");
+  };
   const liveIdeasRun = runs.find((r) => r.id === runId && r.task === "ideas");
   const liveRun =
     runs.find(
       (r) =>
-        r.episode_id === selected &&
-        ["QUEUED", "RUNNING"].includes(r.status),
+        r.episode_id === selected && ["QUEUED", "RUNNING"].includes(r.status),
     ) || runs.find((r) => r.id === runId);
   const taskLabel = (t?: string) =>
     t === "ideas"
@@ -256,7 +326,9 @@ function App() {
     "Render",
     "Export",
   ];
-  const stepInfo = (e: Data): { step: number; text: string; warn?: boolean } => {
+  const stepInfo = (
+    e: Data,
+  ): { step: number; text: string; warn?: boolean } => {
     const s = e.status;
     const err = e.data?.error;
     switch (s) {
@@ -314,7 +386,10 @@ function App() {
           text: "Export complete. Open Exports to download the video.",
         };
       case "EDIT_READY":
-        return {step:5,text:"Automatic edit ready. Open it in Remotion Studio from Edit Studio, make small adjustments, then render the final video."};
+        return {
+          step: 5,
+          text: "Automatic edit ready. Open it in Remotion Studio from Edit Studio, make small adjustments, then render the final video.",
+        };
       case "FAILED":
         return {
           step: 5,
@@ -328,7 +403,10 @@ function App() {
         return {
           step: 2,
           warn: true,
-          text: "Blocked: " + (err || "see the error below") + ". You can retry once fixed.",
+          text:
+            "Blocked: " +
+            (err || "see the error below") +
+            ". You can retry once fixed.",
         };
       default:
         return { step: 0, text: String(s) };
@@ -351,13 +429,16 @@ function App() {
   };
   const historyText = (h: Data, e: Data) => {
     const raw = String(h.message || "");
-    const text =
-      !raw || raw === h.stage ? HISTORY_TEXT[h.stage] || raw : raw;
+    const text = !raw || raw === h.stage ? HISTORY_TEXT[h.stage] || raw : raw;
     const latest = e.history?.[e.history.length - 1]?.id === h.id;
     const first = e.data?.asset_errors?.[0];
-    return h.stage === "ASSETS_BLOCKED" && latest && first &&
+    return h.stage === "ASSETS_BLOCKED" &&
+      latest &&
+      first &&
       assetTodo(e.data?.asset_errors).other.length
-      ? text + " First issue: " + String(assetTodo(e.data?.asset_errors).other[0])
+      ? text +
+          " First issue: " +
+          String(assetTodo(e.data?.asset_errors).other[0])
       : text;
   };
   const AssetChecklist = () => {
@@ -422,7 +503,11 @@ function App() {
           ))}
         </ol>
         <p className={info.warn ? "error" : "muted"}>{info.text}</p>
-        {ep.status==='EDIT_READY'&&<Button onClick={()=>setPage("Edit Studio")}>Open in Remotion Studio</Button>}
+        {ep.status === "EDIT_READY" && (
+          <Button onClick={() => setPage("Edit Studio")}>
+            Open in Remotion Studio
+          </Button>
+        )}
         {["AWAITING_ASSETS", "ASSETS_BLOCKED"].includes(ep.status) &&
           AssetChecklist()}
         {LiveIdeasPanel()}
@@ -436,10 +521,10 @@ function App() {
           )}
         {jobs.map((j: Data) => (
           <div className="job" key={j.id}>
-            <strong>
-              {j.stage}
-            </strong>
-            {['QUEUED','RUNNING'].includes(j.status) && <progress aria-label={j.stage} />}
+            <strong>{j.stage}</strong>
+            {["QUEUED", "RUNNING"].includes(j.status) && (
+              <progress aria-label={j.stage} />
+            )}
           </div>
         ))}
       </section>
@@ -457,14 +542,19 @@ function App() {
     const r = override || liveRun;
     if (!r) return null;
     const active = ["QUEUED", "RUNNING"].includes(r.status);
-    const who = r.provider === "codex_cli" ? "Codex" : r.provider === "claude_cli" ? "Claude" : r.provider;
+    const who =
+      r.provider === "codex_cli"
+        ? "Codex"
+        : r.provider === "claude_cli"
+          ? "Claude"
+          : r.provider;
     return (
       <section className="panel live-run" role="status" aria-live="polite">
         <div className="section-heading">
           <h3>
             {active && <RefreshCw className="spin" size={16} />}{" "}
             {active
-              ? who + " · " + (r.stage || 'Waiting to start')
+              ? who + " · " + (r.stage || "Waiting to start")
               : r.status === "SUCCEEDED"
                 ? "Ready: " + taskLabel(r.task)
                 : "Generation " + r.status.toLowerCase()}
@@ -479,7 +569,9 @@ function App() {
             : r.status === "SUCCEEDED"
               ? r.task === "ideas"
                 ? "Scroll down to review the ten concepts."
-                : "The story brief and narration are filled in below. Review and edit them before approving."
+                : r.task === "prepare"
+                  ? "Production package saved. Add the required assets to continue."
+                  : "The story brief and narration are filled in below. Review and edit them before approving."
               : ""}
         </p>
         <strong>
@@ -500,7 +592,7 @@ function App() {
     "/file/" +
     relative.split("/").map(encodeURIComponent).join("/");
   const selectEp = (e: Data, destination = "Episode Workspace") => {
-    selectEpisode(e.id,destination);
+    selectEpisode(e.id, destination);
   };
   const activeRuns = runs.filter(
     (r) => !selected || r.episode_id === selected || !r.episode_id,
@@ -518,7 +610,9 @@ function App() {
           <strong>
             {r.task} · {r.provider || "manual"} · {r.stage || r.status}
           </strong>
-          {['QUEUED','RUNNING'].includes(r.status) && <progress aria-label={r.stage || r.status} />}
+          {["QUEUED", "RUNNING"].includes(r.status) && (
+            <progress aria-label={r.stage || r.status} />
+          )}
           <Badge value={r.status} />
           {r.error && <p className="error">{r.error}</p>}
           {["QUEUED", "RUNNING"].includes(r.status) && (
@@ -574,12 +668,21 @@ function App() {
             onChange={(e) => setRunId(e.target.value)}
           >
             <option value="">
-              {activeRuns.some((r) => r.task !== "genre_ideas" && r.status === "AWAITING_MANUAL")
+              {activeRuns.some(
+                (r) =>
+                  r.task !== "genre_ideas" && r.status === "AWAITING_MANUAL",
+              )
                 ? "Select a run waiting for your AI response"
                 : "No runs waiting — press Generate first"}
             </option>
             {activeRuns
-              .filter((r) => r.task !== "genre_ideas" && (r.status === "AWAITING_MANUAL" || r.id === runId || (r.task === "ideas" && r.status === "SUCCEEDED")))
+              .filter(
+                (r) =>
+                  r.task !== "genre_ideas" &&
+                  (r.status === "AWAITING_MANUAL" ||
+                    r.id === runId ||
+                    (r.task === "ideas" && r.status === "SUCCEEDED")),
+              )
               .map((r) => (
                 <option value={r.id} key={r.id}>
                   {r.task} ·{" "}
@@ -641,7 +744,8 @@ function App() {
               >
                 Validate & import JSON
               </Button>
-              <Button variant="outline"
+              <Button
+                variant="outline"
                 className="secondary"
                 onClick={() =>
                   act("Load saved result", async () => {
@@ -727,20 +831,42 @@ function App() {
   );
 
   return (
-    <SidebarProvider open={sidebarOpen} onOpenChange={open=>{setSidebarOpen(open);localStorage.setItem('odd-sidebar',open?'expanded':'collapsed')}}>
-      <a className="skip-link" href="#page-content">Skip to content</a>
-      <AppSidebar pages={pages} page={page} onNavigate={setPage}/>
+    <SidebarProvider
+      open={sidebarOpen}
+      onOpenChange={(open) => {
+        setSidebarOpen(open);
+        localStorage.setItem("odd-sidebar", open ? "expanded" : "collapsed");
+      }}
+    >
+      <a className="skip-link" href="#page-content">
+        Skip to content
+      </a>
+      <AppSidebar pages={pages} page={page} onNavigate={setPage} />
       <SidebarInset className="workspace-content">
         <header className="topbar">
-          <div className="crumb"><SidebarTrigger/>
-            Workspace <ChevronRight size={14} />
-            <strong>{page}</strong>
+          <div className="crumb">
+            <SidebarTrigger />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="crumb-root">
+                  Workspace
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{page}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
           <div className="top-status">
-            <StatusBadge variant="outline">{status?.skills.valid ? "Inputs validated" : "Check health"}</StatusBadge>
+            <StatusBadge variant="outline">
+              {status?.skills.valid ? "Inputs validated" : "Check health"}
+            </StatusBadge>
             {status?.settings?.provider === "manual"
               ? "Manual AI mode"
-              : status?.settings.provider ? "Provider: " + status.settings.provider : "Connecting"}
+              : status?.settings.provider
+                ? "Provider: " + status.settings.provider
+                : "Connecting"}
             <span className="avatar">OF</span>
           </div>
         </header>
@@ -748,14 +874,21 @@ function App() {
           <div className="page-heading">
             <div>
               <span className="eyebrow">SMALL STORIES. BIG EMOTIONS.</span>
-              <h1>{page === "Home" ? "Your next story starts here." : page === "Ideas" ? "What Kind of Story Are We Creating?" : page}</h1>
+              <h1>
+                {page === "Home"
+                  ? "Your next story starts here."
+                  : page === "Ideas"
+                    ? "What Kind of Story Are We Creating?"
+                    : page}
+              </h1>
               <p>
                 {page === "Home"
                   ? "One workspace. From the first spark to the final frame."
-                  : page === "Ideas" ? "Choose your genre. Discover five original story ideas."
-                  : selected && ep
-                    ? ep.code + " / " + ep.title
-                    : "Create, prepare and produce original ODD FRAME stories."}
+                  : page === "Ideas"
+                    ? "Choose your genre. Discover five original story ideas."
+                    : selected && ep
+                      ? ep.code + " / " + ep.title
+                      : "Create, prepare and produce original ODD FRAME stories."}
               </p>
             </div>
             <Button disabled={!!busy || !valid} onClick={generate}>
@@ -763,12 +896,37 @@ function App() {
               Create New Reel
             </Button>
           </div>
-          {statusQuery.isPending&&<div role="status" aria-label="Loading station"><Skeleton className="h-24 w-full"/><span className="sr-only">Loading station</span></div>}
-          {[statusQuery,episodesQuery,runsQuery,episodeQuery].some(q=>q.isError)&&<div role="alert" className="error">Station data could not load. <Button variant="outline" onClick={()=>void reload()}>Retry connection</Button></div>}
-          {page==='Production Queue'&&<QueuePage status={status} runs={runs} onEpisode={id=>selectEpisode(id,'Episode Workspace')}/>}
-          {page==='System Health'&&<HealthPage status={status} onSettings={()=>setPage('Settings')}/>}
-          {page==='How to Use'&&<HelpPage onNavigate={setPage}/>}
-          {page==='AI Activity'&&<ActivityPage/>}
+          {statusQuery.isPending && (
+            <div role="status" aria-label="Loading station">
+              <Skeleton className="h-24 w-full" />
+              <span className="sr-only">Loading station</span>
+            </div>
+          )}
+          {[statusQuery, episodesQuery, runsQuery, episodeQuery].some(
+            (q) => q.isError,
+          ) && (
+            <div role="alert" className="error">
+              Station data could not load.{" "}
+              <Button variant="outline" onClick={() => void reload()}>
+                Retry connection
+              </Button>
+            </div>
+          )}
+          {page === "Production Queue" && (
+            <QueuePage
+              status={status}
+              runs={runs}
+              onEpisode={(id) => selectEpisode(id, "Episode Workspace")}
+            />
+          )}
+          {page === "System Health" && (
+            <HealthPage
+              status={status}
+              onSettings={() => setPage("Settings")}
+            />
+          )}
+          {page === "How to Use" && <HelpPage onNavigate={setPage} />}
+          {page === "AI Activity" && <ActivityPage />}
           {busy && (
             <div className="loading" role="status">
               <RefreshCw className="spin" size={16} />
@@ -779,9 +937,11 @@ function App() {
             <div className="error" role="alert">
               <AlertCircle size={17} />
               <div>
-                <strong>This browser window is not authorized to make changes.</strong>{" "}
-                Open the dashboard with <code>scriptsstart.ps1</code>, or paste the
-                access key from <code>datantroller-access.json</code> (the
+                <strong>
+                  This browser window is not authorized to make changes.
+                </strong>{" "}
+                Open the dashboard with <code>scriptsstart.ps1</code>, or paste
+                the access key from <code>datantroller-access.json</code> (the
                 "token" value) here. It is kept in this browser only.
                 <div className="row">
                   <Input
@@ -795,7 +955,10 @@ function App() {
                   <Button
                     disabled={!accessKey.trim()}
                     onClick={() => {
-                      localStorage.setItem("odd-frame-controller", accessKey.trim());
+                      localStorage.setItem(
+                        "odd-frame-controller",
+                        accessKey.trim(),
+                      );
                       setAccessKey("");
                       checkAuthorization();
                     }}
@@ -812,15 +975,24 @@ function App() {
               {error}
             </div>
           )}
-          {notice && (
-            <div className="notice" role="status">
-              <Check size={17} />
-              {notice}
-            </div>
-          )}
           {page === "Home" && (
             <>
-              <section className="home-intro"><div><span className="eyebrow gold">YOUR PRODUCTION DESK</span><h2>Small stories. Big emotions.</h2><p>Choose a story, approve the script, then bring every frame to life.</p></div><Button onClick={()=>setPage('Production Queue')} variant="outline">View production queue <ArrowRight size={16}/></Button></section>
+              <section className="home-intro">
+                <div>
+                  <span className="eyebrow gold">YOUR PRODUCTION DESK</span>
+                  <h2>Small stories. Big emotions.</h2>
+                  <p>
+                    Choose a story, approve the script, then bring every frame
+                    to life.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setPage("Production Queue")}
+                  variant="outline"
+                >
+                  View production queue <ArrowRight size={16} />
+                </Button>
+              </section>
               <div className="stats">
                 {[
                   ["Total Reels", episodes.length],
@@ -865,7 +1037,7 @@ function App() {
                 ].map(([label, n]) => (
                   <div className="stat" key={label}>
                     <span>{label}</span>
-                    <strong>{String(n)}</strong>
+                    <strong>{episodesQuery.isPending ? "?" : String(n)}</strong>
                   </div>
                 ))}
               </div>
@@ -876,13 +1048,21 @@ function App() {
                     <span className="muted">Your production shelf</span>
                   </div>
                   {!episodes.length ? (
-                    <Empty text="Your first story is waiting to be told." />
+                    <Empty
+                      text={
+                        episodesQuery.isPending
+                          ? "Loading Reels?"
+                          : "Your first story is waiting to be told."
+                      }
+                    />
                   ) : (
                     <Paged
                       items={episodes}
                       size={5}
                       label="reels"
-                      getText={(e: Data) => e.title + " " + e.code + " " + e.status}
+                      getText={(e: Data) =>
+                        e.title + " " + e.code + " " + e.status
+                      }
                     >
                       {(rows) =>
                         rows.map((e) => (
@@ -909,7 +1089,51 @@ function App() {
                     </Paged>
                   )}
                 </section>
-                <section className="panel"><h3>Next actions</h3>{episodes.filter(e=>['AWAITING_APPROVAL','SCRIPT_REVIEW','AWAITING_ASSETS','ASSETS_BLOCKED','EDIT_READY','BLOCKED','FAILED'].includes(e.status)).slice(0,4).map(e=><Button className="episode-row" key={e.id} onClick={()=>selectEp(e)}><div><strong>{e.title}</strong><small>{stepInfo(e).text}</small></div><ChevronRight size={16}/></Button>)}{!episodes.some(e=>['AWAITING_APPROVAL','SCRIPT_REVIEW','AWAITING_ASSETS','ASSETS_BLOCKED','EDIT_READY','BLOCKED','FAILED'].includes(e.status))&&<p className="muted">No pending approvals or asset actions. Create a Reel to begin.</p>}</section>
+                <section className="panel">
+                  <h3>Next actions</h3>
+                  {episodes
+                    .filter((e) =>
+                      [
+                        "AWAITING_APPROVAL",
+                        "SCRIPT_REVIEW",
+                        "AWAITING_ASSETS",
+                        "ASSETS_BLOCKED",
+                        "EDIT_READY",
+                        "BLOCKED",
+                        "FAILED",
+                      ].includes(e.status),
+                    )
+                    .slice(0, 4)
+                    .map((e) => (
+                      <Button
+                        className="episode-row"
+                        key={e.id}
+                        onClick={() => selectEp(e)}
+                      >
+                        <div>
+                          <strong>{e.title}</strong>
+                          <small>{stepInfo(e).text}</small>
+                        </div>
+                        <ChevronRight size={16} />
+                      </Button>
+                    ))}
+                  {!episodes.some((e) =>
+                    [
+                      "AWAITING_APPROVAL",
+                      "SCRIPT_REVIEW",
+                      "AWAITING_ASSETS",
+                      "ASSETS_BLOCKED",
+                      "EDIT_READY",
+                      "BLOCKED",
+                      "FAILED",
+                    ].includes(e.status),
+                  ) && (
+                    <p className="muted">
+                      No pending approvals or asset actions. Create a Reel to
+                      begin.
+                    </p>
+                  )}
+                </section>
               </div>
               <section className="panel">
                 <div className="section-heading">
@@ -928,7 +1152,9 @@ function App() {
                     items={status.jobs as Data[]}
                     size={5}
                     label="jobs"
-                    getText={(j: Data) => `#${j.id} episode ${j.episode_id} ${j.kind || ""} ${j.stage} ${j.status} ${j.error || ""}`}
+                    getText={(j: Data) =>
+                      `#${j.id} episode ${j.episode_id} ${j.kind || ""} ${j.stage} ${j.status} ${j.error || ""}`
+                    }
                   >
                     {(rows) =>
                       rows.map((j: Data) => (
@@ -937,7 +1163,9 @@ function App() {
                             #{j.id} · Episode {j.episode_id}
                           </span>
                           <strong>{j.stage}</strong>
-                          {['QUEUED','RUNNING'].includes(j.status) && <progress aria-label={j.stage} />}
+                          {["QUEUED", "RUNNING"].includes(j.status) && (
+                            <progress aria-label={j.stage} />
+                          )}
                           <Badge value={j.status} />
                           {j.error && <p className="error">{j.error}</p>}
                         </div>
@@ -969,9 +1197,48 @@ function App() {
             </>
           )}
           {page === "Ideas" && (
-            <IdeasStudio legacyHandoff={<>{ManualPanel()}{ideas.length > 0 && <section className="panel"><h3>Saved general story concepts · legacy format</h3><p>These earlier concepts keep their original titles and metadata.</p><div className="cards">{ideas.map((idea, index) => <article className="panel" key={index}><h3>{idea.title}</h3><span className="tag">{idea.genre}</span><p>{idea.premise}</p><p><strong>Opening hook:</strong> {idea.visual_hook}</p><p><strong>Conflict:</strong> {idea.conflict}</p><Button disabled={!!busy} onClick={() => choose(idea)}>Select Legacy Story</Button></article>)}</div></section>}</>} onSelected={(eid, pendingRun) => {
-              selectEpisode(eid,"Script Studio");if(pendingRun)setRunId(pendingRun);reload().catch(e=>setError(e.message));
-            }}/>
+            <IdeasStudio
+              legacyHandoff={
+                <>
+                  {ManualPanel()}
+                  {ideas.length > 0 && (
+                    <section className="panel">
+                      <h3>Saved general story concepts · legacy format</h3>
+                      <p>
+                        These earlier concepts keep their original titles and
+                        metadata.
+                      </p>
+                      <div className="cards">
+                        {ideas.map((idea, index) => (
+                          <article className="panel" key={index}>
+                            <h3>{idea.title}</h3>
+                            <span className="tag">{idea.genre}</span>
+                            <p>{idea.premise}</p>
+                            <p>
+                              <strong>Opening hook:</strong> {idea.visual_hook}
+                            </p>
+                            <p>
+                              <strong>Conflict:</strong> {idea.conflict}
+                            </p>
+                            <Button
+                              disabled={!!busy}
+                              onClick={() => choose(idea)}
+                            >
+                              Select Legacy Story
+                            </Button>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </>
+              }
+              onSelected={(eid, pendingRun) => {
+                selectEpisode(eid, "Script Studio");
+                if (pendingRun) setRunId(pendingRun);
+                reload().catch((e) => setError(e.message));
+              }}
+            />
           )}
           {![
             "Home",
@@ -979,7 +1246,10 @@ function App() {
             "Ideas",
             "Settings",
             "Analytics",
-            "Production Queue", "AI Activity", "System Health", "How to Use",
+            "Production Queue",
+            "AI Activity",
+            "System Health",
+            "How to Use",
           ].includes(page) && (
             <div className="episode-picker">
               <label>
@@ -1006,7 +1276,10 @@ function App() {
             "Ideas",
             "Settings",
             "Analytics",
-            "Production Queue", "AI Activity", "System Health", "How to Use",
+            "Production Queue",
+            "AI Activity",
+            "System Health",
+            "How to Use",
           ].includes(page) && PipelineTracker()}
           {[
             "Script Studio",
@@ -1177,7 +1450,14 @@ function App() {
                   ) : (
                     <div className="approval">
                       <ShieldCheck size={18} />
-                      {ep.data.approval.revoked?'Export authorization revoked':<>Approved · {ep.data.approval.sha256.slice(0, 16)} · automatic export authorized</>}
+                      {ep.data.approval.revoked ? (
+                        "Export authorization revoked"
+                      ) : (
+                        <>
+                          Approved · {ep.data.approval.sha256.slice(0, 16)} ·
+                          automatic export authorized
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1358,7 +1638,8 @@ function App() {
                     rows.map((h: Data) => (
                       <p className="history" key={h.id}>
                         <Clock size={14} />
-                        {new Date(h.at).toLocaleString()} <Badge value={h.stage} />
+                        {new Date(h.at).toLocaleString()}{" "}
+                        <Badge value={h.stage} />
                         {historyText(h, ep)}
                       </p>
                     ))
@@ -1388,7 +1669,9 @@ function App() {
                 S001.png, S002.jpg, etc. No website automation or video jobs.
               </p>
               <Paged
-                items={((ep.files || []) as string[]).filter((f) => f.startsWith("04_google_flow/batches/"))}
+                items={((ep.files || []) as string[]).filter((f) =>
+                  f.startsWith("04_google_flow/batches/"),
+                )}
                 size={10}
                 label="prompt batches"
                 getText={(f: string) => f}
@@ -1397,7 +1680,12 @@ function App() {
                 {(rows) => (
                   <div className="row">
                     {rows.map((f: string) => (
-                      <a className="button secondary small" key={f} href={fileURL(f)} download>
+                      <a
+                        className="button secondary small"
+                        key={f}
+                        href={fileURL(f)}
+                        download
+                      >
                         {f.split("/").pop()}
                       </a>
                     ))}
@@ -1409,7 +1697,9 @@ function App() {
                 size={10}
                 label="scenes"
                 placeholder="Search scenes (S005, a word from the story...)"
-                getText={(s: Data) => s.scene_id + " " + s.beat + " " + s.narration_text}
+                getText={(s: Data) =>
+                  s.scene_id + " " + s.beat + " " + s.narration_text
+                }
                 empty={<></>}
               >
                 {(rows) =>
@@ -1523,7 +1813,9 @@ function App() {
                         )}
                         size={5}
                         label={kind + " files"}
-                        getText={kind === "images" ? (f: string) => f : undefined}
+                        getText={
+                          kind === "images" ? (f: string) => f : undefined
+                        }
                         resetKey={kind}
                         empty={<></>}
                       >
@@ -1673,9 +1965,13 @@ function App() {
                   const row = (j: Data) => (
                     <div className="job" key={j.id}>
                       <strong>
-                        {j.status === "FAILED" ? "Render attempt failed" : j.stage}
+                        {j.status === "FAILED"
+                          ? "Render attempt failed"
+                          : j.stage}
                       </strong>
-                      {['QUEUED','RUNNING'].includes(j.status) && <progress aria-label={j.stage} />}
+                      {["QUEUED", "RUNNING"].includes(j.status) && (
+                        <progress aria-label={j.stage} />
+                      )}
                       <Badge value={j.status} />
                       {j.status === "RUNNING" && (
                         <div className="indeterminate" aria-hidden="true" />
@@ -1694,7 +1990,12 @@ function App() {
                             Earlier failed attempts ({old.length}) — already
                             superseded
                           </summary>
-                          <Paged items={old} size={5} label="earlier attempts" empty={<></>}>
+                          <Paged
+                            items={old}
+                            size={5}
+                            label="earlier attempts"
+                            empty={<></>}
+                          >
                             {(rows) => rows.map(row)}
                           </Paged>
                         </details>
@@ -1753,8 +2054,7 @@ function App() {
                           : ep.style_info.source === "owner_adopted"
                             ? "adopted by you"
                             : "chosen by you"}
-                      ). Changing the global default never changes this
-                      episode.
+                      ). Changing the global default never changes this episode.
                     </p>
                     <div className="row">
                       <select
@@ -1773,14 +2073,19 @@ function App() {
                           </option>
                         ))}
                       </select>
-                      {["COMPLETE", "FAILED", "AWAITING_ASSETS", "ASSETS_BLOCKED"].includes(
-                        ep.status,
-                      ) && (
+                      {[
+                        "COMPLETE",
+                        "FAILED",
+                        "AWAITING_ASSETS",
+                        "ASSETS_BLOCKED",
+                      ].includes(ep.status) && (
                         <label className="inline">
                           <Input
                             type="checkbox"
                             checked={rerenderOnSave}
-                            onChange={(e) => setRerenderOnSave(e.target.checked)}
+                            onChange={(e) =>
+                              setRerenderOnSave(e.target.checked)
+                            }
                           />{" "}
                           Re-render as a new export version
                         </label>
@@ -1862,12 +2167,14 @@ function App() {
                                   "/api/media/" +
                                   p.file +
                                   "?v=" +
-                                  encodeURIComponent(ep.style_info.preview.created)
+                                  encodeURIComponent(
+                                    ep.style_info.preview.created,
+                                  )
                                 }
                               />
                               <p className="muted">
-                                {p.seconds}s · captions: {p.presets.join(", ")} ·
-                                transitions:{" "}
+                                {p.seconds}s · captions: {p.presets.join(", ")}{" "}
+                                · transitions:{" "}
                                 {p.transitions.length
                                   ? p.transitions
                                       .map(
@@ -1891,13 +2198,14 @@ function App() {
                       <summary>Scene transitions</summary>
                       <p className="muted">
                         Hard cut is the default. Use a crossfade for gentle
-                        continuous moments and a dip to charcoal sparingly.
-                        The pinned style limits how many are used; anything
-                        over the limit becomes a hard cut and is reported.
+                        continuous moments and a dip to charcoal sparingly. The
+                        pinned style limits how many are used; anything over the
+                        limit becomes a hard cut and is reported.
                       </p>
                       {ep.timeline?.style?.notes?.length > 0 && (
                         <p className="muted">
-                          Last render notes: {ep.timeline.style.notes.join(" · ")}
+                          Last render notes:{" "}
+                          {ep.timeline.style.notes.join(" · ")}
                         </p>
                       )}
                       <div className="transition-list">
@@ -1912,7 +2220,10 @@ function App() {
                               <span>
                                 {s.scene_id}
                                 {s.transition_reason && (
-                                  <span className="muted"> — {s.transition_reason}</span>
+                                  <span className="muted">
+                                    {" "}
+                                    — {s.transition_reason}
+                                  </span>
                                 )}
                               </span>
                               <select
@@ -1925,7 +2236,9 @@ function App() {
                                 }
                               >
                                 <option value="cut">Hard cut</option>
-                                <option value="crossfade">Smooth crossfade</option>
+                                <option value="crossfade">
+                                  Smooth crossfade
+                                </option>
                                 <option value="dip_to_dark">Dip to dark</option>
                               </select>
                             </label>
@@ -1942,13 +2255,15 @@ function App() {
                         onClick={() =>
                           act("Save scene transitions", async () => {
                             const full: Record<string, string> = {};
-                            ep.data.package.scenes.slice(1).forEach((s: Data) => {
-                              full[s.scene_id] =
-                                trDraft?.[s.scene_id] ??
-                                ep.style_info.overrides?.[s.scene_id] ??
-                                s.transition_in ??
-                                "cut";
-                            });
+                            ep.data.package.scenes
+                              .slice(1)
+                              .forEach((s: Data) => {
+                                full[s.scene_id] =
+                                  trDraft?.[s.scene_id] ??
+                                  ep.style_info.overrides?.[s.scene_id] ??
+                                  s.transition_in ??
+                                  "cut";
+                              });
                             const r = await api(
                               selectedPath + "/transitions",
                               "PUT",
@@ -2018,22 +2333,36 @@ function App() {
                       <h4>Listen before you render</h4>
                       {(() => {
                         const f: string[] = ep.files || [];
-                        const nar = f.find((x) => x.startsWith("05_assets/narration/"));
-                        const mus = f.find((x) => x.startsWith("05_assets/music/"));
+                        const nar = f.find((x) =>
+                          x.startsWith("05_assets/narration/"),
+                        );
+                        const mus = f.find((x) =>
+                          x.startsWith("05_assets/music/"),
+                        );
                         return (
                           <div className="audio-grid">
                             <label>
                               Narration only (your uploaded file)
                               {nar ? (
-                                <audio controls preload="none" src={fileURL(nar)} />
+                                <audio
+                                  controls
+                                  preload="none"
+                                  src={fileURL(nar)}
+                                />
                               ) : (
-                                <span className="muted">No narration uploaded</span>
+                                <span className="muted">
+                                  No narration uploaded
+                                </span>
                               )}
                             </label>
                             <label>
                               Background music only (your uploaded file)
                               {mus ? (
-                                <audio controls preload="none" src={fileURL(mus)} />
+                                <audio
+                                  controls
+                                  preload="none"
+                                  src={fileURL(mus)}
+                                />
                               ) : (
                                 <span className="muted">No music uploaded</span>
                               )}
@@ -2042,22 +2371,26 @@ function App() {
                         );
                       })()}
                       <div className="row">
-                        <Button variant="outline"
+                        <Button
+                          variant="outline"
                           className="secondary"
                           disabled={
                             !!busy ||
                             ["QUEUED", "RENDERING"].includes(ep.status)
                           }
                           onClick={() =>
-                            act("Build audio preview (narration + music)", async () => {
-                              const r = await api(
-                                selectedPath + "/audio-preview",
-                                "POST",
-                                { offset_db: musicDb },
-                              );
-                              setPreviewMix(r);
-                              return r;
-                            })
+                            act(
+                              "Build audio preview (narration + music)",
+                              async () => {
+                                const r = await api(
+                                  selectedPath + "/audio-preview",
+                                  "POST",
+                                  { offset_db: musicDb },
+                                );
+                                setPreviewMix(r);
+                                return r;
+                              },
+                            )
                           }
                         >
                           Preview mix at {musicDb > 0 ? "+" : ""}
@@ -2158,7 +2491,10 @@ function App() {
                 Empty={Empty}
                 onDelete={(ids) =>
                   act("Delete exports", () =>
-                    api(selectedPath + "/exports/delete", "POST", {job_ids: ids, confirm: true}),
+                    api(selectedPath + "/exports/delete", "POST", {
+                      job_ids: ids,
+                      confirm: true,
+                    }),
                   )
                 }
               />
@@ -2230,7 +2566,11 @@ function App() {
                 label="recorded metrics"
                 getText={(m: Data) => JSON.stringify(m)}
               >
-                {(rows) => rows.map((m: Data) => <pre key={m.id}>{JSON.stringify(m, null, 2)}</pre>)}
+                {(rows) =>
+                  rows.map((m: Data) => (
+                    <pre key={m.id}>{JSON.stringify(m, null, 2)}</pre>
+                  ))
+                }
               </Paged>
             </section>
           )}
@@ -2249,9 +2589,10 @@ function App() {
               <section className="panel">
                 <h3>AI provider</h3>
                 <p className="muted">
-                  Codex CLI uses its existing authenticated login without a separate API key.
-                  Claude Code CLI needs CLAUDE_CODE_OAUTH_TOKEN from claude setup-token, or ANTHROPIC_API_KEY.
-                  API mode requires its own credential.
+                  Codex CLI uses its existing authenticated login without a
+                  separate API key. Claude Code CLI needs
+                  CLAUDE_CODE_OAUTH_TOKEN from claude setup-token, or
+                  ANTHROPIC_API_KEY. API mode requires its own credential.
                 </p>
                 <div className="form-grid">
                   <label>
@@ -2401,16 +2742,21 @@ function App() {
                     Paste a token here instead of editing <code>.env</code>. It
                     is saved to this computer's <code>.env</code>, applies
                     immediately (no restart) and is never shown again, only its
-                    last four characters. <strong>Codex CLI needs no token</strong>:
-                    it uses your own ChatGPT sign-in (run <code>codex login</code>{" "}
-                    once in a terminal, then use Test below).
+                    last four characters.{" "}
+                    <strong>Codex CLI needs no token</strong>: it uses your own
+                    ChatGPT sign-in (run <code>codex login</code> once in a
+                    terminal, then use Test below).
                   </p>
                   {credentials.map((c: Data) => (
                     <div className="panel" key={c.name}>
                       <strong>{c.label}</strong>{" "}
                       <span className="muted">
                         {c.configured
-                          ? "✓ Already saved " + c.hint + (c.stored_in_env_file ? " · in .env, ready to use" : " · from environment")
+                          ? "✓ Already saved " +
+                            c.hint +
+                            (c.stored_in_env_file
+                              ? " · in .env, ready to use"
+                              : " · from environment")
                           : "not set"}
                       </span>
                       <div className="row">
@@ -2418,26 +2764,45 @@ function App() {
                           type="password"
                           autoComplete="off"
                           aria-label={c.label}
-                          placeholder={c.configured ? "Paste a new token to replace" : "Paste token"}
+                          placeholder={
+                            c.configured
+                              ? "Paste a new token to replace"
+                              : "Paste token"
+                          }
                           value={tokenDraft[c.name] || ""}
                           onChange={(e) =>
-                            setTokenDraft({ ...tokenDraft, [c.name]: e.target.value })
+                            setTokenDraft({
+                              ...tokenDraft,
+                              [c.name]: e.target.value,
+                            })
                           }
                         />
                         <Button
-                          disabled={!!busy || authorized === false || !(tokenDraft[c.name] || "").trim()}
+                          disabled={
+                            !!busy ||
+                            authorized === false ||
+                            !(tokenDraft[c.name] || "").trim()
+                          }
                           onClick={() =>
-                            act("Save token and test " + c.provider, async () => {
-                              const saved = await api(
-                                "/providers/credentials/" + c.name,
-                                "PUT",
-                                { value: tokenDraft[c.name] },
-                              );
-                              setTokenDraft({ ...tokenDraft, [c.name]: "" });
-                              setCredentials(saved.credentials);
-                              api("/providers").then(setProviderInfo).catch(e=>setError(e.message));
-                              return { message: "Token saved to this computer and kept for future runs. Testing the connection…" };
-                            }).then((saved) => {
+                            act(
+                              "Save token and test " + c.provider,
+                              async () => {
+                                const saved = await api(
+                                  "/providers/credentials/" + c.name,
+                                  "PUT",
+                                  { value: tokenDraft[c.name] },
+                                );
+                                setTokenDraft({ ...tokenDraft, [c.name]: "" });
+                                setCredentials(saved.credentials);
+                                api("/providers")
+                                  .then(setProviderInfo)
+                                  .catch((e) => setError(e.message));
+                                return {
+                                  message:
+                                    "Token saved to this computer and kept for future runs. Testing the connection…",
+                                };
+                              },
+                            ).then((saved) => {
                               if (saved) void runTest(c.provider);
                             })
                           }
@@ -2455,7 +2820,9 @@ function App() {
                                   "DELETE",
                                 );
                                 setCredentials(r.credentials);
-                                api("/providers").then(setProviderInfo).catch(e=>setError(e.message));
+                                api("/providers")
+                                  .then(setProviderInfo)
+                                  .catch((e) => setError(e.message));
                                 return r;
                               })
                             }
@@ -2478,12 +2845,15 @@ function App() {
                     <div className="panel" key={p.provider}>
                       <div className="section-heading">
                         <strong>{p.provider}</strong>
-                        <Button variant="outline"
+                        <Button
+                          variant="outline"
                           className="secondary"
                           disabled={!!busy || !!testing}
                           onClick={() => void runTest(p.provider)}
                         >
-                          {testing === p.provider ? "Testing…" : "Test AI Connection · " + p.provider}
+                          {testing === p.provider
+                            ? "Testing…"
+                            : "Test AI Connection · " + p.provider}
                         </Button>
                       </div>
                       <p className="muted">
@@ -2498,8 +2868,8 @@ function App() {
                       )}
                       {testing === p.provider && (
                         <p className="notice" role="status">
-                          <RefreshCw className="spin" size={14} /> Sending a real
-                          short request with all four instructions to{" "}
+                          <RefreshCw className="spin" size={14} /> Sending a
+                          real short request with all four instructions to{" "}
                           {p.provider}. This usually takes 20–90 seconds; the
                           result appears here.
                         </p>

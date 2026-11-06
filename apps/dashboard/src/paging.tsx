@@ -1,5 +1,5 @@
-import {Button} from '@/components/ui/button';
-import React, {useEffect, useMemo, useState} from "react";
+import { Button } from "@/components/ui/button";
+import React, { useEffect, useMemo, useState } from "react";
 import "./paging.css";
 
 export const PAGE_SIZES = [5, 10, 25, 50];
@@ -10,7 +10,7 @@ export function pageWindow(total: number, page: number, size: number) {
   const current = Math.min(Math.max(1, page), pages);
   const from = total ? (current - 1) * size : 0;
   const to = Math.min(total, from + size);
-  return {pages, current, from, to};
+  return { pages, current, from, to };
 }
 
 /**
@@ -31,7 +31,10 @@ export function Paged<T>({
   toolbar,
 }: {
   items: T[];
-  children: (rows: T[], info: {total: number; filtered: number; query: string}) => React.ReactNode;
+  children: (
+    rows: T[],
+    info: { total: number; filtered: number; query: string },
+  ) => React.ReactNode;
   getText?: (item: T) => string;
   size?: number;
   label?: string;
@@ -45,10 +48,13 @@ export function Paged<T>({
   const [pageSize, setPageSize] = useState(size);
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
   const filtered = useMemo(
-    () => (getText && words.length ? items.filter((i) => {
-      const text = getText(i).toLowerCase();
-      return words.every((w) => text.includes(w));
-    }) : items),
+    () =>
+      getText && words.length
+        ? items.filter((i) => {
+            const text = getText(i).toLowerCase();
+            return words.every((w) => text.includes(w));
+          })
+        : items,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [items, query, getText],
   );
@@ -58,7 +64,8 @@ export function Paged<T>({
     if (w.current !== page) setPage(w.current);
   }, [w.current, page]);
   const rows = filtered.slice(w.from, w.to);
-  const showControls = filtered.length > Math.min(...PAGE_SIZES) || pageSize !== size;
+  const showControls =
+    filtered.length > Math.min(...PAGE_SIZES) || pageSize !== size;
   return (
     <div className="paged">
       {(getText || toolbar) && (
@@ -75,26 +82,79 @@ export function Paged<T>({
           {toolbar}
         </div>
       )}
-      {rows.length ? children(rows, {total: items.length, filtered: filtered.length, query}) : (
-        empty ?? <p className="muted">{words.length ? `No ${label} match “${query}”.` : `No ${label}.`}</p>
-      )}
+      {rows.length
+        ? children(rows, {
+            total: items.length,
+            filtered: filtered.length,
+            query,
+          })
+        : (empty ?? (
+            <p className="muted">
+              {words.length ? `No ${label} match “${query}”.` : `No ${label}.`}
+            </p>
+          ))}
       {(showControls || words.length > 0) && filtered.length > 0 && (
         <nav className="pager" aria-label={"Pages of " + label}>
           <span className="pager-count">
             {w.from + 1}–{w.to} of {filtered.length}
-            {filtered.length !== items.length ? ` (${items.length} in total)` : ""}
+            {filtered.length !== items.length
+              ? ` (${items.length} in total)`
+              : ""}
           </span>
-          <Button variant="outline" type="button" className="secondary small" disabled={w.current <= 1} onClick={() => setPage(1)} aria-label="First page">«</Button>
-          <Button variant="outline" type="button" className="secondary small" disabled={w.current <= 1} onClick={() => setPage(w.current - 1)}>‹ Previous</Button>
-          <span className="pager-page">Page {w.current} of {w.pages}</span>
-          <Button variant="outline" type="button" className="secondary small" disabled={w.current >= w.pages} onClick={() => setPage(w.current + 1)}>Next ›</Button>
-          <Button variant="outline" type="button" className="secondary small" disabled={w.current >= w.pages} onClick={() => setPage(w.pages)} aria-label="Last page">»</Button>
+          <Button
+            variant="outline"
+            type="button"
+            className="secondary small"
+            disabled={w.current <= 1}
+            onClick={() => setPage(1)}
+            aria-label="First page"
+          >
+            «
+          </Button>
+          <Button
+            variant="outline"
+            type="button"
+            className="secondary small"
+            disabled={w.current <= 1}
+            onClick={() => setPage(w.current - 1)}
+          >
+            ‹ Previous
+          </Button>
+          <span className="pager-page">
+            Page {w.current} of {w.pages}
+          </span>
+          <Button
+            variant="outline"
+            type="button"
+            className="secondary small"
+            disabled={w.current >= w.pages}
+            onClick={() => setPage(w.current + 1)}
+          >
+            Next ›
+          </Button>
+          <Button
+            variant="outline"
+            type="button"
+            className="secondary small"
+            disabled={w.current >= w.pages}
+            onClick={() => setPage(w.pages)}
+            aria-label="Last page"
+          >
+            »
+          </Button>
           <label className="pager-size">
             Rows per page{" "}
-            <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
-              {[...new Set([...PAGE_SIZES, size])].sort((a, b) => a - b).map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+            >
+              {[...new Set([...PAGE_SIZES, size])]
+                .sort((a, b) => a - b)
+                .map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
             </select>
           </label>
         </nav>

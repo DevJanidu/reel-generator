@@ -1,3 +1,4 @@
+@layer theme, base, legacy, components, utilities;
 @layer legacy {
 /* Readable native fallback; enhanced browsers render the complete menu in the app theme. */
 select {
