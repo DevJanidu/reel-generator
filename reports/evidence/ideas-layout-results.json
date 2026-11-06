@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "evidence": [
+    {
+      "width": 1920,
+      "cards": 8,
+      "contained": true,
+      "radius": 18
+    },
+    {
+      "width": 1440,
+      "cards": 8,
+      "contained": true,
+      "radius": 18
+    },
+    {
+      "width": 768,
+      "cards": 8,
+      "contained": true,
+      "radius": 18
+    },
+    {
+      "width": 390,
+      "cards": 8,
+      "contained": true,
+      "radius": 18
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,15 @@
+> odd-frame-station@1.0.0 test:ui
+> npm run test -w apps/dashboard
+
+
+> @odd-frame/dashboard@1.0.0 test
+> vitest run
+
+
+ RUN  v5.1.0 E:/facebook-integration-20261106/apps/dashboard
+
+
+ Test Files  3 passed (3)
+      Tests  12 passed (12)
+   Start at  11:58:51
+   Duration  577ms (import 55%, transform 27%, tests 14%, worker 4%)

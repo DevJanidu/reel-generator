@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "episode": 2,
+  "checks": [
+    "Real separate asset folders, including empty directories",
+    "Nested directory navigation and breadcrumbs/back",
+    "Current-folder search and size sorting",
+    "Grid and list views",
+    "Text and audio previews",
+    "Actual narration multipart upload and byte-identical download",
+    "Remove confirmation cancellation preserves file",
+    "No private .production catalog entries",
+    "Desktop/mobile layout",
+    "Zero axe WCAG A/AA violations"
+  ],
+  "errors": []
+}

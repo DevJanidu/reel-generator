@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "npm_problems": [],
+  "packages": {
+    "@odd-frame/dashboard": "1.0.0",
+    "@odd-frame/video": null,
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "typescript": "5.9.3"
+  },
+  "configuration_sha256": {
+    "package.json": "bf95b1555b6c34e8a3bb48cf24cf4c1c4fe0cf5d5c0dfdce0b154434a52545d8",
+    "package-lock.json": "0ecfdd1b1827f9f93f4986b00d5eaaa94d56bc21d831639b971053803a61d0dd",
+    "apps/dashboard/package.json": "07f0849a21c8e1b201b3dfe2d738b0e66b5814caf5d596e61403c39932ceabf2",
+    "apps/dashboard/vite.config.ts": "66b07ad89095548cfbd43694b5d66e33aa850c65bcb5c0e3989e648e06ad5cf9",
+    "apps/dashboard/tsconfig.json": "117fafd3eda5ad9b0fc9e13410c767b9a2a9f4452f6ba80371de85a04005845b",
+    "apps/dashboard/components.json": "fdf19546a77601957d9086ff6cb4611b066313e63561482fb88fc09da408555d",
+    "requirements.lock.txt": "7fb1503b776552c5efc142aef6d0b980faa2e9bc95d90b9bb15c2e6aa705579f",
+    "video/remotion/package.json": "7a400434c504337ece12826824dda23500f0c34f04006b22035bb82dbe22820b"
+  }
+}

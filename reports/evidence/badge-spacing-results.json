@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "checked": [
+    {
+      "width": 1440,
+      "route": "assets",
+      "badges": [
+        {
+          "text": "NEEDS ASSETS",
+          "after": 16,
+          "before": 12
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "workspace",
+      "badges": [
+        {
+          "text": "VERIFIED WINDOWS MXC",
+          "after": 16,
+          "before": 12
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "route": "assets",
+      "badges": [
+        {
+          "text": "NEEDS ASSETS",
+          "after": 16,
+          "before": 12
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "route": "workspace",
+      "badges": [
+        {
+          "text": "VERIFIED WINDOWS MXC",
+          "after": 16,
+          "before": 12
+        }
+      ]
+    }
+  ]
+}
