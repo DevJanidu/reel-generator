@@ -54,3 +54,8 @@ To restart after stopping the existing preview processes, run `npm run ui:previe
 ## Ideas card correction
 
 Category cards now use the official outline Button variant with explicit 18px card corners, contained 20?22px padding and a bottom-aligned genre count. They no longer inherit primary-action pill corners. At narrow mobile widths the category grid becomes a single readable column. Eight category groups, genre selection and generation behavior are unchanged. Targeted browser checks verify all child content stays inside every card at 1920, 1440, 768 and 390px, plus selected states and no horizontal overflow.
+
+
+## Hover and spacing corrections
+
+Reel rows and next actions use the ghost Button variant with a neutral, readable hover/focus surface rather than the primary white action hover. Secondary and text controls also use neutral hovers. The brand header cannot shrink under sidebar scrolling; the icon and label have separate bounds and the collapsed icon fits its 48px rail. Header status/provider/avatar items have an explicit 12px gap. Global alerts appear before page content with top/bottom spacing; authorization helper paths are readable. Short pages stay top-aligned. Production-history search tools and saved-session/generation-batch fields have consistent heading, label and input gaps.

@@ -849,11 +849,13 @@ function App() {
             <StatusBadge variant="outline">
               {status?.skills.valid ? "Inputs validated" : "Check health"}
             </StatusBadge>
-            {status?.settings?.provider === "manual"
-              ? "Manual AI mode"
-              : status?.settings.provider
-                ? "Provider: " + status.settings.provider
-                : "Connecting"}
+            <span className="header-provider">
+              {status?.settings?.provider === "manual"
+                ? "Manual AI mode"
+                : status?.settings.provider
+                  ? "Provider: " + status.settings.provider
+                  : "Connecting"}
+            </span>
             <span className="avatar">OF</span>
           </div>
         </header>
@@ -899,21 +901,6 @@ function App() {
               </Button>
             </div>
           )}
-          {page === "Production Queue" && (
-            <QueuePage
-              status={status}
-              runs={runs}
-              onEpisode={(id) => selectEpisode(id, "Episode Workspace")}
-            />
-          )}
-          {page === "System Health" && (
-            <HealthPage
-              status={status}
-              onSettings={() => setPage("Settings")}
-            />
-          )}
-          {page === "How to Use" && <HelpPage onNavigate={setPage} />}
-          {page === "AI Activity" && <ActivityPage />}
           {busy && (
             <div className="loading" role="status">
               <RefreshCw className="spin" size={16} />
@@ -927,9 +914,9 @@ function App() {
                 <strong>
                   This browser window is not authorized to make changes.
                 </strong>{" "}
-                Open the dashboard with <code>scriptsstart.ps1</code>, or paste
-                the access key from <code>datantroller-access.json</code> (the
-                "token" value) here. It is kept in this browser only.
+                Open the dashboard with <code>scripts/start.ps1</code>, or paste
+                the access key from <code>data/controller-access.json</code>{" "}
+                (the "token" value) here. It is kept in this browser only.
                 <div className="row">
                   <Input
                     type="password"
@@ -962,6 +949,21 @@ function App() {
               {error}
             </div>
           )}
+          {page === "Production Queue" && (
+            <QueuePage
+              status={status}
+              runs={runs}
+              onEpisode={(id) => selectEpisode(id, "Episode Workspace")}
+            />
+          )}
+          {page === "System Health" && (
+            <HealthPage
+              status={status}
+              onSettings={() => setPage("Settings")}
+            />
+          )}
+          {page === "How to Use" && <HelpPage onNavigate={setPage} />}
+          {page === "AI Activity" && <ActivityPage />}
           {page === "Home" && (
             <>
               <section className="home-intro">
@@ -1054,6 +1056,7 @@ function App() {
                       {(rows) =>
                         rows.map((e) => (
                           <Button
+                            variant="ghost"
                             className="episode-row"
                             key={e.id}
                             onClick={() => selectEp(e)}
@@ -1093,6 +1096,7 @@ function App() {
                     .slice(0, 4)
                     .map((e) => (
                       <Button
+                        variant="ghost"
                         className="episode-row"
                         key={e.id}
                         onClick={() => selectEp(e)}
@@ -1320,6 +1324,7 @@ function App() {
                   {(rows) =>
                     rows.map((e) => (
                       <Button
+                        variant="ghost"
                         className="episode-row"
                         key={e.id}
                         onClick={() => selectEp(e, page)}

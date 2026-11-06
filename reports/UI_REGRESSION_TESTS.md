@@ -67,3 +67,6 @@ Ideas layout follow-up: `node scripts/ideas-layout-qa.mjs` passed at 1920/1440/7
 - Existing API/path-safety and export regressions: 5 PASS after the read-only metadata extension.
 - Dashboard build/TypeScript and 12 frontend unit tests PASS. No live providers or production mutations were used.
 - Source preservation verification still compares all original main hashes/status; the reviewed read-only catalog/detail metadata is now the only permitted backend exception. No worker, creative, database-schema or renderer changes.
+
+
+Hover/spacing follow-up: `node scripts/layout-polish-qa.mjs` PASS. Every rendered Home Reel/next-action row was hovered and checked for neutral background/readable foreground. Expanded/collapsed/mobile logo bounds pass, header gap is at least 12px, batch label/control gaps at least 8px, production-history search spacing at least 12px, authorization alert top/bottom separation at least 16px. Short-page alignment and mobile overflow pass. Axe on the unauthenticated alert page and all checked routes reports zero violations. Dashboard build, 12 unit tests and the general desktop/mobile route regression pass. No backend or production-state changes.

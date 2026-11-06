@@ -597,6 +597,123 @@
 }
 
 /* Neutral application theme. Color is reserved for meaningful status. */
+.workspace-content > #page-content {
+  margin: 0 auto;
+  flex: 1;
+}
+.workspace-content > .topbar .top-status {
+  gap: 12px;
+  white-space: nowrap;
+}
+.workspace-content > .topbar .top-status .avatar {
+  margin-left: 0;
+  flex-shrink: 0;
+}
+.app-sidebar-header {
+  flex-shrink: 0;
+  min-height: 72px;
+  position: relative;
+  z-index: 1;
+  background: var(--sidebar);
+}
+.sidebar-brand {
+  min-width: 0;
+  width: 100%;
+  min-height: 36px;
+}
+.sidebar-brand-mark {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+}
+.sidebar-brand-copy {
+  min-width: 0;
+  overflow: hidden;
+}
+.sidebar-brand-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-collapsible="icon"] .app-sidebar-header {
+  padding: 18px 6px;
+}
+[data-collapsible="icon"] .sidebar-brand {
+  justify-content: center;
+  gap: 0;
+}
+[data-collapsible="icon"] .sidebar-brand-copy {
+  display: none;
+}
+[data-slot="sidebar-footer"] {
+  flex-shrink: 0;
+}
+.workspace-content .episode-row:hover,
+.workspace-content .episode-row:focus-visible {
+  background: var(--accent);
+  color: var(--foreground);
+}
+.workspace-content .episode-row:hover small {
+  color: var(--muted-foreground);
+}
+.workspace-content :is(button, a)[data-variant="secondary"]:hover,
+.workspace-content [data-slot="button"].secondary:hover,
+.workspace-content [data-slot="button"].text-button:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+.workspace-content #page-content > .error,
+.workspace-content #page-content > .notice,
+.workspace-content #page-content > .loading {
+  margin: 20px 0;
+  padding: 16px;
+  gap: 12px;
+}
+.workspace-content #page-content > .error > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.workspace-content #page-content > .error > div {
+  min-width: 0;
+  flex: 1;
+}
+.workspace-content .paged-tools {
+  margin: 16px 0;
+  gap: 12px;
+}
+.workspace-content h3 + .paged {
+  margin-top: 16px;
+}
+.workspace-content .history {
+  margin: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.workspace-content .history:last-child {
+  border-bottom: 0;
+}
+.workspace-content .genre-history-label,
+.workspace-content .genre-batches {
+  display: grid;
+  gap: 8px;
+  margin: 20px 0;
+}
+.workspace-content .genre-history-label select,
+.workspace-content .genre-batches select {
+  margin: 0;
+  width: 100%;
+  min-height: 44px;
+}
+.workspace-content .pager-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.workspace-content .pager-size select {
+  margin: 0;
+}
 .workspace-content .genre-studio .category-card {
   border-radius: 18px;
   padding: 22px;

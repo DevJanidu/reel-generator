@@ -37,19 +37,19 @@ export function AppSidebar({
   ] as const;
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4">
+      <SidebarHeader className="app-sidebar-header p-4">
         <a
-          className="flex items-center gap-3 overflow-hidden text-foreground"
+          className="sidebar-brand flex items-center gap-3 overflow-hidden text-foreground"
           href="/"
           onClick={(e) => {
             e.preventDefault();
             onNavigate("Home");
           }}
         >
-          <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary text-base font-bold text-primary">
+          <span className="sidebar-brand-mark grid size-9 shrink-0 place-items-center rounded-lg border border-primary text-base font-bold text-primary">
             OF
           </span>
-          <span className="whitespace-nowrap font-semibold group-data-[collapsible=icon]:hidden">
+          <span className="sidebar-brand-copy whitespace-nowrap font-semibold group-data-[collapsible=icon]:hidden">
             ODD FRAME
             <small className="block text-xs font-normal text-muted-foreground">
               Creative production station
