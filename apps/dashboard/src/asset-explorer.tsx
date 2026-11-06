@@ -209,7 +209,7 @@ export function AssetExplorer({
   }
   return (
     <section className="file-explorer" aria-label="Episode file explorer">
-      <aside className="explorer-sidebar" aria-label="File folders">
+      <aside className="explorer-sidebar" aria-label="File folders" tabIndex={0}>
         <p className="explorer-section-label">Assets</p>
         <Button
           variant="ghost"

@@ -1272,14 +1272,7 @@ function App() {
             "System Health",
             "How to Use",
           ].includes(page) &&
-            (page === "Asset Manager" ? (
-              <details className="asset-pipeline-details">
-                <summary>Production status and asset checklist</summary>
-                {PipelineTracker()}
-              </details>
-            ) : (
-              PipelineTracker()
-            ))}
+            PipelineTracker()}
           {[
             "Script Studio",
             "Episode Workspace",
