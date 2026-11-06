@@ -42,3 +42,7 @@ Build time is under one second for the Vite bundling step on this machine, exclu
 ## Asset Manager folder explorer
 
 Files now follow their actual on-disk folders rather than mixed upload lists. [Desktop explorer](evidence/new-assets.png) ? [Mobile explorer](evidence/new-assets-mobile.png). The source metadata includes real empty folders and nested paths; no production files were moved.
+
+## Dedicated Explorer follow-up
+
+Asset Manager now contains production controls and its always-expanded checklist, with working Open File Explorer and Upload Files actions. The reused explorer fills `/episodes/:episodeId/files`, with separate folder/file scrolling and a mobile folder Sheet. Explicit upload destinations, transfer progress, duplicate/type/size validation and selected individual downloads use existing protected APIs. No backend changes or dependencies were added in this stage. ZIP downloads and generated-document uploads are unsupported. See [DEDICATED_FILE_EXPLORER.md](DEDICATED_FILE_EXPLORER.md) for verification, screenshots and limitations.

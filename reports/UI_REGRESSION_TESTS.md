@@ -75,3 +75,7 @@ Hover/spacing follow-up: `node scripts/layout-polish-qa.mjs` PASS. Every rendere
 ## Favicon and sidebar branding follow-up
 
 The same circular SVG renders at 16, 32 and 64px and supplies the sidebar mark; the ICO contains 16/32/48/64px fallbacks. Development and production FastAPI static serving returned HTTP 200 with the correct MIME types; the page title was unchanged. Playwright checked expanded/collapsed geometry, centering and tooltips at 1920?1080 and 1366?768, and mobile Sheet geometry at 390px. A separate animation-frame probe confirmed no clipping or horizontal position shift during collapse (14 frames) or expansion (17 frames). Scroll-isolation tests passed again. Browser tab chrome itself was not captured; the favicon resources and rendered icon were inspected.
+
+## Dedicated Explorer regression
+
+Strict dashboard TypeScript/Vite build and all 12 frontend unit tests PASS. Eight catalog/export/API path-safety backend regressions PASS. Dedicated-route, full asset explorer and scroll-isolation Chromium scripts PASS against disposable state. Checks include refresh and browser Back/Forward, real upload and byte-identical download, duplicates/invalid types, previews, independently overflowing panes and five responsive widths. Original main HEAD/status/source hashes remain unchanged. Evidence and precise limitations: [DEDICATED_FILE_EXPLORER.md](DEDICATED_FILE_EXPLORER.md). ZIP downloads, document uploads and physical trackpad/touch hardware are unverified or unsupported as stated there.

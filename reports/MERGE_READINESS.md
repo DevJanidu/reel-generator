@@ -40,3 +40,7 @@ Rollback the frontend by restoring the prior approved source/build in a clean au
 
 Human approval of the UI, actual screen-reader review, other browser engines, runtime performance profiling, live provider calls, three automatic native workers and a fresh full production render are unverified. New preview playback against a newly rendered final is also unverified. These limits are distinct from the passing existing regression suite. No creative quality, rights or analytics claims are implied by UI tests.
 
+
+## Dedicated Explorer follow-up
+
+Asset Manager now contains production controls and its always-expanded checklist, with working Open File Explorer and Upload Files actions. The reused explorer fills `/episodes/:episodeId/files`, with separate folder/file scrolling and a mobile folder Sheet. Explicit upload destinations, transfer progress, duplicate/type/size validation and selected individual downloads use existing protected APIs. No backend changes or dependencies were added in this stage. ZIP downloads and generated-document uploads are unsupported. See [DEDICATED_FILE_EXPLORER.md](DEDICATED_FILE_EXPLORER.md) for verification, screenshots and limitations.

@@ -755,6 +755,106 @@
 }
 
 /* Each column owns its scroll position; boundaries never hand motion to a parent. */
+.workspace-content > #page-content.files-page {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: none;
+  padding: 16px;
+}
+.files-page > .page-heading {
+  display: none;
+}
+.files-page ~ footer {
+  display: none;
+}
+.dedicated-files {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+}
+.files-page-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.dedicated-files .file-explorer {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  margin: 0;
+}
+.explorer-transfer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.explorer-transfer-toolbar > span {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.explorer-files tr[data-selected="true"] {
+  background: var(--accent);
+}
+.folder-drawer-trigger {
+  display: none !important;
+}
+.explorer-mobile-folders {
+  background: var(--sidebar);
+  overscroll-behavior: contain;
+}
+.explorer-mobile-folders > button:not([data-slot="sheet-close"]) {
+  width: 100%;
+  justify-content: flex-start;
+  margin: 3px 0;
+  gap: 10px;
+  min-height: 42px;
+}
+@media (max-width: 1100px) {
+  .dedicated-files .file-explorer {
+    grid-template-columns: 180px minmax(0, 1fr);
+    grid-template-rows: 1fr;
+  }
+  .dedicated-files .explorer-sidebar {
+    display: block;
+    overflow-y: auto;
+  }
+  .dedicated-files .explorer-sidebar button {
+    width: 100%;
+    white-space: normal;
+  }
+  .dedicated-files .explorer-section-label {
+    display: block;
+  }
+}
+@media (max-width: 767px) {
+  .dedicated-files .file-explorer {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .folder-drawer-trigger {
+    display: block !important;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin: 8px;
+  }
+  .dedicated-files .explorer-sidebar {
+    display: none;
+  }
+  .dedicated-files .explorer-main {
+    flex: 1;
+  }
+  .explorer-transfer-toolbar span {
+    display: none;
+  }
+}
 [data-slot="sidebar-wrapper"] {
   height: 100dvh;
   min-height: 0;

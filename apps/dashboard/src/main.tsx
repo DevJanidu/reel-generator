@@ -1,3 +1,4 @@
+import { uploadAssetFiles } from "./api";
 import { AssetExplorer } from "./asset-explorer";
 import { JobStatus } from "./status-badge";
 import React, { useEffect, useState } from "react";
@@ -108,7 +109,7 @@ const Empty = ({ text }: { text: string }) => (
 );
 
 function App() {
-  const { page, setPage, selected, setSelected, selectEpisode } =
+  const { page, setPage, selected, setSelected, selectEpisode, openFiles } =
     useWorkspaceRoute();
   const [sidebarOpen, setSidebarOpen] = useState(
     () => localStorage.getItem("odd-sidebar") !== "collapsed",
@@ -859,7 +860,11 @@ function App() {
             <span className="avatar">OF</span>
           </div>
         </header>
-        <div id="page-content" tabIndex={-1}>
+        <div
+          id="page-content"
+          className={page === "File Explorer" ? "files-page" : undefined}
+          tabIndex={-1}
+        >
           <div className="page-heading">
             <div>
               <span className="eyebrow">SMALL STORIES. BIG EMOTIONS.</span>
@@ -1241,6 +1246,7 @@ function App() {
             "AI Activity",
             "System Health",
             "How to Use",
+            "File Explorer",
           ].includes(page) && (
             <div className="episode-picker">
               <label>
@@ -1271,8 +1277,8 @@ function App() {
             "AI Activity",
             "System Health",
             "How to Use",
-          ].includes(page) &&
-            PipelineTracker()}
+            "File Explorer",
+          ].includes(page) && PipelineTracker()}
           {[
             "Script Studio",
             "Episode Workspace",
@@ -1728,11 +1734,62 @@ function App() {
               )}
             </section>
           )}
+          {page === "File Explorer" && (
+            <div className="dedicated-files">
+              <div className="files-page-actions">
+                <Button
+                  variant="outline"
+                  onClick={() => selectEpisode(selected!, "Asset Manager")}
+                >
+                  Back to Asset Manager
+                </Button>
+                <Button variant="outline" onClick={() => void reload()}>
+                  Refresh files
+                </Button>
+              </div>
+              {episodeQuery.isPending ? (
+                <Skeleton className="h-64" />
+              ) : ep ? (
+                <>
+                  {" "}
+                  <AssetExplorer
+                    episodeId={ep.id}
+                    episodeCode={ep.code}
+                    entries={ep.file_entries || []}
+                    disabled={!!busy}
+                    canUpload={!!ep.data.package}
+                    fileURL={fileURL}
+                    onUpload={(kind, files, progress) =>
+                      act("Import " + kind, () =>
+                        uploadAssetFiles(ep.id, kind, files, progress),
+                      )
+                    }
+                    onRemove={(path) =>
+                      act("Remove asset", () =>
+                        api(
+                          selectedPath +
+                            "/assets/" +
+                            path.split("/")[1] +
+                            "/" +
+                            encodeURIComponent(path.split("/").at(-1)!),
+                          "DELETE",
+                        ),
+                      )
+                    }
+                  />
+                </>
+              ) : (
+                <p role="alert">
+                  The episode could not load. Use Retry connection above.
+                </p>
+              )}
+            </div>
+          )}
           {page === "Asset Manager" && selected && ep && (
             <>
               <section className="panel">
                 <div className="section-heading">
-                  <h3>Episode file explorer</h3>
+                  <h3>Asset controls</h3>
                   <Button
                     className="secondary"
                     disabled={!!busy || !ep.data.package}
@@ -1751,37 +1808,17 @@ function App() {
                   this episode. All valid assets automatically enter the edit
                   queue.
                 </p>
-                <AssetExplorer
-                  episodeId={ep.id}
-                  episodeCode={ep.code}
-                  entries={ep.file_entries || []}
-                  disabled={!!busy}
-                  canUpload={!!ep.data.package}
-                  fileURL={fileURL}
-                  onUpload={(kind, files) =>
-                    act("Import " + kind, () => {
-                      const body = new FormData();
-                      files.forEach((file) => body.append("files", file));
-                      return api(
-                        selectedPath + "/assets/" + kind,
-                        "POST",
-                        body,
-                      );
-                    })
-                  }
-                  onRemove={(path) =>
-                    act("Remove asset", () =>
-                      api(
-                        selectedPath +
-                          "/assets/" +
-                          path.split("/")[1] +
-                          "/" +
-                          encodeURIComponent(path.split("/").at(-1)!),
-                        "DELETE",
-                      ),
-                    )
-                  }
-                />
+                <div className="row">
+                  <Button onClick={() => openFiles(ep.id)}>
+                    Open File Explorer
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => openFiles(ep.id, true)}
+                  >
+                    Upload Files
+                  </Button>
+                </div>
                 <label className="checkbox">
                   <Input
                     type="checkbox"

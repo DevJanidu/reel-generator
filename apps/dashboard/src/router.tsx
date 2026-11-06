@@ -39,11 +39,15 @@ export const pagePaths: Record<string, string> = {
 export function useWorkspaceRoute() {
   const location = useRouterState({ select: (s) => s.location });
   const navigate = useNavigate();
-  const page =
-    Object.entries(pagePaths).find(([, p]) => p === location.pathname)?.[0] ||
-    "Home";
+  const fileRoute = /^\/episodes\/(\d+)\/files$/.exec(location.pathname);
+  const page = fileRoute
+    ? "File Explorer"
+    : Object.entries(pagePaths).find(([, p]) => p === location.pathname)?.[0] ||
+      "Home";
   const selected =
-    Number((location.search as { episode?: number }).episode) || undefined;
+    Number(
+      fileRoute?.[1] || (location.search as { episode?: number }).episode,
+    ) || undefined;
   const setPage = (name: string) => {
     void navigate({
       to: pagePaths[name] || "/",
@@ -59,11 +63,17 @@ export function useWorkspaceRoute() {
   const selectEpisode = (id: number, name: string) => {
     void navigate({ to: pagePaths[name], search: { episode: id } } as any);
   };
-  return { page, setPage, selected, setSelected, selectEpisode };
+  const openFiles = (id: number, upload = false) =>
+    void navigate({
+      to: `/episodes/${id}/files`,
+      search: { episode: id, upload },
+    } as any);
+  return { page, setPage, selected, setSelected, selectEpisode, openFiles };
 }
 function studioRouter(Dashboard: React.ComponentType) {
   const root = createRootRoute({
     validateSearch: (s: Record<string, unknown>) => ({
+      upload: s.upload === true || s.upload === "true",
       episode:
         Number.isSafeInteger(Number(s.episode)) && Number(s.episode) > 0
           ? Number(s.episode)
@@ -95,7 +105,14 @@ function studioRouter(Dashboard: React.ComponentType) {
       });
     },
   });
-  return createRouter({ routeTree: root.addChildren([...children, legacy]) });
+  const files = createRoute({
+    getParentRoute: () => root,
+    path: "/episodes/$episodeId/files",
+    component: () => null,
+  });
+  return createRouter({
+    routeTree: root.addChildren([...children, legacy, files]),
+  });
 }
 declare module "@tanstack/react-router" {
   interface Register {

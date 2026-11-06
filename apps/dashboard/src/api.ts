@@ -97,3 +97,49 @@ export const stationApi = {
       signal,
     ),
 };
+
+export function uploadAssetFiles(
+  id: number,
+  kind: string,
+  files: File[],
+  progress: (value: number) => void,
+) {
+  return new Promise<unknown>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open("POST", `/api/episodes/${id}/assets/${kind}`);
+    request.setRequestHeader(
+      "X-Odd-Controller",
+      sessionStorage.getItem("odd-frame-controller") ||
+        localStorage.getItem("odd-frame-controller") ||
+        "",
+    );
+    request.upload.onprogress = (e) => {
+      if (e.lengthComputable) progress(Math.round((e.loaded / e.total) * 100));
+    };
+    request.onerror = () =>
+      reject(
+        new Error(
+          "Upload connection failed. Refresh the folder before retrying.",
+        ),
+      );
+    request.onload = () => {
+      let value;
+      try {
+        value = JSON.parse(request.responseText);
+      } catch {
+        reject(new Error("Unreadable upload response"));
+        return;
+      }
+      if (request.status >= 200 && request.status < 300) resolve(value);
+      else
+        reject(
+          new Error(
+            typeof value.detail === "string" ? value.detail : "Upload rejected",
+          ),
+        );
+    };
+    const body = new FormData();
+    files.forEach((f) => body.append("files", f));
+    request.send(body);
+  });
+}

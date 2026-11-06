@@ -1,3 +1,12 @@
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -110,9 +119,14 @@ export function AssetExplorer({
   disabled: boolean;
   canUpload: boolean;
   fileURL: (path: string) => string;
-  onUpload: (kind: string, files: File[]) => Promise<unknown>;
+  onUpload: (
+    kind: string,
+    files: File[],
+    progress: (value: number) => void,
+  ) => Promise<unknown>;
   onRemove: (path: string) => Promise<unknown>;
 }) {
+  const mobile = useIsMobile();
   const [folder, setFolder] = useState("05_assets"),
     [history, setHistory] = useState<string[]>([]),
     [query, setQuery] = useState(""),
@@ -123,6 +137,53 @@ export function AssetExplorer({
     ),
     [preview, setPreview] = useState<FileEntry | null>(null),
     [removing, setRemoving] = useState<FileEntry | null>(null);
+  const [uploadOpen, setUploadOpen] = useState(
+    () => new URLSearchParams(window.location.search).get("upload") === "true",
+  );
+  const [destination, setDestination] = useState("images"),
+    [progress, setProgress] = useState<number | null>(null),
+    [selection, setSelection] = useState<string[]>([]),
+    [foldersOpen, setFoldersOpen] = useState(false);
+  async function upload(kind: string, files: File[]) {
+    const allowed =
+      kind === "images"
+        ? ["png", "jpg", "jpeg", "webp"]
+        : kind === "subtitles"
+          ? ["srt"]
+          : ["wav", "mp3", "m4a", "aac", "flac", "ogg"];
+    const names = new Set<string>();
+    for (const file of files) {
+      const key = file.name.toLowerCase();
+      if (!allowed.includes(extension(file.name))) {
+        toast.error("Unsupported file type for " + kind);
+        return;
+      }
+      if (file.size > 512 * 1024 * 1024) {
+        toast.error("Each asset must be below 512 MiB");
+        return;
+      }
+      if (
+        names.has(key) ||
+        entries.some(
+          (e) => e.path.toLowerCase() === "05_assets/" + kind + "/" + key,
+        )
+      ) {
+        toast.error(
+          file.name +
+            " already exists. Upload cancelled; rename it or explicitly remove the old asset first.",
+        );
+        return;
+      }
+      names.add(key);
+    }
+    setProgress(0);
+    try {
+      await onUpload(kind, files, setProgress);
+    } finally {
+      setProgress(null);
+      setUploadOpen(false);
+    }
+  }
   const uploadRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     setFolder("05_assets");
@@ -135,6 +196,8 @@ export function AssetExplorer({
     setHistory((h) => [...h, folder]);
     setFolder(path);
     setQuery("");
+    setSelection([]);
+    setFoldersOpen(false);
   }
   const directories = entries.filter((e) => e.kind === "directory"),
     exists = (path: string) => directories.some((d) => d.path === path);
@@ -209,55 +272,173 @@ export function AssetExplorer({
   }
   return (
     <section className="file-explorer" aria-label="Episode file explorer">
-      <aside className="explorer-sidebar" aria-label="File folders" tabIndex={0}>
-        <p className="explorer-section-label">Assets</p>
-        <Button
-          variant="ghost"
-          className={!folder ? "selected" : ""}
-          onClick={() => navigate("")}
+      <Button
+        className="folder-drawer-trigger"
+        variant="outline"
+        aria-expanded={foldersOpen}
+        onClick={() => setFoldersOpen(!foldersOpen)}
+      >
+        Folders
+      </Button>
+      {mobile ? (
+        <Sheet open={foldersOpen} onOpenChange={setFoldersOpen}>
+          <SheetContent
+            side="left"
+            className="explorer-mobile-folders mobile-folders-open overflow-y-auto p-4"
+          >
+            <SheetHeader>
+              <SheetTitle>Episode folders</SheetTitle>
+              <SheetDescription>
+                {episodeCode} · Choose a folder
+              </SheetDescription>
+            </SheetHeader>
+            <p className="explorer-section-label">Assets</p>
+            <Button
+              variant="ghost"
+              className={!folder ? "selected" : ""}
+              onClick={() => navigate("")}
+            >
+              <FolderOpen />
+              All episode folders
+            </Button>
+            {exists("05_assets") && (
+              <Button
+                variant="ghost"
+                className={folder === "05_assets" ? "selected" : ""}
+                onClick={() => navigate("05_assets")}
+              >
+                <Folder />
+                05_assets
+              </Button>
+            )}
+            {roles
+              .filter(([id]) => exists("05_assets/" + id))
+              .map(([id, label]) => (
+                <Button
+                  variant="ghost"
+                  className={folder === "05_assets/" + id ? "selected" : ""}
+                  key={id}
+                  onClick={() => navigate("05_assets/" + id)}
+                >
+                  <Folder />
+                  {label}
+                </Button>
+              ))}
+            <p className="explorer-section-label">Episode folders</p>
+            {directories
+              .filter((d) => !d.path.includes("/") && d.path !== "05_assets")
+              .map((d) => (
+                <Button
+                  variant="ghost"
+                  className={folder === d.path ? "selected" : ""}
+                  key={d.path}
+                  onClick={() => navigate(d.path)}
+                >
+                  <Folder />
+                  {d.path}
+                </Button>
+              ))}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <aside
+          className="explorer-sidebar"
+          aria-label="File folders"
+          tabIndex={0}
         >
-          <FolderOpen />
-          All episode folders
-        </Button>
-        {exists("05_assets") && (
+          <p className="explorer-section-label">Assets</p>
           <Button
             variant="ghost"
-            className={folder === "05_assets" ? "selected" : ""}
-            onClick={() => navigate("05_assets")}
+            className={!folder ? "selected" : ""}
+            onClick={() => navigate("")}
           >
-            <Folder />
-            05_assets
+            <FolderOpen />
+            All episode folders
           </Button>
-        )}
-        {roles
-          .filter(([id]) => exists("05_assets/" + id))
-          .map(([id, label]) => (
+          {exists("05_assets") && (
             <Button
               variant="ghost"
-              className={folder === "05_assets/" + id ? "selected" : ""}
-              key={id}
-              onClick={() => navigate("05_assets/" + id)}
+              className={folder === "05_assets" ? "selected" : ""}
+              onClick={() => navigate("05_assets")}
             >
               <Folder />
-              {label}
+              05_assets
             </Button>
-          ))}
-        <p className="explorer-section-label">Episode folders</p>
-        {directories
-          .filter((d) => !d.path.includes("/") && d.path !== "05_assets")
-          .map((d) => (
-            <Button
-              variant="ghost"
-              className={folder === d.path ? "selected" : ""}
-              key={d.path}
-              onClick={() => navigate(d.path)}
-            >
-              <Folder />
-              {d.path}
-            </Button>
-          ))}
-      </aside>
-      <div className="explorer-main">
+          )}
+          {roles
+            .filter(([id]) => exists("05_assets/" + id))
+            .map(([id, label]) => (
+              <Button
+                variant="ghost"
+                className={folder === "05_assets/" + id ? "selected" : ""}
+                key={id}
+                onClick={() => navigate("05_assets/" + id)}
+              >
+                <Folder />
+                {label}
+              </Button>
+            ))}
+          <p className="explorer-section-label">Episode folders</p>
+          {directories
+            .filter((d) => !d.path.includes("/") && d.path !== "05_assets")
+            .map((d) => (
+              <Button
+                variant="ghost"
+                className={folder === d.path ? "selected" : ""}
+                key={d.path}
+                onClick={() => navigate(d.path)}
+              >
+                <Folder />
+                {d.path}
+              </Button>
+            ))}
+        </aside>
+      )}
+      <div
+        className="explorer-main"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (role && canUpload && !disabled)
+            void upload(role, Array.from(e.dataTransfer.files));
+          else
+            toast.error(
+              "Open an authorized asset folder before dropping files.",
+            );
+        }}
+      >
+        <div className="explorer-transfer-toolbar">
+          <Button
+            disabled={disabled || !canUpload}
+            onClick={() => {
+              setDestination(role || "images");
+              setUploadOpen(true);
+            }}
+          >
+            Upload Files
+          </Button>
+          <Button
+            variant="outline"
+            disabled={!selection.length}
+            onClick={() =>
+              selection.forEach((path) => {
+                const link = document.createElement("a");
+                link.href = fileURL(path);
+                link.download = fileName(path);
+                document.body.append(link);
+                link.click();
+                link.remove();
+              })
+            }
+          >
+            Download selected ({selection.length})
+          </Button>
+          <span>
+            {progress !== null
+              ? `Uploading ${progress}% · waiting for server confirmation`
+              : "Select files to download individually"}
+          </span>
+        </div>
         <div className="explorer-toolbar">
           <div className="explorer-navigation">
             <Button
@@ -269,6 +450,7 @@ export function AssetExplorer({
                 setFolder(history.at(-1)!);
                 setHistory((h) => h.slice(0, -1));
                 setQuery("");
+                setSelection([]);
               }}
             >
               <ArrowLeft />
@@ -384,7 +566,7 @@ export function AssetExplorer({
                 onChange={async (e) => {
                   const files = Array.from(e.target.files || []);
                   e.target.value = "";
-                  if (files.length) await onUpload(role, files);
+                  if (files.length) await upload(role, files);
                 }}
               />
               <Button
@@ -430,8 +612,26 @@ export function AssetExplorer({
               </TableHeader>
               <TableBody>
                 {rows.map((entry) => (
-                  <TableRow key={entry.path}>
+                  <TableRow
+                    key={entry.path}
+                    data-selected={selection.includes(entry.path)}
+                    onDoubleClick={() => open(entry)}
+                  >
                     <TableCell>
+                      {entry.kind === "file" && (
+                        <input
+                          type="checkbox"
+                          aria-label={"Select " + fileName(entry.path)}
+                          checked={selection.includes(entry.path)}
+                          onChange={(e) =>
+                            setSelection((old) =>
+                              e.target.checked
+                                ? [...old, entry.path]
+                                : old.filter((p) => p !== entry.path),
+                            )
+                          }
+                        />
+                      )}
                       <Button
                         variant="ghost"
                         className="explorer-name"
@@ -499,6 +699,47 @@ export function AssetExplorer({
           {role ? " · Imports stay in this folder" : ""}
         </p>
       </div>
+      <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload files to {episodeCode}</DialogTitle>
+            <DialogDescription>
+              Choose an asset folder. Existing files are never overwritten.
+              Documents and manifests remain read-only.
+            </DialogDescription>
+          </DialogHeader>
+          <label>
+            Destination
+            <select
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+            >
+              {roles.map(([id, label]) => (
+                <option value={id} key={id}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p>05_assets/{destination} · maximum 512 MiB per file</p>
+          <Input
+            type="file"
+            multiple
+            aria-label="Choose upload files"
+            disabled={disabled || !canUpload}
+            onChange={(e) => {
+              const files = Array.from(e.target.files || []);
+              e.target.value = "";
+              if (files.length) void upload(destination, files);
+            }}
+          />
+          {progress !== null && (
+            <p role="status">
+              Uploading {progress}% · server confirmation required
+            </p>
+          )}
+        </DialogContent>
+      </Dialog>
       <Sheet
         open={!!selectedPreview}
         onOpenChange={(open) => {

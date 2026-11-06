@@ -48,6 +48,13 @@ try {
       e.path.toLowerCase().split("/").includes(".production"),
     ),
   ).toBe(false);
+  await expect(
+    page.getByRole("region", { name: "Production status" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Open File Explorer", exact: true })
+    .click();
+  await expect(page).toHaveURL(new RegExp("/episodes/" + episode + "/files"));
   const explorer = page.getByRole("region", { name: "Episode file explorer" });
   await expect(explorer).toBeVisible();
   for (const name of ["images", "narration", "subtitles", "music"])

@@ -59,3 +59,7 @@ Category cards now use the official outline Button variant with explicit 18px ca
 ## Hover and spacing corrections
 
 Reel rows and next actions use the ghost Button variant with a neutral, readable hover/focus surface rather than the primary white action hover. Secondary and text controls also use neutral hovers. The brand header cannot shrink under sidebar scrolling; the icon and label have separate bounds and the collapsed icon fits its 48px rail. Header status/provider/avatar items have an explicit 12px gap. Global alerts appear before page content with top/bottom spacing; authorization helper paths are readable. Short pages stay top-aligned. Production-history search tools and saved-session/generation-batch fields have consistent heading, label and input gaps.
+
+## Dedicated Explorer follow-up
+
+Asset Manager now contains production controls and its always-expanded checklist, with working Open File Explorer and Upload Files actions. The reused explorer fills `/episodes/:episodeId/files`, with separate folder/file scrolling and a mobile folder Sheet. Explicit upload destinations, transfer progress, duplicate/type/size validation and selected individual downloads use existing protected APIs. No backend changes or dependencies were added in this stage. ZIP downloads and generated-document uploads are unsupported. See [DEDICATED_FILE_EXPLORER.md](DEDICATED_FILE_EXPLORER.md) for verification, screenshots and limitations.

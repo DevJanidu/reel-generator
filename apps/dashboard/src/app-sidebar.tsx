@@ -71,7 +71,10 @@ export function AppSidebar({
                   <SidebarMenuItem key={name}>
                     <SidebarMenuButton
                       asChild
-                      isActive={page === name}
+                      isActive={
+                        page === name ||
+                        (page === "File Explorer" && name === "Asset Manager")
+                      }
                       tooltip={name}
                       className="h-11 text-[15px]"
                     >
