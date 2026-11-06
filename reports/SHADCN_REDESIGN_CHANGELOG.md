@@ -1,0 +1,42 @@
+# ODD FRAME redesign changelog
+
+## Baselines and boundaries
+
+Original: main at af891b2d2a18f2fc103f312899adffd84f526a72 in E:/facebook.
+Development: feat/shadcn-ui-redesign in E:/facebook-ui-redesign.
+Owner-authorized reviewed snapshot: d445704. Setup: 6f86a0c. Routed shell/workflows: 225b536. Later polish and verification are separate commits.
+
+The snapshot preserves the 42 modified paths, deleted custom editor, and 27 untracked source/configuration/test/documentation paths. SHA-256 records and classification are in SOURCE_SNAPSHOT.json and UI_AUDIT_SHADCN.md. No production databases, episodes, exports, caches, music, private environment or authentication files were copied. No backend, creative prompt, brand or Remotion engine changes were introduced after the snapshot.
+
+## Official components
+
+Configured the existing Vite workspace using [official existing-project instructions](https://ui.shadcn.com/docs/installation/vite), CLI 4.23.0:
+`npx shadcn@latest init --base radix --preset nova --yes --no-monorepo`.
+Used the official registry add command, not an unrelated scaffold.
+
+Installed: Sidebar, Button, Card, Dialog, AlertDialog, Sheet, Tabs, Badge, Input, Textarea, Select, Command, Tooltip, Popover, Dropdown Menu, Table, Progress, Skeleton, Scroll Area, Separator, Switch, Slider, Accordion, Sonner, Breadcrumb, and the Input Group dependency. Registry component implementations remain intact. Product-level styling lives in semantic tokens and redesign.css. The official shared stylesheet is vendored as shadcn.css; the CLI is not shipped as an application dependency. The installed primitives use the unified Radix package; no second competing UI library was added. TanStack Table was not needed for the current simple queue table.
+
+## Changes
+
+- One official Sidebar shell, persisted expanded/icon preference, collapsed tooltips, mobile Sheet, clear active state, breadcrumbs and skip link.
+- Fifteen page URLs with episode selection in a validated search parameter; refresh/back/forward restore state. Old editor URLs redirect to the official Studio launcher.
+- Station, episode, run and Studio reads use Query observers and AbortSignal. Removed duplicate transport and overlapping fast/slow dashboard polls. Shared keys and targeted invalidation follow controlled actions. Existing form drafts remain editable local state.
+- Typed station API contracts; multipart uploads retain browser boundaries; errors are normalized. Six transport tests cover authorization, cancellation, multipart, validation, empty and unreadable responses.
+- Midnight Gold surfaces, readable typography and focus states. Owner-requested primary buttons use 12% gold fill, 20% hover fill and warm readable text. Reel links are transparent. Sidebar items have 6px gaps. Help rows use neutral surfaces and subtle open/hover gold. Legacy button styles exclude shadcn controls.
+- Compact Home: real counts, recent Reels, next actions and jobs; unknown counts show a dash while loading.
+- Preserved all eight category groups, 24 genres, five-idea batches, history, custom premises, manual imports and backend validation. Official Dialog provides focus management.
+- Readable script editing and approved-wording controls; existing approval contract unchanged.
+- Existing episode pipeline, Flow image-only exports, role-based asset imports, rights declarations, technical validation and file actions retained.
+- Dedicated Queue displays backend jobs and separate AI/render capacity; no invented percentages.
+- Activity uses an official Sheet and a dedicated page; existing allowlisted SSE events, elapsed time, errors and retry/cancel retained.
+- Official Remotion launcher retained with Query-managed status, genuine readiness and rebuild/edit-preservation controls; no replacement editor.
+- Exports retain download and current-episode QC actions; deletion uses AlertDialog. On-demand video uses the backend preview path or final file, with preload disabled. Per-export preview playback was not exercised against a newly rendered final.
+- Settings and owner-entered Analytics retain contracts and gain readable forms. Help adds searchable A–Z sections and preserves the detailed prior job/audio guide. Health reports real controller/tool/skill information without claiming unverified isolation.
+- Vite preview proxies only to disposable backend 8124; the backend explicitly accepts development origin 5174 through ODD_PORT. Host/Origin and capability enforcement are preserved.
+
+## Preview
+
+Open http://127.0.0.1:5174. Existing application source stays at E:/facebook.
+Disposable preview state lives only in the feature worktree's ignored artifacts/preview-data.
+To restart after stopping the existing preview processes, run `npm run ui:preview` in the feature worktree. It refuses occupied ports. ODD_DEV_PYTHON may override the development Python interpreter path. No original .env is copied.
+
