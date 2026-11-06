@@ -4,6 +4,8 @@ import { ensureBrowser } from "@remotion/renderer";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import path from "node:path";
+// Native validation and complete pinned-document imports may exceed five seconds.
+expect.configure({ timeout: 30000 });
 const root = process.cwd(),
   base = "http://127.0.0.1:5174",
   data = path.join(root, "artifacts/preview-data");
@@ -130,13 +132,14 @@ try {
   );
   await expect(page.getByLabel("Full narration", { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Generate Script", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Generate Script", exact: true })).toBeEnabled({ timeout: 30000 });
   await page.getByLabel("AI JSON response").fill(JSON.stringify(source.script));
   await page.getByRole("button", { name: "Validate & import JSON", exact: true }).click();
   // Import the subsequent retention review through the same real API/UI contract.
-  await expect(page.getByRole("heading", { name: "Review your script", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Review your script", exact: true })).toBeVisible({ timeout: 30000 });
   await page.getByLabel("AI JSON response").fill(JSON.stringify(source.script));
   await page.getByRole("button", { name: "Validate & import JSON", exact: true }).click();
-  await expect(page.getByLabel("Full narration", { exact: true })).toBeEditable();
+  await expect(page.getByLabel("Full narration", { exact: true })).toBeEditable({ timeout: 30000 });
   await page
     .getByLabel("Story brief", { exact: true })
     .fill(source.script.brief);

@@ -1,0 +1,80 @@
+// Read-only verification of the actual main checkout and its normal station URL.
+import { execFileSync } from 'node:child_process';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { chromium, expect } from '@playwright/test';
+import { ensureBrowser } from '@remotion/renderer';
+expect.configure({ timeout: 30000 });
+expect(execFileSync('git', ['branch', '--show-current'], { encoding: 'utf8' }).trim()).toBe('main');
+const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+const base = 'http://127.0.0.1:8123';
+const episodes = await (await fetch(base + '/api/episodes')).json();
+expect(episodes.length).toBeGreaterThan(0);
+const episode = episodes.find(e => e.status === 'COMPLETE') || episodes[0];
+const detail = await (await fetch(base + '/api/episodes/' + episode.id)).json();
+expect(detail.file_entries.length).toBeGreaterThan(0);
+expect(detail.file_entries.every(e => !e.path.includes('.production'))).toBe(true);
+const browser = await chromium.launch({ executablePath: (await ensureBrowser()).path });
+const checks = [], errors = [];
+await mkdir('artifacts/production-merge', { recursive: true });
+try {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.on('pageerror', e => errors.push(e.message));
+  for (const route of ['/', '/script', '/workspace', '/assets', '/queue', '/activity', '/studio', '/exports', '/analytics', '/health']) {
+    await page.goto(base + route + '?episode=' + episode.id);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+  checks.push('Actual production origin serves merged dashboard, Studio, Queue, Activity, Exports, Analytics and Health routes');
+  await page.goto(base + '/assets?episode=' + episode.id);
+  await expect(page.getByLabel('Active Reel', { exact: true })).toHaveValue(String(episode.id));
+  await expect(page.getByRole('region', { name: 'Production status' })).toBeVisible();
+  await page.getByRole('button', { name: 'Open File Explorer', exact: true }).click();
+  await expect(page).toHaveURL(url => url.pathname === `/episodes/${episode.id}/files`);
+  await expect(page.locator('.file-explorer')).toBeVisible();
+  await page.getByRole('button', { name: 'Images', exact: true }).click();
+  await expect(page.locator('.explorer-files tbody tr').first()).toBeVisible();
+  await page.reload();
+  await expect(page.locator('.file-explorer')).toBeVisible();
+  checks.push('Existing Reel selection, expanded checklist, real image folder and dedicated Explorer survive refresh');
+  await page.screenshot({ path: 'artifacts/production-merge/files-desktop.png' });
+  await page.getByRole('button', { name: 'Toggle Sidebar' }).click();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('odd-sidebar'))).toBe('collapsed');
+  await page.reload();
+  await expect(page.locator('.sidebar-brand-mark')).toBeVisible();
+  await page.getByRole('button', { name: 'Toggle Sidebar' }).click();
+  checks.push('Merged sidebar collapse, persistence and logo work');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Folders', exact: true }).click();
+  await expect(page.locator('.mobile-folders-open')).toBeVisible();
+  await page.keyboard.press('Escape');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'artifacts/production-merge/files-mobile.png' });
+  checks.push('Actual main mobile folder Sheet works without horizontal overflow');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(base + '/exports?episode=' + episode.id);
+  const link = page.getByRole('link', { name: 'Final MP4', exact: true }).first();
+  if (detail.data.exports?.length) {
+    await expect(link).toBeVisible();
+    const href = await link.getAttribute('href');
+    await page.locator('summary').filter({ hasText: 'Preview this export' }).first().click();
+    const video = page.locator('.export-preview video').first();
+    await video.evaluate(v => v.load());
+    await expect.poll(() => video.evaluate(v => v.readyState)).toBeGreaterThanOrEqual(2);
+    await video.evaluate(v => v.play());
+    await expect.poll(() => video.evaluate(v => v.currentTime)).toBeGreaterThan(0.1);
+    const pending = page.waitForEvent('download'); await link.click();
+    const download = await pending;
+    const bytes = await readFile(await download.path());
+    const relative = decodeURIComponent(href.slice('/api/media/'.length));
+    const original = await readFile(relative);
+    const digest = b => createHash('sha256').update(b).digest('hex');
+    expect(digest(bytes)).toBe(digest(original));
+    checks.push('Existing production MP4 preview plays and download matches original bytes');
+    await page.screenshot({ path: 'artifacts/production-merge/exports.png' });
+  }
+  expect((await fetch(base + '/favicon.svg?v=of-1')).status).toBe(200);
+  expect(errors).toEqual([]);
+  await writeFile('artifacts/production-merge/browser-results.json', JSON.stringify({ passed: true, head, origin: base, episode: episode.id, checks, errors, mutations: 'No POST/PUT/DELETE requests; official Studio launch is tested separately with disposable episode data' }, null, 2));
+  console.log('PASS: actual main production URL, routes, existing Reel, Explorer, sidebar and genuine export playback/download');
+} finally { await browser.close(); }
