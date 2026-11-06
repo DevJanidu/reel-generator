@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "application_main_commit": "b23c2028fc5908b02f130b2ffccdccee76362543",
+  "preservation": "1852335e623d8676591073e4841c5d3f358cb9f6",
+  "candidate": "6f6d2d3ff8b6c5008f30f670011d8dde332f87f2",
+  "frontend_tests": 12,
+  "main_backend_api_tests": 8,
+  "full_candidate_backend_tests": 154,
+  "build": "PASS",
+  "dashboard_types": "PASS",
+  "remotion_types": "PASS",
+  "startup": "scripts/start.ps1 -NoBrowser from E:/facebook; normal port 8123",
+  "served_index_matches_main_build": true,
+  "served_javascript": [
+    "/assets/index-nuQzSbQL.js"
+  ],
+  "source_blob": "081dd84f1287ee07f5fbeef1e8bae05b43626583",
+  "live_models": "NOT TESTED",
+  "external_meta": "NOT TESTED"
+}

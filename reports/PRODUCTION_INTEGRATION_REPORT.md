@@ -1,116 +1,94 @@
-# ODD FRAME production integration rehearsal — 2026-11-06
+# ODD FRAME — completed production merge
 
-The approved frontend is integrated and tested in a separate worktree. **Production main was not updated**: its 42 modified files, one deletion and 27 untracked source files remain uncommitted. The owner's explicit dirty-worktree stop condition therefore applies, even though those files match the reviewed snapshot.
+The source-preservation blocker is resolved. The approved UI is merged into actual `main` at `E:/facebook` and runs through the normal station startup at **http://127.0.0.1:8123**. This is not a preview worktree. Actual-main build, API, browser and disposable native-render checks passed. Live model/external-service checks remain unverified; the Windows cleanup limitation below is disclosed.
 
-## Git evidence and recoverability
+## Git evidence
 
-| Item | Verified value |
+| Stage | Commit |
 |---|---|
-| Original and final production main | `af891b2d2a18f2fc103f312899adffd84f526a72` |
-| Approved feature HEAD | `8834a9440932f8ef273636c6c70981aa7d1b757d` |
-| Reviewed owner-source snapshot | `d445704` |
-| Merge base of main / feature | `af891b2` |
-| Reconciliation merge | `c65d7ec` (parents main and snapshot) |
-| Rehearsal UI merge | `1efeeac` (parents reconciliation and approved feature) |
-| Production worktree | `E:/facebook`, branch `main`, dirty and preserved |
-| Feature worktree | `E:/facebook-ui-redesign`, branch `feat/shadcn-ui-redesign`, unchanged |
-| Rehearsal worktree | `E:/facebook-integration-20261106` |
-| Rehearsal branch | `integration/shadcn-reviewed-20261106` |
-| Other local branch | `frontend-ui-changes` at `f570621`, already an ancestor of main; no unique work to import |
+| Original production HEAD | `af891b2d2a18f2fc103f312899adffd84f526a72` |
+| Approved feature | `8834a9440932f8ef273636c6c70981aa7d1b757d` |
+| Previous integration | `2dd50e5c093f3689ff7cbd9c677d74c41eca256f` |
+| Authorized preservation on main | `1852335e623d8676591073e4841c5d3f358cb9f6` |
+| Source reconciliation merge | `ef6e9b0` |
+| Fresh UI integration merge | `873633c` |
+| Final tested candidate | `6f6d2d3ff8b6c5008f30f670011d8dde332f87f2` |
+| Actual main application merge | `b23c2028fc5908b02f130b2ffccdccee76362543` |
 
-Both rehearsal operations were real `git merge --no-ff` operations using Git's ort strategy. There were no textual conflicts, no blanket ours/theirs resolutions and no manual directory overlay. Before test-only corrections, the integrated tree matched the approved feature tree exactly. The follow-up commit contains only corrected regression scripts and this evidence/report package; application source remains the approved version.
+The final main HEAD also contains the documentation/evidence follow-up carrying this report. Its exact resulting ref is recorded after that commit in the local [final ref manifest](../artifacts/production-merge/final-head.json); the tested application commit above is unchanged by the report-only follow-up.
 
-`artifacts/integration/source-baseline.bundle` stores complete history for main, feature and the older development branch. `git bundle verify` passed. This is a local ignored source-history backup, not a database backup. The original dirty source is additionally recoverable through the exact reviewed snapshot and its hash inventory. No production database copy was necessary because production storage was never migrated or updated by this integration.
+All worktrees remain: production `E:/facebook` (`main`); approved feature `E:/facebook-ui-redesign` (`feat/shadcn-ui-redesign`); earlier rehearsal `E:/facebook-integration-20261106` (`integration/shadcn-reviewed-20261106`); fresh rehearsal `E:/facebook-final-integration-20261106` (`integration/shadcn-final-20261106`). Nothing was pushed or deployed externally, rebased, reset, stashed, cleaned, or deleted.
 
-## Reconciliation inventory
+## Source preservation and reconciliation
 
-All **70** changed/deleted/untracked source paths in `SOURCE_SNAPSHOT.json` still match production, including the deletion. Contents also match the committed snapshot after Git CRLF/LF normalization. No additional production source changes were found. The original branch, HEAD, porcelain status and original file SHA-256 checks passed again after verification.
+Reinspected current status, commits, branches, worktrees, process ownership and the earlier report. The **42 modified, one deleted and 27 untracked source paths** still matched all original snapshot hashes. Classification: **36 application-source files, 13 required configuration/dependency files, 21 test/documentation files**. No uncertain path remained. Ignored credentials/environment, databases, episodes, media, exports, dependencies and caches were reviewed separately and excluded.
 
-The committed-main-to-feature diff includes the owner's pre-existing backend, prompts, business logic and Studio upgrade; these are not UI-created engine changes. Source separation is:
+Staged only the 70 explicit manifest paths, including the intentional deletion and every new source file. Compared each staged blob with `d445704`, inspected the complete staged list/diff, checked credential patterns and ran `git -c core.whitespace=cr-at-eol diff --cached --check`. Git's normal CRLF normalization was accounted for. Independent source reads confirmed stability; production had no active AI/render jobs. Commit `1852335` preserved the exact reviewed source and left main clean. [Preservation evidence](evidence/production-preservation.json).
 
-1. Main-only commits since divergence: none.
-2. Dirty-production-only source absent from the reviewed snapshot: none among all 70 reviewed paths.
-3. Snapshot `d445704`: all 42 modifications, one deletion and 27 untracked source/config/test/document files.
-4. Subsequent feature commits: shadcn components, routing/state/layout, approved neutral theme and semantic status colors, Explorer metadata, interaction corrections, tests and reports.
-5. Other development branch: already contained in main's ancestry.
+Created a fresh rehearsal from preserved main. An actual `--no-ff` merge of the equivalent snapshot added only the two audit/snapshot reports: all 70 source blobs were identical. The resulting tree exactly matched `d445704`. Merging the previous integration then produced the approved UI tree, exactly matching `2dd50e5`. This reconciles ancestry without repeating source edits or overwriting newer work.
 
-The integration before report/test additions changes 175 paths relative to committed main: **124 added, 50 modified, one removed**. [The exact file/status inventory](evidence/integration-files.json) separates snapshot changes from later UI changes. `apps/dashboard/src/editor.tsx` is the sole removal; it was already deleted by the owner's official-Remotion source upgrade.
+There were **no textual conflicts** and no blanket ours/theirs decisions. Candidate `6f6d2d3` adds an actual-main read-only browser test and correct asynchronous workflow-test waits; no application/backend/engine implementation changed during this final rehearsal. After verification and another clean/no-active-jobs/data check, a normal `--no-ff` merge on actual main created `b23c202`, matching the candidate tree.
 
-Ignored roots were inventoried separately: environment configuration, controller/database files, genuine episodes, virtualenv, dependencies, build/runtime caches and test artifacts. The no-follow inventory recorded **81,583 metadata entries**, skipped reparse aliases and recorded 11 unreadable ignored test-artifact locations. The unrestricted initial Git ignored scan encountered legacy recursive aliases/permission errors; the bounded replacement did not follow them. This is not a claim that inaccessible runtime contents were inspected. The complete ignored-name inventory remains only in `artifacts/integration/ignored-inventory.json`; no ignored secrets or production artifacts were staged.
+The [exact file inventory](evidence/production-merge-files.json) separates preservation, UI integration and complete original-to-merged changes. Before this report follow-up, the application merge changed 200 paths from original main; preservation alone covered 70. The custom editor deletion was already intended owner work and retains the official Remotion Studio replacement.
 
-## Conflict and compatibility review
+## Compatibility review
 
-| File / area | Production vs feature | Resolution and reason | Verification |
+- Latest production providers, security, workers, business logic, concurrency limits, pinned inputs/music and approved-wording rules remain. All **68** reviewed API route signatures were retained.
+- The sole UI-stage backend addition is reviewed read-only file metadata in episode detail; legacy `files` remains. Upload/download, authorization, path/link validation and approval contracts were not weakened.
+- The approved shadcn shell, owner-selected neutral dark theme, semantic status colors, OF favicon, responsive/scroll behavior, Query/router state, Script Studio gating, Asset Manager and dedicated Explorer are preserved.
+- npm used the approved lockfile without unrelated upgrades. Both candidate and actual-main installs, builds and TypeScript checks passed. The production HTTP index was compared byte-for-byte with the main build.
+- No schema change exists relative to the previously running production source. Existing additive initialization was retained; no destructive production migration was run. Disposable schema tests preserved an existing sentinel row.
+- No database, private environment, credentials, episode media or final video was committed. New evidence contains summaries/metadata; raw logs and media generated for these final checks remain ignored. Previously reviewed test-output documentation from the integration branch remains in its history.
+
+## Verification
+
+| System | Actual test | Result | Evidence |
 |---|---|---|---|
-| Existing backend, provider/security/worker code | Dirty production already captured in snapshot | Keep the reviewed snapshot verbatim. No UI-stage changes to these functions. | Original hashes; backend AST/source comparison; 154 tests |
-| `services/api/main.py`, `file_catalog.py` | UI adds `file_entries` metadata to episode detail and derives legacy `files` from that catalog | Retain additive read-only metadata, existing file list, link/path protections and all original routes. | 68 identical route signatures; catalog/path/upload/export tests; actual file operations |
-| Deleted custom `editor.tsx`; official Studio sources | Owner snapshot replaces old editor with official Remotion workflow | Preserve deletion and official launcher/render project. | Real Studio answered HTTP; owner source edit appeared in final export |
-| Frontend main/router/sidebar/state | Old committed UI differs substantially; dirty source contains production actions | Preserve approved feature implementation, including generated-script gating, shared Query keys, routes, scroll containment and all API controls. | Story-to-assets browser workflow; all-page navigation; cancellation/retry/API checks |
-| Package manifests/lockfile/Vite/TS | Feature adds official shadcn/Radix/Tailwind/fonts while retaining React, TanStack and Remotion | Retain feature's consistent dependency graph. No unrelated upgrade during rehearsal. | Fresh `npm ci`, `npm ls --all`, both TS checks, Vite build |
-| Theme | Earlier task boilerplate says Midnight Gold; owner's later approved UI is neutral | Preserve the reviewed neutral dark appearance with success green/error red/warning yellow. | Current screenshots, route/style checks |
-| Database initializer | Owner snapshot adds `idea_sessions` to older committed-main schema | Preserve additive initializer, no production migration. Current production schema already has this table. | Read-only production schema inspection; disposable old-schema upgrade preserved sentinel episode |
+| Preservation | Exact staged paths/blobs, secrets/whitespace, source stability, no active jobs | PASS | [Preservation](evidence/production-preservation.json) |
+| Final candidate backend | Full pytest suite with disposable controller/storage | **154 passed**, one existing Starlette/httpx warning | [Candidate results](evidence/final-candidate-results.json); final rehearsal `artifacts/final-merge/backend-tests.log` |
+| Candidate frontend | Clean npm install, strict dashboard TS/Vite, 12 unit tests, Remotion types | PASS | Final rehearsal `artifacts/final-merge/` outputs |
+| API/schema | 68-route comparison, disposable schema initialization, controller/Origin rejection, invalid settings, supported cancellation/retry | PASS | Candidate results, API/contract checks |
+| Complete story workflow | Eight groups/24 genres, five ideas, selection, script/review imports, editing, approval, package/Flow, assets/settings | PASS with synthetic manual responses | Candidate results, story checks |
+| Queue/Activity | Three independent disposable Reel states, unique IDs and isolated files, persisted jobs, backend concurrency tests | PASS for safe manual/mocked cases | Candidate results; no three heavy production renders |
+| Explorer/assets | Expanded checklist, route, folders/search/sort/views/preview, real uploads and matching downloads, duplicates/invalid/private paths | PASS | Candidate results, assets/files checks |
+| Scroll/responsive | Real 80-folder/80-file overflow and boundaries, keyboard, 1920x1080 / 1440x900 / 1366x768 / 1024x768 / 390px | PASS | Candidate results, scroll checks |
+| Navigation/accessibility | All routes, Back/Forward, sidebar/tooltips/mobile drawer/favicon/spacing, axe | PASS; zero reported axe violations | Candidate results |
+| Candidate native render | Official Studio, retained source edit, final render/QC/decode | PASS after orphan helper cleanup | Candidate render result in final rehearsal artifacts; limitation below |
+| **Actual main build** | `npm ci --no-audit --no-fund`, `npm run build`, `npm run typecheck` | **PASS** | [Main verification](evidence/main-verification.json); local build/typecheck outputs |
+| **Actual main unit tests** | `npm run test:ui` | **12 passed** | Local `artifacts/production-merge/unit-tests.log` |
+| **Actual main backend/API** | Catalog/export/HTTP import/path-safety tests with disposable storage | **8 passed**, one existing warning | Local `artifacts/production-merge/api-tests.log` |
+| **Actual production startup** | Normal `scripts/start.ps1 -NoBrowser`, main source/store, port 8123 | **PASS** | Local startup logs; FastAPI startup complete |
+| **Actual production UI** | `node scripts/production-merge-qa.mjs` against 8123; genuine completed Reel; sidebar, selection, Explorer, Queue/Activity/Studio/Exports/Analytics/Health, mobile | **PASS**, no JavaScript errors | [Main browser results](evidence/main-browser-results.json) |
+| **Existing genuine export** | Actual preview playback and download bytes compared with original MP4 | **PASS** | Main browser results; screenshots remain local in `artifacts/production-merge/` |
+| **Actual main Studio/render** | Fresh disposable episode/API 8131, actual main code, official Studio, source edit, real asset uploads, render and full QC/decode | **PASS unattended** | [Main render](evidence/main-render-results.json); 4.923s, 1080x1920/30fps H.264/AAC, exactly narration + instrumental |
+| **Production protection** | Public/pinned SHA-256 checks, approval/export records, no active jobs | **PASS** — 172 public files and 29 pinned files unchanged | [Protection results](evidence/production-data-protection.json) |
+| Live AI | Real authenticated Codex/Claude response | NOT TESTED | No paid/live generation request was invoked |
+| External analytics | Authenticated Meta services | NOT TESTED | Existing actual local metrics preserved, no invented values |
 
-No existing route was removed or renamed. The sole UI-stage response-contract addition is public file metadata; upload/download/approval/provider/worker contracts remain unchanged. No database-schema change exists between current dirty production and feature. Production SQLite reports `user_version=0`, `schema_version=13`; this station uses additive initialization rather than a numbered migration framework.
+The complete suite was rerun on the final candidate rather than reused from the earlier rehearsal. Candidate application/backend source matches merged main. Focused backend tests and all frontend checks were rerun from actual main, followed by separate production-origin browser verification and a fresh actual-main disposable native render.
 
-No unresolved merge entries or conflict markers were found. No credentials, databases, episode assets, outputs or local environment values were added. Rollback needs no production data transformation.
+### Failures and remaining limits
 
-## Tests on the integrated application
+The browser workflow initially timed out because five seconds was insufficient for complete pinned-document imports and concurrent native verification. It now waits for the real generation action to finish and allows bounded 30-second confirmation. Final workflow checks passed without fabricating results or changing application behavior.
 
-All commands ran from the rehearsal worktree, using fresh dependencies and disposable stores. Browser scripts used the same source with URLs adapted in ignored runners from 5174 to 5175; the approved feature preview and production service were left running independently. No production credentials or `.env` were copied. No paid/live creative model call was made.
+Candidate Vite initially started while dependency installation was still finishing and reported an unresolved lucide-react scan. Restarted only that disposable Vite after installation; subsequent clean builds/browser checks passed.
 
-| System | Test performed | Result | Evidence |
-|---|---|---|---|
-| Dependencies | `npm ci --no-audit --no-fund`; `npm ls --all --json` | PASS | Fresh lockfile install; dependency-tree JSON in ignored integration artifacts. npm noted esbuild postinstall approval metadata, without build failure. |
-| Frontend build | `npm run build` (strict dashboard TS + Vite) | PASS | [Build log](evidence/integration-build.log) |
-| Remotion types | `npm run typecheck` | PASS | [Typecheck log](evidence/integration-remotion-typecheck.log) |
-| Frontend unit tests | `npm run test:ui` | PASS — 12 | [Unit log](evidence/integration-frontend-tests.log) |
-| Backend | `python -m pytest -q --basetemp=artifacts/pytest-full-integration --tb=short` with disposable controller root/manual provider | PASS — 154 | [Backend log](evidence/integration-pytest.log); one Starlette/httpx deprecation warning |
-| API contracts / schema | Route AST comparison; old-main schema initialized/upgraded in disposable DB with sentinel episode | PASS — 68 routes retained | [Contract/schema results](evidence/integration-contracts-schema.json) |
-| Startup | FastAPI 8125 and Vite 5175; actual API connectivity, settings/tools/skills reads | PASS | Separate store `artifacts/preview-data`; no production workers reused |
-| Story pipeline | Categories/24 genres, five validated concepts, selection, script/review import, edit/save, approval, package, Flow download | PASS | [Workflow results](evidence/integration-workflow.json); synthetic manual stage responses |
-| Script approval | Empty/running/failed/import-only states, successful generation, edit payload, approval/read-only refresh | PASS | [Script results](evidence/integration-script-editor.json); intercepted UI-state fixtures |
-| Three-Reel jobs | Three distinct episode workflows, real persisted manual job states and IDs, UI queue/activity | PASS for safe manual workflows | Workflow evidence; native/resource/concurrency regression tests. Three heavy concurrent renders were not started. |
-| Provider controls / security | Codex/Claude/manual selectors; invalid settings, capability/Origin rejection; real supported category cancellation/retry and preserved old record | PASS | [API results](evidence/integration-api-checks.json). Manual script handoff cancellation correctly returns 422 because no process is running. |
-| Live Codex / Claude generation | Authenticated real model response | NOT TESTED | No account usage was authorized or necessary; mocked-provider regressions/manual contracts do not prove live auth/generation. |
-| Asset Manager / Explorer | Expanded checklist, navigation, search/sort, views, preview, multipart audio, matching download bytes, duplicates/invalid types/private paths | PASS | [Asset results](evidence/integration-assets.json), [dedicated route](evidence/integration-dedicated-files.json) |
-| Scrolling / responsive | Genuine 80-folder/80-file overflow, both boundaries, keyboard and independent scrollers at 1920x1080, 1440x900, 1366x768, 1024x768, 390px | PASS | [Scroll results](evidence/integration-scroll.json), desktop/mobile screenshots |
-| Dashboard / navigation | Every page, refresh, Back/Forward, sidebar persistence/tooltips, error recovery, mobile navigation | PASS | [Route results](evidence/integration-browser.json) |
-| Favicon / logo / spacing | SVG/ICO resources, desktop/collapsed/mobile geometry; standalone badge gaps | PASS | [Branding](evidence/integration-branding.json), [spacing](evidence/integration-badge-spacing.json) |
-| Accessibility | Axe checks on tested routes and populated Explorer | PASS — zero reported violations | [Axe results](evidence/integration-accessibility.json). This is not exhaustive assistive-technology certification. |
-| Official Remotion / export | Real native-isolated editable draft; official Studio HTTP readiness, saved source edit, final render/QC, FFprobe and complete decode | PASS after runtime setup | [Render result](evidence/integration-render.json); 4.923s synthetic engineering Reel, 1080x1920/30fps H.264 + AAC, two-source audio |
-| Export UI | Actual preview playback and final download byte equality | PASS | [Export browser result](evidence/integration-export-browser.json), screenshot |
-| Analytics | Real stored metrics response, page route and error/loading checks | PASS for existing local functionality | API/browser results. No authenticated Meta integration is implemented/verified; no invented external analytics. |
-| Actual production main after merge | Startup/UI/data checks from updated main | BLOCKED | No production merge occurred; main remains dirty at `af891b2`. |
+The candidate's first draft recorded `Conflicting episode operation is already running` during simultaneous asset operations. Existing locks failed closed; the scanner retried and completed the editable draft. That failed record was retained.
 
-### Failures and corrections observed
+Candidate rendering finished its frames but a Remotion Windows `taskkill` helper hung after its browser target exited. Verified ownership and absent target, terminated only that orphaned disposable helper, and the unchanged renderer continued through normal QC to completion. No isolation grants or engine code changed. **Actual-main native rendering subsequently completed without intervention.** Monitor this intermittent Windows cleanup issue.
 
-- Initial render rehearsal failed closed because the fresh worktree lacked its pinned media runtime. Ran the existing development-only `scripts/setup_media_runtime.py` in the rehearsal worktree, then created a fresh disposable episode. No historical episode was repinned. The second run reached COMPLETE and passed all render/QC assertions. Pillow emitted a deprecation warning on stderr, which PowerShell surfaced as a nonzero wrapper status despite the completed PASS report; an independent complete FFmpeg decode exited successfully afterward.
-- The old browser workflow expected the removed pre-generation draft fields and embedded Explorer. Corrected the test to use real script-generation/manual-response/review import contracts and the dedicated route. Asset validation waits for its actual isolated response rather than assuming completion within five seconds.
-- The route test incorrectly required absence of all query parameters after the upload-state search addition. It now asserts correct origin/path while preserving supported state parameters; Back/Forward and selected-episode tests still verify their state explicitly.
-- The mobile branding test measured two bounds at different points during the Sheet slide animation. It now awaits that animation before comparing settled geometry. Existing transition/centering checks remain.
-- An auxiliary API probe initially used POST rather than the existing PUT settings contract, and initially attempted cancellation of an unsupported manual script handoff. Corrected to the actual contract and supported category cancellation; the rejected calls made no settings changes. The full backend suite had already passed.
-- The first auxiliary export runner tried to buffer SSE through Playwright route.fetch and encountered canceled download/context errors. Replaced that runner with a real Vite proxy to a read-only API instance (`--lifespan off`, no worker); actual preview playback and byte-identical downloads passed. No application code was changed for these harness issues.
+Live AI authentication/generation, external Meta data, physical trackpad/touch hardware, acoustic alignment, licensing and subjective creative quality remain unverified. ZIP/folder downloads and generated-document uploads remain unsupported; selected files download individually. These are disclosed limitations, not a blocked merge.
 
-Raw attempt logs remain in ignored `artifacts/integration/`; successful sanitized evidence is linked above. No skipped failure is represented as a pass.
+## Production safety and recovery
 
-Visual evidence: [desktop Explorer](evidence/integration-files-desktop.png), [mobile Explorer](evidence/integration-files-mobile.png), [actual completed export preview](evidence/integration-export-preview.png). [Dependency/configuration identities](evidence/integration-dependencies.json) and [source/schema audit](evidence/integration-audit.json) preserve the non-secret baseline details.
+The consistent SQLite backup (SQLite backup API) and prior dashboard build are retained outside Git at `E:/facebook/artifacts/merge-backups/20261106-122226/`. The verified source-history bundle including preservation is at `E:/facebook-integration-20261106/artifacts/integration/preserved-main.bundle`. No backup was deleted.
 
-## Production protection, migration and rollback
+Restarted the normal production listener only after checking zero active AI/render jobs. Used `E:/facebook/scripts/start.ps1 -NoBrowser`, the original environment and production store; no manual-test provider override was applied to production. The backend on 8123 serves the actual main build. Existing media runtime, signature music and private configuration were not replaced with disposable state.
 
-The production SQLite database was opened only in read-only/query-only mode for schema inspection. No production API mutation, backup overwrite, schema initializer or sync operation was invoked. No production episode, approved narration, illustration, music, credential, export or cache was copied into the test stores. Shared native runtime setup happened only in the new worktree.
+Production browser verification used GET/navigation/file playback and download. Upload/approval/render mutations used disposable stores only. The genuine episode remains COMPLETE; all 172 original public files, 29 pinned input files, approval SHA and export records remain unchanged. Normal read-derived index maintenance is not an approved-script rewrite.
 
-The original uncommitted source is unchanged. The approved feature branch/worktree is unchanged. Production is still usable with its existing version. Rehearsal preview: **http://127.0.0.1:5175**. A second read-only export-check preview at **http://127.0.0.1:5176/exports?episode=1** points only to the disposable completed render store; its API has no lifespan/worker.
+If recovery is necessary, preserve newer work first and rehearse a normal reviewed `git revert -m 1 b23c202` in a separate recovery branch, retaining preservation `1852335`. Reinstall/rebuild from the reviewed source and restart only without active jobs. Never reset/clean production, restore a backup over newer work, or repin approved episode inputs. Backups are recovery resources, not automatic overwrite instructions.
 
-Rollback at this point is simply to keep using unchanged production; no production rollback command is needed. Keep the original feature/integration worktrees, bundle and evidence. After any future authorized production update, retain the prior source/build and use an ordinary reviewed revert or clean integration change if necessary; never reset the original dirty worktree or replace newer episode state. No external deployment/push occurred.
+The old `verify-redesign-snapshot.py` describes the original dirty pre-preservation HEAD/status. Those historical assertions no longer describe merged main; the manifest remains unchanged for provenance, and current preservation ancestry/tree/runtime evidence is recorded here.
 
-## Exact remaining blocker and safest next action
-
-The original running worktree still has the 70 uncommitted source paths. A final merge there could overwrite or conflict with tracked changes and collide with untracked files. Approval of the UI does not override the owner's explicit instruction to stop if dirty production prevents safe final update, or to avoid automatically committing unrelated production changes.
-
-The owner must first authorize and complete a source-only reconciliation/preservation commit for those exact reviewed paths in production (or provide another explicitly reviewed clean target-worktree arrangement). Leave ignored data, credentials and runtime files untouched. Verify the hashes again immediately before that action. This rehearsal already preserves all those contents in `d445704`, but it does not make the original worktree clean.
-
-After production has a clean, reviewed source baseline, rerun an actual three-way merge from its then-current HEAD in a separate worktree. Reassess any new source commits/conflicts, run the critical checks, then use normal Git integration in the clean production worktree. Do not assume the future main commit will be identical to today's rehearsal ancestry. Perform the mandatory actual-main post-merge verification only after that integration; it has not been claimed here.
-
-Known product limitations carried forward: no ZIP/folder downloads or generated-document uploads; selected files download individually. Real provider authentication, external Meta metrics, physical trackpad/touch hardware, subjective story/art quality, music licensing and acoustic alignment were not proven by this rehearsal.
-
-**NOT MERGED — BLOCKED**
+**MERGED — LIMITED VERIFICATION**

@@ -1,0 +1,588 @@
+{
+  "passed": true,
+  "candidate": "6f6d2d3",
+  "backend_tests": 154,
+  "frontend_tests": 12,
+  "backend_warning": "Starlette/httpx TestClient deprecation",
+  "checks": {
+    "story": {
+      "passed": true,
+      "checks": [
+        "8 groups, 24 genres, official Dialog focus/Escape, five validated manual concepts",
+        "Story selection, episode URL and refresh persistence",
+        "Draft save, single approval, immutable wording, complete package import and Flow download",
+        "Real asset validation and missing-asset feedback",
+        "Real multipart upload into disposable episode",
+        "Backend job states and generated outputs",
+        "Authorized settings save to disposable database",
+        "Independent persisted job states across three disposable Reel workflows; no live workers"
+      ],
+      "errors": [],
+      "episode": 3,
+      "limitations": [
+        "Manual synthetic import covers generation contracts; no paid/live model call",
+        "Actual render and native enforcement were not exercised by this browser script"
+      ]
+    },
+    "assets": {
+      "passed": true,
+      "episode": 3,
+      "checks": [
+        "Real separate asset folders, including empty directories",
+        "Nested directory navigation and breadcrumbs/back",
+        "Current-folder search and size sorting",
+        "Grid and list views",
+        "Text and audio previews",
+        "Actual narration multipart upload and byte-identical download",
+        "Remove confirmation cancellation preserves file",
+        "No private .production catalog entries",
+        "Desktop/mobile layout",
+        "Zero axe WCAG A/AA violations"
+      ],
+      "errors": []
+    },
+    "files": {
+      "passed": true,
+      "checks": [
+        "manager has expanded status and no embedded explorer",
+        "episode route and refresh/back/forward",
+        "selected file download",
+        "unsupported type and duplicate cancellation",
+        "full-height workspace without page overflow",
+        "mobile folder drawer",
+        "manager Upload Files opens destination dialog"
+      ]
+    },
+    "scroll": {
+      "passed": true,
+      "overflowFixtures": "80 folders and 80 files injected into read-only API response",
+      "checks": [
+        "sidebar movement and boundary isolation",
+        "main movement alone",
+        "both explorer panes move independently and contain top/bottom wheel",
+        "production status open after refresh",
+        "desktop and mobile widths"
+      ]
+    },
+    "navigation": {
+      "passed": true,
+      "checks": [
+        "Home route and desktop layout",
+        "Master Prompt route and desktop layout",
+        "Ideas route and desktop layout",
+        "Script Studio route and desktop layout",
+        "Episode Workspace route and desktop layout",
+        "Google Flow Prompts route and desktop layout",
+        "Asset Manager route and desktop layout",
+        "Edit Studio route and desktop layout",
+        "Exports route and desktop layout",
+        "Analytics route and desktop layout",
+        "Settings route and desktop layout",
+        "Production Queue route and desktop layout",
+        "AI Activity route and desktop layout",
+        "System Health route and desktop layout",
+        "How to Use route and desktop layout",
+        "Neutral Help accordion, subtle open state and readable expanded content",
+        "Refresh and browser back/forward",
+        "Visible Reel link labels, neutral primary buttons and 6px sidebar hover gaps",
+        "Sidebar preference and collapsed tooltip",
+        "Mobile Sheet navigation and every route layout",
+        "Activity Sheet Escape",
+        "Request failure and explicit retry recovery",
+        "Cross-origin mutation protection preserved"
+      ],
+      "errors": []
+    },
+    "branding": {
+      "passed": true,
+      "checks": [
+        "SVG and ICO return HTTP 200",
+        "Correct page title",
+        "1920 and 1366 expanded/collapsed logo bounds and centered alignment",
+        "No logo position shift",
+        "Collapsed tooltip",
+        "390px mobile Sheet"
+      ],
+      "failures": []
+    },
+    "script": {
+      "passed": true,
+      "checks": [
+        "empty/running/failed/import-only states hide editor",
+        "generation action still queues",
+        "review in progress locks inputs",
+        "successful generation permits edits",
+        "save and approval carry edited wording",
+        "approved script stays read-only after refresh, including legacy approvals"
+      ],
+      "mutations": "Intercepted fixtures only; no provider calls or episode writes"
+    },
+    "spacing": {
+      "passed": true,
+      "checked": [
+        {
+          "width": 1440,
+          "route": "assets",
+          "badges": [
+            {
+              "text": "NEEDS ASSETS",
+              "after": 16,
+              "before": 12
+            }
+          ]
+        },
+        {
+          "width": 1440,
+          "route": "workspace",
+          "badges": [
+            {
+              "text": "VERIFIED WINDOWS MXC",
+              "after": 16,
+              "before": 12
+            }
+          ]
+        },
+        {
+          "width": 390,
+          "route": "assets",
+          "badges": [
+            {
+              "text": "NEEDS ASSETS",
+              "after": 16,
+              "before": 12
+            }
+          ]
+        },
+        {
+          "width": 390,
+          "route": "workspace",
+          "badges": [
+            {
+              "text": "VERIFIED WINDOWS MXC",
+              "after": 16,
+              "before": 12
+            }
+          ]
+        }
+      ]
+    },
+    "api": {
+      "passed": true,
+      "checks": [
+        "Controller capability, Origin and invalid settings fail closed",
+        "Actual manual job cancellation and retry preserve old record and allocate unique ID",
+        "Traversal and private production files rejected by actual API",
+        "Analytics returns actual stored metrics without fabricated external data",
+        "Codex CLI, Claude CLI and manual provider selection works; no live connection/generation call"
+      ]
+    },
+    "contracts": {
+      "passed": true,
+      "route_count": 68,
+      "removed_routes": [],
+      "changed_route_signatures": [],
+      "routes": [
+        [
+          "delete",
+          "/api/episodes/{eid}/assets/{kind}/{name}",
+          "delete_asset"
+        ],
+        [
+          "delete",
+          "/api/providers/credentials/{name}",
+          "provider_credential_clear"
+        ],
+        [
+          "get",
+          "/api/activity",
+          "activity_jobs"
+        ],
+        [
+          "get",
+          "/api/activity/stream",
+          "activity_stream"
+        ],
+        [
+          "get",
+          "/api/controller/status",
+          "controller_status"
+        ],
+        [
+          "get",
+          "/api/episodes",
+          "list_episodes"
+        ],
+        [
+          "get",
+          "/api/episodes/{eid}",
+          "detail"
+        ],
+        [
+          "get",
+          "/api/episodes/{eid}/editor",
+          "get_editor"
+        ],
+        [
+          "get",
+          "/api/episodes/{eid}/editor/revisions/{revision}",
+          "editor_revision"
+        ],
+        [
+          "get",
+          "/api/episodes/{eid}/file/{relative:path}",
+          "episode_file"
+        ],
+        [
+          "get",
+          "/api/episodes/{eid}/studio",
+          "studio_status"
+        ],
+        [
+          "get",
+          "/api/genres",
+          "story_genres"
+        ],
+        [
+          "get",
+          "/api/idea-sessions",
+          "idea_sessions"
+        ],
+        [
+          "get",
+          "/api/idea-sessions/{sid}",
+          "idea_session_detail"
+        ],
+        [
+          "get",
+          "/api/master",
+          "master"
+        ],
+        [
+          "get",
+          "/api/media/{relative:path}",
+          "media_file"
+        ],
+        [
+          "get",
+          "/api/metrics",
+          "metrics"
+        ],
+        [
+          "get",
+          "/api/providers",
+          "provider_inventory"
+        ],
+        [
+          "get",
+          "/api/providers/credentials",
+          "provider_credentials"
+        ],
+        [
+          "get",
+          "/api/runs",
+          "runs"
+        ],
+        [
+          "get",
+          "/api/runs/{runid}/request",
+          "request_bundle"
+        ],
+        [
+          "get",
+          "/api/runs/{runid}/result",
+          "run_result"
+        ],
+        [
+          "get",
+          "/api/settings",
+          "get_settings"
+        ],
+        [
+          "get",
+          "/api/skills",
+          "skills"
+        ],
+        [
+          "get",
+          "/api/status",
+          "status"
+        ],
+        [
+          "get",
+          "/api/styles",
+          "global_styles"
+        ],
+        [
+          "middleware",
+          "http",
+          "local_only"
+        ],
+        [
+          "post",
+          "/api/episodes",
+          "select"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/approve",
+          "approval"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/assets/refresh",
+          "refresh"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/assets/{kind}",
+          "upload"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/audio-preview",
+          "audio_preview"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/cancel-export",
+          "cancel_export"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/draft",
+          "draft"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/editor/prepare",
+          "prepare_editor"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/editor/rebuild",
+          "rebuild_editor"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/editor/render",
+          "render_editor"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/exports/delete",
+          "delete_exports"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/isolation/verify",
+          "verify_episode_isolation"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/metrics",
+          "save_metrics"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/music-rights",
+          "rights"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/reconcile-skills",
+          "reconcile"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/retry",
+          "retry"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/revoke",
+          "revoke"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/script",
+          "script"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/studio/generate",
+          "studio_generate"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/studio/open",
+          "studio_open"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/studio/render",
+          "studio_render"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/studio/stop",
+          "studio_stop"
+        ],
+        [
+          "post",
+          "/api/episodes/{eid}/style-preview",
+          "style_preview_endpoint"
+        ],
+        [
+          "post",
+          "/api/idea-sessions",
+          "idea_session_create"
+        ],
+        [
+          "post",
+          "/api/idea-sessions/{sid}/batches",
+          "idea_batch_create"
+        ],
+        [
+          "post",
+          "/api/idea-sessions/{sid}/batches/{bid}/select",
+          "idea_story_select"
+        ],
+        [
+          "post",
+          "/api/idea-sessions/{sid}/custom",
+          "custom_story_develop"
+        ],
+        [
+          "post",
+          "/api/idea-sessions/{sid}/custom/check",
+          "custom_story_check"
+        ],
+        [
+          "post",
+          "/api/ideas/generate",
+          "ideas"
+        ],
+        [
+          "post",
+          "/api/providers/{provider}/test",
+          "provider_test"
+        ],
+        [
+          "post",
+          "/api/runs/{runid}/cancel",
+          "cancel_generation"
+        ],
+        [
+          "post",
+          "/api/runs/{runid}/import",
+          "import_run"
+        ],
+        [
+          "post",
+          "/api/runs/{runid}/retry",
+          "retry_generation"
+        ],
+        [
+          "post",
+          "/api/skills/validate",
+          "skills"
+        ],
+        [
+          "put",
+          "/api/episodes/{eid}/caption-regions",
+          "caption_regions"
+        ],
+        [
+          "put",
+          "/api/episodes/{eid}/editor",
+          "save_editor"
+        ],
+        [
+          "put",
+          "/api/episodes/{eid}/music-level",
+          "music_level"
+        ],
+        [
+          "put",
+          "/api/episodes/{eid}/style",
+          "set_style"
+        ],
+        [
+          "put",
+          "/api/episodes/{eid}/transitions",
+          "set_transitions"
+        ],
+        [
+          "put",
+          "/api/providers/credentials/{name}",
+          "provider_credential_set"
+        ],
+        [
+          "put",
+          "/api/settings",
+          "put_settings"
+        ]
+      ],
+      "schema_upgrade": "Original committed-main schema to integrated initializer preserves sentinel row; additive table/columns only",
+      "production_database_migrated": false
+    }
+  },
+  "accessibility": [
+    {
+      "route": "/",
+      "violations": []
+    },
+    {
+      "route": "/ideas",
+      "violations": []
+    },
+    {
+      "route": "/script",
+      "violations": []
+    },
+    {
+      "route": "/workspace",
+      "violations": []
+    },
+    {
+      "route": "/flow",
+      "violations": []
+    },
+    {
+      "route": "/assets",
+      "violations": []
+    },
+    {
+      "route": "/studio",
+      "violations": []
+    },
+    {
+      "route": "/exports",
+      "violations": []
+    },
+    {
+      "route": "/analytics",
+      "violations": []
+    },
+    {
+      "route": "/settings",
+      "violations": []
+    },
+    {
+      "route": "/queue",
+      "violations": []
+    },
+    {
+      "route": "/activity",
+      "violations": []
+    },
+    {
+      "route": "/health",
+      "violations": []
+    },
+    {
+      "route": "/help",
+      "violations": []
+    }
+  ]
+}

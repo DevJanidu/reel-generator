@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "head": "b23c2028fc5908b02f130b2ffccdccee76362543",
+  "origin": "http://127.0.0.1:8123",
+  "episode": 1,
+  "checks": [
+    "Actual production origin serves merged dashboard, Studio, Queue, Activity, Exports, Analytics and Health routes",
+    "Existing Reel selection, expanded checklist, real image folder and dedicated Explorer survive refresh",
+    "Merged sidebar collapse, persistence and logo work",
+    "Actual main mobile folder Sheet works without horizontal overflow",
+    "Existing production MP4 preview plays and download matches original bytes"
+  ],
+  "errors": [],
+  "mutations": "No POST/PUT/DELETE requests; official Studio launch is tested separately with disposable episode data"
+}

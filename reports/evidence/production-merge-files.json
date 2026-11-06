@@ -1,0 +1,1661 @@
+{
+  "preservation": [
+    {
+      "status": "M",
+      "path": "AI_PROVIDERS.md"
+    },
+    {
+      "status": "A",
+      "path": "EDITING_TRANSITIONS.md"
+    },
+    {
+      "status": "M",
+      "path": "README.md"
+    },
+    {
+      "status": "A",
+      "path": "REMOTION_STUDIO.md"
+    },
+    {
+      "status": "A",
+      "path": "STORY_IDEAS.md"
+    },
+    {
+      "status": "M",
+      "path": "WORKFLOW.md"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/activity.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/api.ts"
+    },
+    {
+      "status": "D",
+      "path": "apps/dashboard/src/editor.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/exports.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/ideas.css"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/ideas.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/main.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/paging.css"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/paging.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/router.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/studio.tsx"
+    },
+    {
+      "status": "M",
+      "path": "brand/EDITING_PROFILES.json"
+    },
+    {
+      "status": "M",
+      "path": "brand/ODD_FRAME_RULES.json"
+    },
+    {
+      "status": "M",
+      "path": "brand/SKILLS_MANIFEST.json"
+    },
+    {
+      "status": "A",
+      "path": "brand/STORY_GENRES.json"
+    },
+    {
+      "status": "M",
+      "path": "package-lock.json"
+    },
+    {
+      "status": "M",
+      "path": "prompts/00_MASTER_PROMPT.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/01_IDEA_GENERATION.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/02_SCRIPT_WRITING.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/03_SCRIPT_REVIEW.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/04_CHARACTER_BIBLE.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/05_STORYBOARD.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/08_REMOTION_EDIT.md"
+    },
+    {
+      "status": "A",
+      "path": "scripts/apply_transition_decisions.py"
+    },
+    {
+      "status": "M",
+      "path": "scripts/cli_worker.py"
+    },
+    {
+      "status": "A",
+      "path": "scripts/genre-ui-smoke.mjs"
+    },
+    {
+      "status": "M",
+      "path": "scripts/production_worker.py"
+    },
+    {
+      "status": "M",
+      "path": "scripts/render_smoke.py"
+    },
+    {
+      "status": "A",
+      "path": "scripts/transitions_verify.py"
+    },
+    {
+      "status": "M",
+      "path": "scripts/ui-smoke.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/ui_pages_seed.py"
+    },
+    {
+      "status": "M",
+      "path": "scripts/write_stage_prompts.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/activity.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/core.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/creative.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/editor.py"
+    },
+    {
+      "status": "A",
+      "path": "services/api/genres.py"
+    },
+    {
+      "status": "A",
+      "path": "services/api/idea_models.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/main.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/media.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/models.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/providers.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/skills.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/snapshots.py"
+    },
+    {
+      "status": "A",
+      "path": "services/api/story_ideas.py"
+    },
+    {
+      "status": "A",
+      "path": "services/api/studio.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/styles.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/worker.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/genre_fixtures.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_credentials.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/test_editor_activity.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_exports_delete.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_genre_ideas.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_studio.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/test_style.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_transitions.py"
+    },
+    {
+      "status": "M",
+      "path": "video/remotion/package.json"
+    },
+    {
+      "status": "A",
+      "path": "video/remotion/preview-studio.mjs"
+    },
+    {
+      "status": "A",
+      "path": "video/remotion/render-studio.mjs"
+    },
+    {
+      "status": "M",
+      "path": "video/remotion/src/composition.tsx"
+    },
+    {
+      "status": "M",
+      "path": "video/remotion/src/index.tsx"
+    },
+    {
+      "status": "A",
+      "path": "video/remotion/src/library.tsx"
+    },
+    {
+      "status": "M",
+      "path": "workflows/REEL-CREATE.md"
+    },
+    {
+      "status": "M",
+      "path": "workflows/REEL-EDIT.md"
+    }
+  ],
+  "ui_integration": [
+    {
+      "status": "A",
+      "path": "apps/dashboard/components.json"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/index.html"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/package.json"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/public/favicon.ico"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/public/favicon.svg"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/activity.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/api.test.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/api.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/app-sidebar.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/asset-explorer.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/accordion.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/alert-dialog.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/badge.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/breadcrumb.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/button.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/card.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/command.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/dialog.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/dropdown-menu.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/input-group.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/input.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/popover.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/progress.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/scroll-area.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/select.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/separator.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/sheet.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/sidebar.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/skeleton.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/slider.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/sonner.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/switch.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/table.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/tabs.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/textarea.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/tooltip.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/exports.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/file-explorer-model.test.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/file-explorer-model.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/hooks/use-mobile.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/ideas.css"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/ideas.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/lib/utils.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/main.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/operations.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/paging.css"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/paging.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/redesign.css"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/router.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/select.css"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/shadcn.css"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/status-badge.test.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/status-badge.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/studio.css"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/studio.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/style.css"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/tsconfig.json"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/vite.config.ts"
+    },
+    {
+      "status": "M",
+      "path": "package-lock.json"
+    },
+    {
+      "status": "M",
+      "path": "package.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/DEDICATED_FILE_EXPLORER.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/MERGE_READINESS.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/OLD_VS_NEW_UI.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/PRODUCTION_INTEGRATION_REPORT.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/SCROLL_ISOLATION.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/SHADCN_REDESIGN_CHANGELOG.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/SOURCE_SNAPSHOT.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/UI_AUDIT_SHADCN.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/UI_REGRESSION_TESTS.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/accessibility-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/asset-explorer-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/badge-spacing-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/branding-collapsed.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/branding-expanded.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/branding-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/browser-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/collapsed-sidebar.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/dedicated-files-asset-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/dedicated-files-desktop.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/dedicated-files-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/dedicated-files-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/dedicated-files-scroll-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/favicon-sizes.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/health-alert-spacing.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/home-hover-fixed.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/ideas-layout-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-accessibility.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-api-checks.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-assets.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-audit.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-badge-spacing.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-branding.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-browser.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-build.log"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-contracts-schema.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-dedicated-files.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-dependencies.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-export-browser.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-export-preview.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-files-desktop.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-files-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-files.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-frontend-tests.log"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-pytest.log"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-remotion-typecheck.log"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-render.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-script-editor.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-scroll.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-workflow.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/layout-polish-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-assets-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-assets.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-help.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-home-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-home.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-ideas-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-ideas.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-queue-hover.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-script.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/old-home-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/old-home.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/script-editor-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/validation-spacing-1440.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/validation-spacing-390.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/workflow-results.json"
+    },
+    {
+      "status": "A",
+      "path": "scripts/asset-explorer-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/badge-spacing-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/branding-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/dedicated-files-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/ideas-layout-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/layout-polish-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/production-merge-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/redesign-accessibility.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/redesign-preview.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/redesign-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/redesign-workflow-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/script-editor-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/scroll-isolation-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/verify-redesign-snapshot.py"
+    },
+    {
+      "status": "A",
+      "path": "services/api/file_catalog.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/main.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_file_catalog.py"
+    }
+  ],
+  "complete_application_changes": [
+    {
+      "status": "M",
+      "path": "AI_PROVIDERS.md"
+    },
+    {
+      "status": "A",
+      "path": "EDITING_TRANSITIONS.md"
+    },
+    {
+      "status": "M",
+      "path": "README.md"
+    },
+    {
+      "status": "A",
+      "path": "REMOTION_STUDIO.md"
+    },
+    {
+      "status": "A",
+      "path": "STORY_IDEAS.md"
+    },
+    {
+      "status": "M",
+      "path": "WORKFLOW.md"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/components.json"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/index.html"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/package.json"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/public/favicon.ico"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/public/favicon.svg"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/activity.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/api.test.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/api.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/app-sidebar.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/asset-explorer.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/accordion.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/alert-dialog.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/badge.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/breadcrumb.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/button.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/card.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/command.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/dialog.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/dropdown-menu.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/input-group.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/input.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/popover.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/progress.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/scroll-area.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/select.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/separator.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/sheet.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/sidebar.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/skeleton.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/slider.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/sonner.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/switch.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/table.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/tabs.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/textarea.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/components/ui/tooltip.tsx"
+    },
+    {
+      "status": "D",
+      "path": "apps/dashboard/src/editor.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/exports.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/file-explorer-model.test.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/file-explorer-model.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/hooks/use-mobile.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/ideas.css"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/ideas.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/lib/utils.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/main.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/operations.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/paging.css"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/paging.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/redesign.css"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/router.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/select.css"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/shadcn.css"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/status-badge.test.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/status-badge.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/studio.css"
+    },
+    {
+      "status": "A",
+      "path": "apps/dashboard/src/studio.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/src/style.css"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/tsconfig.json"
+    },
+    {
+      "status": "M",
+      "path": "apps/dashboard/vite.config.ts"
+    },
+    {
+      "status": "M",
+      "path": "brand/EDITING_PROFILES.json"
+    },
+    {
+      "status": "M",
+      "path": "brand/ODD_FRAME_RULES.json"
+    },
+    {
+      "status": "M",
+      "path": "brand/SKILLS_MANIFEST.json"
+    },
+    {
+      "status": "A",
+      "path": "brand/STORY_GENRES.json"
+    },
+    {
+      "status": "M",
+      "path": "package-lock.json"
+    },
+    {
+      "status": "M",
+      "path": "package.json"
+    },
+    {
+      "status": "M",
+      "path": "prompts/00_MASTER_PROMPT.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/01_IDEA_GENERATION.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/02_SCRIPT_WRITING.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/03_SCRIPT_REVIEW.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/04_CHARACTER_BIBLE.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/05_STORYBOARD.md"
+    },
+    {
+      "status": "M",
+      "path": "prompts/08_REMOTION_EDIT.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/DEDICATED_FILE_EXPLORER.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/MERGE_READINESS.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/OLD_VS_NEW_UI.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/PRODUCTION_INTEGRATION_REPORT.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/SCROLL_ISOLATION.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/SHADCN_REDESIGN_CHANGELOG.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/SOURCE_SNAPSHOT.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/UI_AUDIT_SHADCN.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/UI_REGRESSION_TESTS.md"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/accessibility-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/asset-explorer-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/badge-spacing-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/branding-collapsed.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/branding-expanded.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/branding-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/browser-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/collapsed-sidebar.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/dedicated-files-asset-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/dedicated-files-desktop.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/dedicated-files-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/dedicated-files-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/dedicated-files-scroll-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/favicon-sizes.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/health-alert-spacing.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/home-hover-fixed.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/ideas-layout-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-accessibility.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-api-checks.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-assets.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-audit.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-badge-spacing.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-branding.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-browser.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-build.log"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-contracts-schema.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-dedicated-files.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-dependencies.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-export-browser.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-export-preview.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-files-desktop.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-files-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-files.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-frontend-tests.log"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-pytest.log"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-remotion-typecheck.log"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-render.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-script-editor.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-scroll.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/integration-workflow.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/layout-polish-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-assets-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-assets.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-help.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-home-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-home.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-ideas-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-ideas.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-queue-hover.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/new-script.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/old-home-mobile.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/old-home.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/script-editor-results.json"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/validation-spacing-1440.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/validation-spacing-390.png"
+    },
+    {
+      "status": "A",
+      "path": "reports/evidence/workflow-results.json"
+    },
+    {
+      "status": "A",
+      "path": "scripts/apply_transition_decisions.py"
+    },
+    {
+      "status": "A",
+      "path": "scripts/asset-explorer-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/badge-spacing-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/branding-qa.mjs"
+    },
+    {
+      "status": "M",
+      "path": "scripts/cli_worker.py"
+    },
+    {
+      "status": "A",
+      "path": "scripts/dedicated-files-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/genre-ui-smoke.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/ideas-layout-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/layout-polish-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/production-merge-qa.mjs"
+    },
+    {
+      "status": "M",
+      "path": "scripts/production_worker.py"
+    },
+    {
+      "status": "A",
+      "path": "scripts/redesign-accessibility.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/redesign-preview.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/redesign-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/redesign-workflow-qa.mjs"
+    },
+    {
+      "status": "M",
+      "path": "scripts/render_smoke.py"
+    },
+    {
+      "status": "A",
+      "path": "scripts/script-editor-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/scroll-isolation-qa.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/transitions_verify.py"
+    },
+    {
+      "status": "M",
+      "path": "scripts/ui-smoke.mjs"
+    },
+    {
+      "status": "A",
+      "path": "scripts/ui_pages_seed.py"
+    },
+    {
+      "status": "A",
+      "path": "scripts/verify-redesign-snapshot.py"
+    },
+    {
+      "status": "M",
+      "path": "scripts/write_stage_prompts.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/activity.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/core.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/creative.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/editor.py"
+    },
+    {
+      "status": "A",
+      "path": "services/api/file_catalog.py"
+    },
+    {
+      "status": "A",
+      "path": "services/api/genres.py"
+    },
+    {
+      "status": "A",
+      "path": "services/api/idea_models.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/main.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/media.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/models.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/providers.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/skills.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/snapshots.py"
+    },
+    {
+      "status": "A",
+      "path": "services/api/story_ideas.py"
+    },
+    {
+      "status": "A",
+      "path": "services/api/studio.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/styles.py"
+    },
+    {
+      "status": "M",
+      "path": "services/api/worker.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/genre_fixtures.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_credentials.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/test_editor_activity.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_exports_delete.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_file_catalog.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_genre_ideas.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_studio.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/test_style.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/test_transitions.py"
+    },
+    {
+      "status": "M",
+      "path": "video/remotion/package.json"
+    },
+    {
+      "status": "A",
+      "path": "video/remotion/preview-studio.mjs"
+    },
+    {
+      "status": "A",
+      "path": "video/remotion/render-studio.mjs"
+    },
+    {
+      "status": "M",
+      "path": "video/remotion/src/composition.tsx"
+    },
+    {
+      "status": "M",
+      "path": "video/remotion/src/index.tsx"
+    },
+    {
+      "status": "A",
+      "path": "video/remotion/src/library.tsx"
+    },
+    {
+      "status": "M",
+      "path": "workflows/REEL-CREATE.md"
+    },
+    {
+      "status": "M",
+      "path": "workflows/REEL-EDIT.md"
+    }
+  ],
+  "counts": {
+    "M": 50,
+    "A": 149,
+    "D": 1
+  }
+}
