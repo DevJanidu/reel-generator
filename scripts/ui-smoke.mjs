@@ -3,7 +3,10 @@ import { ensureBrowser } from "@remotion/renderer";
 import { spawn } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import {createServer} from 'node:net';
 const root = process.cwd();
+const port=await new Promise((resolve,reject)=>{const probe=createServer();probe.on('error',reject);probe.listen(0,'127.0.0.1',()=>{const value=probe.address().port;probe.close(()=>resolve(value))})});
+const base='http://127.0.0.1:'+port;
 const store = path.join(
   root,
   "artifacts",
@@ -20,14 +23,14 @@ const server = spawn(
     "--host",
     "127.0.0.1",
     "--port",
-    "8125",
+    String(port),
   ],
   {
     cwd: root,
     env: {
       ...process.env,
       ODD_DATA_ROOT: store,
-      ODD_PORT: "8125",
+      ODD_PORT: String(port),
       ODD_AI_PROVIDER: "manual",
     },
     windowsHide: true,
@@ -42,7 +45,7 @@ let browser;
 try {
   for (let i = 0; i < 80; i++) {
     try {
-      const r = await fetch("http://127.0.0.1:8125/api/status");
+      const r = await fetch(base+"/api/status");
       if (r.ok) break;
     } catch {}
     await new Promise((r) => setTimeout(r, 250));
@@ -59,7 +62,7 @@ try {
   const controllerAccess = JSON.parse(
     await readFile(path.join(store, "data/controller-access.json"), "utf8"),
   ).token;
-  await page.goto("http://127.0.0.1:8125/#controller=" + controllerAccess);
+  await page.goto(base+"/#controller=" + controllerAccess);
   await expect(
     page.getByRole("heading", { name: "Your next story starts here." }),
   ).toBeVisible();
@@ -82,26 +85,28 @@ try {
   await page
     .getByRole("button", { name: "Create New Reel", exact: true })
     .click();
+  await expect(page.getByRole('heading',{name:'What Kind of Story Are We Creating?',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:/MYSTERY & SUSPENSE/}).click();
+  await page.getByRole('button',{name:'Mystery',exact:true}).click();
+  await page.getByRole('button',{name:'I have my own story',exact:true}).click();
+  await page.getByLabel('Working title').fill('Browser QA — Missing Key');
+  await page.getByLabel('Your story premise').fill('Owner supplied QA premise about a missing key and a cautious rabbit.');
+  await page.getByRole('button',{name:'Develop This Story',exact:true}).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByRole('button',{name:'Confirm & Develop',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'The story, in your words',exact:true})).toBeVisible({timeout:30000});
   await expect(
     page.getByRole("heading", { name: "Manual AI handoff" }),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "Full request" })).toBeVisible();
   const full = await fetch(
-    "http://127.0.0.1:8125" +
+    base +
       (await page
         .getByRole("link", { name: "Full request" })
         .getAttribute("href")),
   ).then((r) => r.json());
   expect(full.provenance.skills).toHaveLength(4);
   expect(full.request.messages[0].content.length).toBeGreaterThan(110000);
-  await page.getByLabel("Working title").fill("Browser QA — Missing Key");
-  await page.getByLabel("Genre", { exact: true }).fill("Mystery");
-  await page
-    .getByLabel("Your story premise")
-    .fill(
-      "Owner supplied QA premise about a missing key and a cautious rabbit.",
-    );
-  await page.getByRole("button", { name: "Use Custom Premise" }).click();
   await expect(
     page.getByRole("heading", { name: "The story, in your words" }),
   ).toBeVisible();
@@ -148,7 +153,7 @@ try {
   const link = await page
     .getByRole("link", { name: "Download Flow JSON" })
     .getAttribute("href");
-  const flow = await fetch("http://127.0.0.1:8125" + link).then((r) =>
+  const flow = await fetch(base + link).then((r) =>
     r.json(),
   );
   expect(flow.jobs).toHaveLength(3);

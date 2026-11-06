@@ -14,6 +14,7 @@ def bootstrap(root,source_root=ROOT):
     docs,rules=load_skills(source_root)
     files=['brand/SKILLS_MANIFEST.json','brand/ODD_FRAME_RULES.json',*[d['canonical_path'] for d in docs]]
     if (source_root/'brand/EDITING_PROFILES.json').is_file():files.append('brand/EDITING_PROFILES.json')
+    if (source_root/'brand/STORY_GENRES.json').is_file():files.append('brand/STORY_GENRES.json')
     files += ['prompts/'+p.name for p in (source_root/'prompts').glob('*.md')]
     records=[]
     for relative in files:

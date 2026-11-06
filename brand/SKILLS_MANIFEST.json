@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
   "brand": "ODD FRAME",
-  "override_version": "1.1.0",
-  "rules_sha256": "af2d41695b9f7b6efe6ecf18755546b81643ed835ffb02758ae7b0a993348775",
+  "override_version": "1.2.0",
+  "rules_sha256": "7e485cabcf4134a854f138cb2bb04b089bef0eecc985da957f6e41f5487f774d",
   "documents": [
     {
       "id": "bible",
@@ -81,5 +81,6 @@
       ]
     }
   ],
-  "editing_profiles_sha256": "057ce3f420e720fbdfb495b4f1c73cd629cb35bc518ee7418db1609964ad707c"
+  "editing_profiles_sha256": "fdcf22b01917899fb553260fe7426b4ab433ad458660850bc87c9f6c4823430f",
+  "genre_taxonomy_sha256": "475019d180e8550379f61d1b1ea946e6158e4cff01632ad830f6cf204521ed49"
 }

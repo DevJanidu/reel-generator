@@ -14,6 +14,58 @@ from .file_writer import EpisodeWriter
 from . import isolation
 
 PROVIDERS=('codex_cli','claude_cli','manual','openai-compatible')
+ENV_PATH=ROOT/'.env'
+# Only these owner-supplied credentials can be stored from the dashboard. Codex CLI uses its own ChatGPT login (no key).
+CREDENTIALS={
+    'CLAUDE_CODE_OAUTH_TOKEN':dict(provider='claude_cli',label='Claude subscription token (from claude setup-token)',prefix='sk-ant-oat'),
+    'ANTHROPIC_API_KEY':dict(provider='claude_cli',label='Anthropic API key (billed separately)',prefix='sk-ant-'),
+    'ODD_AI_API_KEY':dict(provider='openai-compatible',label='OpenAI-compatible API key',prefix=''),
+}
+_env_lock=threading.Lock()
+
+def _in_env_file(name):
+    try:text=ENV_PATH.read_text(encoding='utf-8')
+    except OSError:return False
+    return any(re.match(r'\s*'+name+r'\s*=\s*\S',line) for line in text.splitlines())
+
+def credential_status():
+    out=[]
+    for name,spec in CREDENTIALS.items():
+        value=os.getenv(name,'')
+        out.append(dict(name=name,provider=spec['provider'],label=spec['label'],configured=bool(value),
+                        hint=('…'+value[-4:]) if len(value)>=12 else ('set' if value else ''),
+                        stored_in_env_file=_in_env_file(name)))
+    return out
+
+def _rewrite_env(name,value):
+    """Replace/append/remove one KEY=value line in .env, preserving everything else; atomic replace."""
+    try:lines=ENV_PATH.read_text(encoding='utf-8').splitlines()
+    except OSError:lines=[]
+    kept=[l for l in lines if not re.match(r'\s*'+name+r'\s*=',l)]
+    if value is not None:kept.append(f'{name}={value}')
+    tmp=ENV_PATH.with_name(ENV_PATH.name+'.tmp')
+    tmp.write_text('\n'.join(kept)+'\n',encoding='utf-8')
+    for attempt in range(5):
+        try:os.replace(tmp,ENV_PATH);return
+        except PermissionError:
+            if attempt==4:raise
+            import time;time.sleep(.2)
+
+def set_credential(name,value):
+    spec=CREDENTIALS.get(name)
+    if not spec:raise ValueError('This credential cannot be set from the dashboard')
+    value=(value or '').strip()
+    if len(value)<20 or re.search(r'\s',value) or any(ord(ch)<32 for ch in value):raise ValueError('That does not look like a complete token: it must be one line with no spaces')
+    if spec['prefix'] and not value.startswith(spec['prefix']):raise ValueError('Expected a value starting with '+spec['prefix'])
+    with _env_lock:
+        _rewrite_env(name,value);os.environ[name]=value
+    return credential_status()
+
+def clear_credential(name):
+    if name not in CREDENTIALS:raise ValueError('This credential cannot be changed from the dashboard')
+    with _env_lock:
+        _rewrite_env(name,None);os.environ.pop(name,None)
+    return credential_status()
 
 class ProviderError(ValueError):
     def __init__(self,message,code='PROVIDER_FAILED'):
@@ -144,8 +196,9 @@ def generate(config,messages,schema,root,runid,cancel=None):
               schema=strict_schema(schema),job_id=runid,auth_home=str(auth_home) if auth_home else None,
               claude_auth=claude_auth_mode() if provider=='claude_cli' else None)
     from .core import db
-    with db() as c: activity_run=c.execute('SELECT episode_id,task FROM runs WHERE id=?',(runid,)).fetchone()
-    spec['activity']=dict(episode_id=activity_run['episode_id'] if activity_run else None,stage=activity_run['task'] if activity_run else 'connection test')
+    activity_id=config.get('activity_run_id',runid)
+    with db() as c: activity_run=c.execute('SELECT episode_id,task FROM runs WHERE id=?',(activity_id,)).fetchone()
+    spec['activity']=dict(job_id=activity_id,episode_id=activity_run['episode_id'] if activity_run else None,stage=activity_run['task'] if activity_run else 'connection test')
     relative=f'.production/runs/{runid}/cli_request.json'
     writer.json(relative,spec)
     # Only this provider's job receives the owner-supplied token; it is never written to the request.

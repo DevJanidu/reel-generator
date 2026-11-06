@@ -9,6 +9,7 @@ import httpx
 from .core import ROOT, STORE, now, sha, db, episode, epdir, update_episode, textfile, write_json, settings
 from .skills import model_request, load_skills
 from .models import Ideas, Idea, Script, Package, Flow
+from .idea_models import GenreIdeas
 from .file_writer import EpisodeWriter,episode_lock
 from . import snapshots,providers,styles
 from .activity import emit
@@ -24,7 +25,7 @@ _active=0
 _cancellations={}
 
 TASKS={'ideas':('01_IDEA_GENERATION.md',Ideas),'script':('02_SCRIPT_WRITING.md',Script),
-       'review':('03_SCRIPT_REVIEW.md',Script),'prepare':('04_CHARACTER_BIBLE.md',Package)}
+       'genre_ideas':('01_IDEA_GENERATION.md',GenreIdeas),'review':('03_SCRIPT_REVIEW.md',Script),'prepare':('04_CHARACTER_BIBLE.md',Package)}
 
 def clean_words(text):
     return re.findall(r"[a-z0-9]+(?:'[a-z0-9]+)?", text.lower().replace('’',"'"))
@@ -68,21 +69,33 @@ def persist_provenance(eid, runid, evidence):
         existing['runs'].append(dict(run_id=runid,**evidence))
         write_json(path,existing)
 
-def start_task(task, payload, eid=None,background=False):
+def start_task(task, payload, eid=None,background=False,workspace=None,expected_provider=None):
     stage, schema=TASKS[task]
     config=settings()
+    if expected_provider and config['provider']!=expected_provider:raise ValueError('The AI provider changed. Review the confirmation again before generating.')
     if eid:
         with db() as c:
             active=c.execute("SELECT id FROM runs WHERE episode_id=? AND status IN ('QUEUED','RUNNING')",(eid,)).fetchone()
         if active:raise ValueError('An AI operation is already active for this episode; cancel it or wait before retrying')
         root=epdir(episode(eid))
         if not (root/'.production/provenance.json').exists():snapshots.bootstrap(root)
+    elif workspace is not None:
+        root=Path(workspace)
+        if root.parent!=STORE/'episodes/_ideas' or not root.name.startswith('OF_G'):raise ValueError('Invalid category generation workspace')
     else:
         root=STORE/'episodes'/'_ideas'/('OF_I'+uuid.uuid4().hex)
         root.mkdir(parents=True,exist_ok=False);snapshots.bootstrap(root)
     source=snapshots.source_root(root)
-    payload={**payload,'output_json_schema':schema.model_json_schema()}
+    if eid and episode(eid)['data'].get('genre_selection'):
+        context=episode(eid)['data']
+        payload={**payload,'genre_context':context['genre_selection'],'selected_story_concept':context.get('story_concept'),'user_story_input':context.get('user_story_input')}
+    if task=='genre_ideas':
+        from .story_ideas import schema as genre_schema
+        response_schema=genre_schema(payload)
+    else:response_schema=schema.model_json_schema()
+    payload={**payload,'output_json_schema':response_schema}
     if task=='ideas':
+        payload.setdefault('generation_mode','legacy_general');payload.setdefault('idea_count',10)
         with db() as c:
             payload['recent_ideas']=[json.loads(r['data'])['idea'] for r in c.execute('SELECT data FROM episodes ORDER BY id DESC LIMIT 20')]
     if task=='prepare':
@@ -103,13 +116,14 @@ def start_task(task, payload, eid=None,background=False):
     request=dict(model=config['model'],messages=messages,max_tokens=config['output_tokens'],response_format={'type':'json_object'})
     evidence['pinned_input_root']=str(source)
     evidence['execution_workspace']=str(root)
-    evidence['requested_schema_sha256']=sha(json.dumps(schema.model_json_schema(),sort_keys=True))
+    evidence['requested_schema_sha256']=sha(json.dumps(response_schema,sort_keys=True))
     writer=EpisodeWriter(root)
     writer.json(f'.production/runs/{runid}/request.json',dict(request=request,provenance=evidence))
     with db() as c:
         c.execute('INSERT INTO runs(id,episode_id,task,status,request,provenance,created,workspace,stage,progress,provider) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
                   (runid,eid,task,'AWAITING_MANUAL' if config['provider']=='manual' else 'QUEUED',json.dumps(request),json.dumps(evidence),now(),str(root),'Loading skills',.05,config['provider']))
     persist_provenance(eid,runid,evidence)
+    if task=='genre_ideas':run_event(runid,'category.confirmed',f"Category confirmed: {payload['category_group']} / {payload['primary_genre']}")
     run_event(runid,'job.queued','Request queued; waiting for an available provider slot')
     run_event(runid,'skills.validated','All four complete pinned skills, master and stage instructions validated')
     run_event(runid,'ai.request.prepared','Complete schema-bound request saved')
@@ -120,9 +134,9 @@ def start_task(task, payload, eid=None,background=False):
         return dict(run_id=runid,status='AWAITING_MANUAL',message='Download full AI request, use your own AI tool, then import its JSON response. No AI call was simulated.')
     _cancellations[runid]=threading.Event()
     if background:
-        _executor.submit(execute_run,runid,config,messages,schema.model_json_schema(),root,True)
+        _executor.submit(execute_run,runid,config,messages,response_schema,root,True)
         return dict(run_id=runid,status='QUEUED',message=f'Full skills loaded; {task} queued using {config["provider"]}')
-    return execute_run(runid,config,messages,schema.model_json_schema(),root)
+    return execute_run(runid,config,messages,response_schema,root)
 
 def run_progress(runid,stage,progress,status=None):
     with db() as c:
@@ -150,7 +164,27 @@ def execute_run(runid,config,messages,schema,root,background=False):
             run_progress(runid,'Preparing AI request',.15,status='RUNNING')
             if cancel.is_set():raise providers.ProviderError('Generation cancelled','CANCELLED')
             run_progress(runid,'Checking provider authentication and native isolation',.3)
-            result=providers.generate(config,messages,schema,root,runid,cancel)
+            with db() as c:run=dict(c.execute('SELECT * FROM runs WHERE id=?',(runid,)).fetchone())
+            for attempt in range(2 if run['task']=='genre_ideas' else 1):
+                provider_run=runid if attempt==0 else runid+'-repair-1'
+                provider_config={**config,'activity_run_id':runid} if run['task']=='genre_ideas' else config
+                result=None
+                try:
+                    result=providers.generate(provider_config,messages,schema,root,provider_run,cancel)
+                    if run['task']!='genre_ideas':break
+                    EpisodeWriter(root).json(f'.production/runs/{runid}/attempts/{attempt+1:02d}-response.json',result,replace=False)
+                    if cancel.is_set():raise providers.ProviderError('Generation cancelled','CANCELLED')
+                    from .story_ideas import validate_result
+                    validate_result(run,result)
+                    break
+                except (ValueError,providers.ProviderError) as validation_error:
+                    if run['task']!='genre_ideas' or attempt:raise
+                    if isinstance(validation_error,providers.ProviderError) and validation_error.code!='INVALID_OUTPUT':raise
+                    run_event(runid,'output.repair','Concept validation failed; starting one bounded schema-aware regeneration')
+                    body=json.loads(json.loads(run['request'])['messages'][1]['content'])
+                    body.update(repair_feedback=str(validation_error)[:2400],rejected_response=result,repair_instruction='Return a complete replacement batch of exactly five valid, distinct concepts. Retain the confirmed genre and all batch-scoped IDs; do not pad with placeholders.')
+                    messages,repair_evidence=model_request(TASKS['genre_ideas'][0],body,config,root=snapshots.source_root(root))
+                    EpisodeWriter(root).json(f'.production/runs/{runid}/attempts/02-request.json',dict(messages=messages,provenance=repair_evidence))
             if cancel.is_set():raise providers.ProviderError('Generation cancelled','CANCELLED')
             run_progress(runid,'Validating model response',.8)
             run_event(runid,'output.validating','Checking structured output against the stage contract')
@@ -167,7 +201,13 @@ def execute_run(runid,config,messages,schema,root,background=False):
         _cancellations.pop(runid,None)
 
 def cancel_run(runid):
-    with db() as c: row=c.execute('SELECT status FROM runs WHERE id=?',(runid,)).fetchone()
+    with db() as c: row=c.execute('SELECT status,task,workspace FROM runs WHERE id=?',(runid,)).fetchone()
+    if row and row['task']=='genre_ideas' and row['status']=='AWAITING_MANUAL':
+        with episode_lock(row['workspace'],'commit'):
+            with db() as c:current=c.execute('SELECT status FROM runs WHERE id=?',(runid,)).fetchone()
+            if current['status']!='AWAITING_MANUAL':raise ValueError('This generation is no longer waiting for manual input')
+            fail_run(runid,'Generation cancelled by the owner before manual import')
+        return dict(run_id=runid,status='CANCELLED')
     if not row or row['status'] not in ('QUEUED','RUNNING'):raise ValueError('This generation is no longer active')
     if runid not in _cancellations:raise ValueError('No active AI execution for this run')
     _cancellations[runid].set()
@@ -213,7 +253,19 @@ def _complete_run(runid,result,manual=False,background=False):
     if sha((source/'prompts/00_MASTER_PROMPT.md').read_text(encoding='utf-8'))!=evidence['master_prompt']['sha256']:
         raise ValueError('Master prompt changed; create a new request')
     task=run['task']; eid=run['episode_id']
-    data=TASKS[task][1].model_validate(result).model_dump()
+    if task=='genre_ideas' and run['status'] not in ('AWAITING_MANUAL','QUEUED','RUNNING'):raise ValueError('This idea batch is closed. Confirm a new batch instead of importing into a failed or cancelled request.')
+    if task=='genre_ideas':
+        from .story_ideas import validate_result,save_result
+        try:data=validate_result(run,result)
+        except ValueError as exc:
+            if manual:
+                detail='; '.join('.'.join(map(str,e['loc']))+': '+e['msg'] for e in exc.errors(include_input=False)) if hasattr(exc,'errors') else str(exc)
+                EpisodeWriter(run['workspace']).json(f'.production/runs/{runid}/import_validation.json',dict(valid=False,error=providers.redact(detail),at=now()))
+                run_event(runid,'output.rejected','Imported concepts failed validation. Correct the structured response and import again; no batch was saved.')
+            raise
+        save_result(run,data,evidence)
+        if manual:EpisodeWriter(run['workspace']).json(f'.production/runs/{runid}/import_validation.json',dict(valid=True,at=now()))
+    else:data=TASKS[task][1].model_validate(result).model_dump()
     if eid and task in ('script','review') and episode(eid)['data'].get('approval'):
         raise ValueError('Approved narration is locked. Revoke approval before creating another version.')
     if task=='prepare':
@@ -231,8 +283,8 @@ def _complete_run(runid,result,manual=False,background=False):
         public_files = ['01_script/SCRIPT.md'] if task in ('script','review') else ['02_characters/CHARACTER_BIBLE.md','03_storyboard/STORYBOARD.md','04_google_flow/IMAGE_JOBS.json'] if task=='prepare' else []
         for filename in public_files:
             if (epdir(episode(eid))/filename).is_file():run_event(runid,'file.saved','Generated file verified',file=filename)
-    run_progress(runid,'Completed' if task not in ('script','review') else 'Waiting for script approval' if task=='review' else 'Script generated; retention review next',1,status='SUCCEEDED')
-    run_event(runid,'job.completed','Validated stage complete. '+('Approve the reviewed script to continue.' if task=='review' else 'Add still images, narration and SRT subtitles in Asset Manager.' if task=='prepare' else 'Continue in the episode workspace.'),status='SUCCEEDED')
+    run_progress(runid,'Five story ideas ready for selection' if task=='genre_ideas' else 'Completed' if task not in ('script','review') else 'Waiting for script approval' if task=='review' else 'Script generated; retention review next',1,status='SUCCEEDED')
+    run_event(runid,'job.completed','Validated stage complete. '+('Select one of the five concepts in Ideas to begin its script.' if task=='genre_ideas' else 'Approve the reviewed script to continue.' if task=='review' else 'Add still images, narration and SRT subtitles in Asset Manager.' if task=='prepare' else 'Continue in the episode workspace.'),status='SUCCEEDED')
     if manual:
         evidence['external_execution']='Manual import: document delivery verified; model identity/compliance user-attested, not independently observed'
         persist_provenance(eid,runid+'-import',evidence)
@@ -299,7 +351,7 @@ def populate(eid,package,evidence):
     # Style hints are requests, validated here: the first scene never transitions and an emphasis phrase must be
     # 1-4 contiguous words of that scene's own narration, otherwise it is dropped (never trusted blindly).
     for i,scene in enumerate(scenes):
-        if i==0:scene['transition_in']='cut'
+        if i==0:scene['transition_in']='hard_cut'
         phrase=clean_words(scene.get('emphasis_phrase','') or '')
         words=clean_words(scene['narration_text'])
         if phrase and (len(phrase)>4 or not any(words[j:j+len(phrase)]==phrase for j in range(len(words)-len(phrase)+1))):

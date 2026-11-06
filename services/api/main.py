@@ -19,9 +19,13 @@ from .creative import cancel_run,run_progress,stop_creative
 @asynccontextmanager
 async def lifespan(app):
     init_db(); (STORE/'episodes').mkdir(parents=True,exist_ok=True)
+    from .story_ideas import recover_pending_sessions
+    recover_pending_sessions()
     thread=start_worker()
     yield
     stop_creative();stop.set(); thread.join(timeout=2)
+    from . import studio
+    studio.stop_all()
 
 app=FastAPI(title='ODD FRAME Reel Workflow Station',version='1.0.0',lifespan=lifespan)
 
@@ -93,7 +97,7 @@ def status():
     sync_index()
     with db() as c:
         counts={r['status']:r['n'] for r in c.execute('SELECT status,count(*) n FROM episodes GROUP BY status')}
-        jobs=[dict(r) for r in c.execute('SELECT * FROM jobs ORDER BY id DESC LIMIT 30')]
+        jobs=[dict(r) for r in c.execute('SELECT * FROM jobs ORDER BY id DESC LIMIT 500')]
     for job in jobs:
         local=epdir(episode(job['episode_id']))/f'.production/jobs/{job["id"]}.json'
         if local.exists():_overlay_job(job,read_json(local))
@@ -150,7 +154,7 @@ def select(payload:dict):
 def detail(eid:int):
     ep=episode(eid)
     with db() as c:
-        ep['history']=[dict(r) for r in c.execute('SELECT * FROM events WHERE episode_id=? ORDER BY id DESC LIMIT 100',(eid,))]
+        ep['history']=[dict(r) for r in c.execute('SELECT * FROM events WHERE episode_id=? ORDER BY id DESC LIMIT 1000',(eid,))]
         ep['runs']=[dict(r) for r in c.execute('SELECT id,task,status,error,created,stage,progress,provider FROM runs WHERE episode_id=? ORDER BY created DESC',(eid,))]
         ep['jobs']=[dict(r) for r in c.execute('SELECT * FROM jobs WHERE episode_id=? ORDER BY id DESC',(eid,))]
     directory=epdir(ep)
@@ -162,6 +166,7 @@ def detail(eid:int):
     ep['isolation']=isolation.status(directory)
     ep['input_snapshot']=read_json(directory/'.production/provenance.json') if (directory/'.production/provenance.json').exists() else None
     ep['style_info']=_style_summary(ep)
+    ep['studio']=_studio_summary(ep)
     try:snapshots.validate(directory);ep['pinned_inputs_valid']=True
     except (OSError,ValueError) as exc:ep['pinned_inputs_valid']=False;ep['pinned_input_error']=str(exc)
     ep['asset_report']=read_json(directory/'reports/ASSET_VALIDATION.json') if (directory/'reports/ASSET_VALIDATION.json').exists() else None
@@ -178,7 +183,7 @@ def prepare_editor(eid:int):
     return dict(job_id=enqueue(eid,'draft'))
 
 @app.post('/api/episodes/{eid}/editor/rebuild')
-def rebuild_editor(eid:int):
+def rebuild_editor(eid:int,payload:dict|None=None):
     ep=episode(eid);approved(ep);directory=epdir(ep);writer=EpisodeWriter(directory)
     with episode_lock(directory,'media',blocking=False),episode_lock(directory,'editor'):
         with db() as c:
@@ -192,7 +197,7 @@ def rebuild_editor(eid:int):
         writer.json('06_edit/edit_plan.json',dict(version=1,runtime=runtime))
         state['ready']=False;writer.json('06_edit/editor_state.json',state)
         from .worker import _enqueue
-        return dict(job_id=_enqueue(eid,'draft',rebuild=True))
+        return dict(job_id=_enqueue(eid,'draft',rebuild=True,replace_studio=bool((payload or {}).get('replace_studio_edits'))))
 
 @app.get('/api/episodes/{eid}/editor')
 def get_editor(eid:int):
@@ -218,9 +223,155 @@ def render_editor(eid:int,payload:dict):
     if payload.get('revision')!=saved['state']['revision']:raise ValueError('Save or reload the current revision before rendering')
     return dict(job_id=enqueue(eid,'render'))
 
+# ------------------------------------------------------------------ official Remotion Studio
+STUDIO_CAPABILITIES = dict(
+    visual=[
+        'Props panel (saved into Root.tsx): narration gain 0-2x, music gain 0-2x, music fade in/out, extra ducking, caption glow strength',
+        'Timeline: every still (inside "STORY — stills + transitions"), caption phrase, narration and music is a named, selectable sequence',
+        'Timeline: drag/trim a caption sequence to change its timing (written into Episode.tsx)',
+        'Sequence inspector: opacity, background, border, crop, layout, duplicate, split, unwrap (provided by Studio)',
+    ],
+    source_only=[
+        'Caption text, animation preset (wave/glow/smooth/impact/soft), gold emphasis, vertical position, enter/exit frames: edit Episode.tsx',
+        'Scene transitions: every boundary is a commented TransitionSeries.Transition in Episode.tsx (crossfade() or dipToCharcoal() with transitionTiming(frames)); hard and graphic-match cuts have no element. Studio has no drag-and-drop transition editor',
+        'Changing a still duration inside the TransitionSeries shifts the later stills (captions/audio stay put): the checker warns when a scene change leaves its narration frame and blocks a wrong total length',
+    ],
+    blocked=[
+        'Image movement (pan, zoom, rotate, scale, offset, keyframes) and extra audio/sound effects are rejected at launch and at export',
+    ],
+    not_verified=['Split/duplicate/drag-to-move behaviour of Studio itself was not tested by ODD FRAME'],
+)
+
+
+def _studio_summary(ep):
+    from . import studio
+    directory = epdir(ep)
+    manifest = studio.manifest(directory)
+    out = dict(exists=bool(manifest), capabilities=STUDIO_CAPABILITIES)
+    if not manifest:
+        out['hint'] = 'Run Auto Edit; the station then builds the complete Remotion Studio project.'
+        return out
+    try:
+        studio.validate_project(directory)
+        out['valid'] = True
+    except ValueError as exc:
+        out.update(valid=False, problem=str(exc))
+    check = studio.check_source(directory) if (studio.studio_dir(directory) / 'src/Episode.tsx').is_file() else dict(errors=[], warnings=[])
+    out.update(composition_id=manifest['composition_id'], created=manifest['created'], style=manifest.get('style'),
+               remotion_version=manifest.get('remotion_version'), source_editor_revision=manifest.get('source_editor_revision'),
+               scene_sequences=len(check.get('scenes', [])), caption_sequences=check.get('captions'),
+               source_errors=check['errors'], source_warnings=check['warnings'],
+               owner_edited_files=studio.owner_changes(directory), session=studio.session(ep['id']),
+               starting=studio.is_starting(ep['id']), launch=studio.launch_state(directory),
+               folder=f'episodes/{directory.name}/{studio.STUDIO_DIR}')
+    return out
+
+
+@app.get('/api/episodes/{eid}/studio')
+def studio_status(eid: int):
+    return _studio_summary(episode(eid))
+
+
+@app.post('/api/episodes/{eid}/studio/generate')
+def studio_generate(eid: int, payload: dict):
+    """Build the Studio project from the latest saved Auto Edit revision (deterministic, no AI call).
+
+    Never replaces Studio edits unless replace_my_edits is true; the previous source is archived either way."""
+    from . import studio
+    ep = episode(eid)
+    approved(ep)
+    directory = epdir(ep)
+    _style_busy(ep)
+    state_path = directory / '06_edit/editor_state.json'
+    if not state_path.exists():
+        raise ValueError('Run Auto Edit first: the station needs the prepared timeline and measured audio.')
+    state = read_json(state_path)
+    if not state.get('ready'):
+        raise ValueError('An Auto Edit rebuild is still in progress.')
+    props = read_json(directory / f'06_edit/revisions/{state["revision"]:06d}.json')
+    with episode_lock(directory, 'media', blocking=False), episode_lock(directory, 'editor'):
+        studio.stop(eid)
+        manifest = studio.generate(directory, props, ep['data']['package']['scenes'], ep['code'],
+                                   force=bool(payload.get('replace_my_edits')), source_revision=state['revision'])
+    update_episode(eid, ep['status'], message='Remotion Studio project generated. Open it in Remotion Studio.')
+    return dict(composition_id=manifest['composition_id'])
+
+
+@app.post('/api/episodes/{eid}/studio/open')
+def studio_open(eid: int):
+    from . import studio
+    ep = episode(eid)
+    approved(ep)
+    if ep['status'] in ('QUEUED', 'RENDERING'):
+        raise ValueError('A render is in progress; open Studio when it finishes.')
+    if not studio.manifest(epdir(ep)):
+        raise ValueError('There is no Studio project yet. Run Auto Edit or Generate Studio project first.')
+    return studio.begin_start(eid, epdir(ep), max_concurrent=int(settings().get('max_concurrent_jobs', 2)) or 2)
+
+
+@app.post('/api/episodes/{eid}/studio/stop')
+def studio_stop(eid: int):
+    from . import studio
+    episode(eid)
+    return dict(stopped=studio.stop(eid))
+
+
+@app.post('/api/episodes/{eid}/studio/render')
+def studio_render(eid: int):
+    """Final export from the exact Studio project the owner reviewed (its saved source is authoritative)."""
+    ep = episode(eid)
+    approved(ep)
+    return dict(job_id=enqueue(eid, 'studio-render'))
+
+
 @app.post('/api/ideas/generate')
 def ideas(payload:dict):
+    if payload.get('generation_mode')=='category':
+        from .story_ideas import start_batch
+        if set(payload)-{'generation_mode','session_id','idempotency_key','expected_provider'}:raise ValueError('Category generation uses the confirmed session selection; arbitrary genre overrides are rejected')
+        return start_batch(payload.get('session_id',''),dict(idempotency_key=payload.get('idempotency_key',''),expected_provider=payload.get('expected_provider')))
     return start_task('ideas',payload,background=True)
+
+@app.get('/api/genres')
+def story_genres():
+    from .genres import load
+    return load()
+
+@app.get('/api/idea-sessions')
+def idea_sessions():
+    from .story_ideas import list_sessions
+    return list_sessions()
+
+@app.post('/api/idea-sessions')
+def idea_session_create(payload:dict):
+    from .story_ideas import create_session
+    return create_session(payload)
+
+@app.get('/api/idea-sessions/{sid}')
+def idea_session_detail(sid:str):
+    from .story_ideas import session_details
+    return session_details(sid)
+
+@app.post('/api/idea-sessions/{sid}/batches')
+def idea_batch_create(sid:str,payload:dict):
+    from .story_ideas import start_batch
+    return start_batch(sid,payload)
+
+@app.post('/api/idea-sessions/{sid}/batches/{bid}/select')
+def idea_story_select(sid:str,bid:str,payload:dict):
+    from .story_ideas import select_story
+    if set(payload)!={'idea_id'}:raise ValueError('Select one saved concept ID')
+    return select_story(sid,bid,payload['idea_id'])
+
+@app.post('/api/idea-sessions/{sid}/custom/check')
+def custom_story_check(sid:str,payload:dict):
+    from .story_ideas import check_custom
+    return check_custom(sid,payload)
+
+@app.post('/api/idea-sessions/{sid}/custom')
+def custom_story_develop(sid:str,payload:dict):
+    from .story_ideas import develop_custom
+    return develop_custom(sid,payload)
 
 @app.post('/api/episodes/{eid}/script')
 def script(eid:int):
@@ -397,6 +548,52 @@ def delete_asset(eid:int,kind:str,name:str):
     EpisodeWriter(epdir(ep)).delete(f'05_assets/{kind}/{name}')
     return update_episode(eid,'AWAITING_ASSETS',error=None)
 
+@app.post('/api/episodes/{eid}/exports/delete')
+def delete_exports(eid:int,payload:dict):
+    """Owner-confirmed deletion of one or more finished exports of ONE episode.
+
+    Only exports this episode recorded (by job id) can be named; each MP4 and its preview clip are removed from inside the
+    episode's export folder through the safe writer (no traversal, links or directories). Script, stills, audio, Studio
+    project and every other export are untouched. Never during a render. Irreversible, so `confirm` must be true."""
+    if payload.get('confirm') is not True:
+        raise ValueError('Deleting exports is permanent. Confirm the deletion.')
+    ids=payload.get('job_ids')
+    if not isinstance(ids,list) or not ids or len(ids)>200 or any(isinstance(i,bool) or not isinstance(i,int) for i in ids):
+        raise ValueError('Choose the exports to delete (a list of export job ids).')
+    ep=episode(eid)
+    if ep['status'] in ('QUEUED','RENDERING'):
+        raise ValueError('Cannot delete exports while a render is in progress')
+    with db() as c:
+        if c.execute("SELECT id FROM jobs WHERE episode_id=? AND status IN ('QUEUED','RUNNING')",(eid,)).fetchone():
+            raise ValueError('A production job is active for this episode; wait for it to finish')
+    known={e['job_id']:e for e in ep['data'].get('exports',[])}
+    missing=[i for i in ids if i not in known]
+    if missing:raise ValueError('Unknown export(s): '+', '.join(map(str,missing)))
+    writer=EpisodeWriter(epdir(ep));removed=[];gone=[]
+    for jid in dict.fromkeys(ids):
+        entry=known[jid]
+        for key,folder in (('path','07_export/final/'),('preview','06_edit/previews/')):
+            rel=entry.get(key)
+            if not rel:continue
+            # Recorded paths are relative to the data root; convert to episode-relative and require the right folder.
+            rel=str(rel).replace('\\','/');prefix=f'episodes/{epdir(ep).name}/'
+            if not rel.startswith(prefix) or '..' in rel.split('/'):
+                if key=='path':raise ValueError('Refusing to delete a file outside this episode: '+rel)
+                continue
+            rel=rel[len(prefix):]
+            if not rel.startswith(folder) or not rel.lower().endswith('.mp4'):
+                if key=='path':raise ValueError('Refusing to delete a file outside the export folder: '+rel)
+                continue
+            target=writer.path(rel)
+            if target.is_file():writer.delete(rel);removed.append(rel)
+            else:gone.append(rel)
+    remaining=[e for e in ep['data'].get('exports',[]) if e['job_id'] not in set(ids)]
+    history=list(ep['data'].get('export_deletions',[]))+[dict(at=now(),job_ids=list(dict.fromkeys(ids)),files=removed,already_missing=gone)]
+    update_episode(eid,ep['status'],exports=remaining,export_deletions=history,error=None,
+                   message=f"Deleted {len(set(ids))} export{'s' if len(set(ids))!=1 else ''}. Your script, stills, audio and Studio project were not touched.")
+    return dict(deleted=sorted(set(ids)),files=removed,remaining=len(remaining),
+                message=f"Deleted {len(set(ids))} export{'s' if len(set(ids))!=1 else ''}. Your script, stills, audio and Studio project were not touched.")
+
 @app.post('/api/episodes/{eid}/music-rights')
 def rights(eid:int,payload:dict):
     if not isinstance(payload.get('instrumental_confirmed'),bool) or not isinstance(payload.get('evidence',''),str):
@@ -507,12 +704,12 @@ def set_transitions(eid: int, payload: dict):
     ids = [s['scene_id'] for s in ep['data']['package']['scenes']]
     requested = payload.get('transitions')
     if not isinstance(requested, dict):
-        raise ValueError('Provide transitions as {scene_id: cut|crossfade|dip_to_dark}')
+        raise ValueError('Provide transitions as {scene_id: ' + '|'.join(styles.ALL_TRANSITIONS) + '}')
     clean = {}
     for scene_id, name in requested.items():
         if scene_id not in ids or ids.index(scene_id) == 0:
             raise ValueError('Transitions apply to scenes S002 onward: ' + str(scene_id))
-        if name not in styles.TRANSITIONS:
+        if name not in styles.ALL_TRANSITIONS:
             raise ValueError('Unknown transition: ' + str(name))
         clean[scene_id] = name
     rerender = bool(payload.get('rerender')) and ep['status'] in ('COMPLETE', 'FAILED', 'AWAITING_ASSETS', 'ASSETS_BLOCKED')
@@ -528,7 +725,7 @@ def style_preview_endpoint(eid: int, payload: dict):
     from . import styles
     ep = episode(eid)
     _style_busy(ep)
-    wanted = payload.get('profiles') or [styles.CLASSIC_ID, styles.FLOW_ID]
+    wanted = payload.get('profiles') or [styles.CLASSIC_ID, styles.TRANSITIONS_ID]
     shared = (styles.profiles_doc(ROOT) or {}).get('profiles', {})
     allowed = set(styles.available_profiles(epdir(ep))) | set(shared)
     if not isinstance(wanted, list) or not wanted or len(wanted) > 3 or any(p not in allowed for p in wanted):
@@ -591,6 +788,26 @@ def media_file(relative:str):
 def provider_inventory():
     return dict(providers=providers.inventory(),isolation=isolation.status(),selected=settings()['provider'])
 
+@app.get('/api/controller/status')
+def controller_status(request:Request):
+    """Lets the dashboard tell the owner whether THIS browser is authorised to make changes (never reveals the key)."""
+    import secrets
+    supplied=request.headers.get('x-odd-controller','')
+    return dict(authorized=bool(supplied) and secrets.compare_digest(supplied,controller_token()))
+
+@app.get('/api/providers/credentials')
+def provider_credentials():
+    return dict(credentials=providers.credential_status())
+
+@app.put('/api/providers/credentials/{name}')
+def provider_credential_set(name:str,payload:dict):
+    if set(payload)-{'value'}:raise ValueError('Send only the token value')
+    return dict(credentials=providers.set_credential(name,payload.get('value','')))
+
+@app.delete('/api/providers/credentials/{name}')
+def provider_credential_clear(name:str):
+    return dict(credentials=providers.clear_credential(name))
+
 @app.post('/api/providers/{provider}/test')
 def provider_test(provider:str):
     if provider not in providers.PROVIDERS:raise ValueError('Unknown AI provider')
@@ -607,6 +824,9 @@ def cancel_generation(runid:str):return cancel_run(runid)
 def retry_generation(runid:str):
     with db() as c:row=c.execute('SELECT * FROM runs WHERE id=?',(runid,)).fetchone()
     if not row or row['status'] not in ('FAILED','CANCELLED'):raise ValueError('Only failed or cancelled runs can be retried')
+    if row['task']=='genre_ideas':
+        from .story_ideas import retry_run
+        return retry_run(runid)
     payload=json.loads(json.loads(row['request'])['messages'][1]['content'])
     result=start_task(row['task'],payload,row['episode_id'],background=True)
     from .creative import run_event

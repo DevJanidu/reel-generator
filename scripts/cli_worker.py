@@ -50,7 +50,7 @@ writer.json(folder+'/invocation.json',dict(provider=provider,argv=args,tools='di
 from services.api.activity import emit,provider_activity
 meta=spec.get('activity',dict(episode_id=None,stage='generation'))
 def activity(kind,message):
-    emit(root,job,meta['episode_id'],provider,meta['stage'],kind,message)
+    emit(root,meta.get('job_id',job),meta['episode_id'],provider,meta['stage'],kind,message)
 
 async def execute():
     # Drain stdout asynchronously; stderr goes directly to an episode-private file.
