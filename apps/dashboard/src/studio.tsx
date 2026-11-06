@@ -1,5 +1,7 @@
+import {Button} from '@/components/ui/button';
 import React, {useCallback, useEffect, useState} from 'react';
 import {api} from './api';
+import {useQuery} from '@tanstack/react-query';
 
 type Data = Record<string, any>;
 
@@ -26,30 +28,11 @@ export function StudioPanel({
   busy: string;
   onChanged: () => void;
 }) {
-  const [info, setInfo] = useState<Data | null>(null);
-  const [replaceEdits, setReplaceEdits] = useState(false);
-  const [error, setError] = useState('');
-  const path = `/episodes/${episodeId}/studio`;
-
-  const refresh = useCallback(async () => {
-    try {
-      setInfo(await api(path));
-      setError('');
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  }, [path]);
-
-  useEffect(() => {
-    setInfo(null);
-    void refresh();
-  }, [refresh]);
-  const fast = !!(info?.starting || info?.launch?.status === 'STARTING' || ['QUEUED', 'RENDERING'].includes(status));
-  useEffect(() => {
-    const timer = setInterval(() => void refresh(), fast ? 1500 : 8000);
-    return () => clearInterval(timer);
-  }, [refresh, fast]);
-
+  const [replaceEdits,setReplaceEdits]=useState(false);
+  const path=`/episodes/${episodeId}/studio`;
+  const studioQuery=useQuery<Data>({queryKey:['studio',episodeId],queryFn:({signal})=>api(path,'GET',undefined,signal),refetchInterval:q=>q.state.data?.starting||q.state.data?.launch?.status==='STARTING'||['QUEUED','RENDERING'].includes(status)?1500:8000});
+  const info=studioQuery.data,error=studioQuery.error?.message;
+  const refresh=()=>studioQuery.refetch();
   const launch = info?.launch as Data | undefined;
   const session = info?.session as Data | undefined;
   const ready = !!session?.running;
@@ -75,7 +58,7 @@ export function StudioPanel({
       {!info?.exists && (
         <>
           <p>{info?.hint || 'No Studio project yet.'}</p>
-          <button
+          <Button
             disabled={!!busy || rendering}
             onClick={() =>
               act('Prepare Remotion Studio project', async () => {
@@ -89,7 +72,7 @@ export function StudioPanel({
             }
           >
             {hasDraft ? 'Generate Studio project' : 'Auto Edit → build Studio project'}
-          </button>
+          </Button>
         </>
       )}
       {info?.exists && (
@@ -118,21 +101,21 @@ export function StudioPanel({
             </p>
           )}
           <div className="row">
-            <button
+            <Button
               disabled={!!busy || rendering || info.starting || info.valid === false || problems.length > 0}
               onClick={() => act('Open in Remotion Studio', () => api(path + '/open', 'POST')).then(refresh)}
             >
               {info.starting ? 'Starting Remotion Studio…' : 'Open in Remotion Studio'}
-            </button>
+            </Button>
             {ready && (
               <a className="open-live-editor" href={session!.url} target="_blank" rel="noreferrer">
                 Remotion Studio Ready — Open Editor
               </a>
             )}
             {ready && (
-              <button className="secondary" disabled={!!busy} onClick={() => act('Stop Remotion Studio', () => api(path + '/stop', 'POST')).then(refresh)}>
+              <Button variant="outline" className="secondary" disabled={!!busy} onClick={() => act('Stop Remotion Studio', () => api(path + '/stop', 'POST')).then(refresh)}>
                 Stop Studio
-              </button>
+              </Button>
             )}
           </div>
           {launch && launch.status !== 'READY' && (
@@ -146,7 +129,7 @@ export function StudioPanel({
           )}
           {launch?.status === 'FAILED' && (
             <div className="row">
-              <button onClick={() => act('Retry Remotion Studio', () => api(path + '/open', 'POST')).then(refresh)}>Retry</button>
+              <Button onClick={() => act('Retry Remotion Studio', () => api(path + '/open', 'POST')).then(refresh)}>Retry</Button>
             </div>
           )}
           {ready && (
@@ -158,7 +141,7 @@ export function StudioPanel({
           )}
           <hr />
           <div className="row">
-            <button
+            <Button
               disabled={!!busy || rendering || problems.length > 0 || info.valid === false}
               onClick={() =>
                 act('Render final MP4 from Remotion Studio', () => api(path + '/render', 'POST')).then(() => {
@@ -168,7 +151,7 @@ export function StudioPanel({
               }
             >
               Render final MP4 from this Studio project
-            </button>
+            </Button>
             <span className="muted">Uses exactly the project you reviewed. Earlier exports are never overwritten.</span>
           </div>
           <details>
@@ -183,7 +166,7 @@ export function StudioPanel({
                 Studio edits ({edited.join(', ')})
               </label>
             )}
-            <button
+            <Button
               className="secondary"
               disabled={!!busy || rendering || (edited.length > 0 && !replaceEdits)}
               onClick={() =>
@@ -194,7 +177,7 @@ export function StudioPanel({
               }
             >
               Rebuild Studio project
-            </button>
+            </Button>
           </details>
           {info.style?.profile_id !== 'ODD_FRAME_CINEMATIC_TRANSITIONS_V1' && (
             <details open>
@@ -204,7 +187,7 @@ export function StudioPanel({
                 re-runs Auto Edit and rebuilds the Studio project. Your approved script, stills, narration and earlier exports are not
                 touched. {edited.length > 0 ? 'Tick "Replace my Studio edits" above to allow replacing your current Studio edits (they are archived first).' : ''}
               </p>
-              <button
+              <Button variant="outline"
                 className="secondary"
                 disabled={!!busy || rendering || (edited.length > 0 && !replaceEdits)}
                 onClick={() =>
@@ -216,7 +199,7 @@ export function StudioPanel({
                 }
               >
                 Adopt Cinematic Transitions v1 and rebuild
-              </button>
+              </Button>
             </details>
           )}
           <details>

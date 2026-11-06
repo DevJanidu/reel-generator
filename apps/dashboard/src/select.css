@@ -1,3 +1,4 @@
+@layer legacy {
 /* Readable native fallback; enhanced browsers render the complete menu in the app theme. */
 select {
   min-width: 0;
@@ -83,4 +84,6 @@ select option, select optgroup { color: #f0ede6; background-color: #1a1d23; }
   select, select::picker(select) { border-color: ButtonText; }
   select option:checked { outline: 1px solid Highlight; }
   select::picker-icon { content: "▼"; background: none; }
+}
+
 }

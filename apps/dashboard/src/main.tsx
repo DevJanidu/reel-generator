@@ -1,5 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { mountStudio, queryClient } from "./router";
+import { mountStudio, queryClient, useWorkspaceRoute } from "./router";
+import {useQuery} from '@tanstack/react-query';
+import {api,stationApi,queryKeys} from './api';
+import {AppSidebar} from './app-sidebar';
+import {SidebarProvider,SidebarInset,SidebarTrigger} from '@/components/ui/sidebar';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
+import {Badge as StatusBadge} from '@/components/ui/badge';
+import {Skeleton} from '@/components/ui/skeleton';
+import {QueuePage,HealthPage,HelpPage} from './operations';
+import {ActivityPage} from './activity';
+import {toast} from 'sonner';
+import './redesign.css';
 import { StudioPanel } from "./studio";
 import { IdeasStudio } from "./ideas";
 import { Paged } from "./paging";
@@ -36,7 +49,7 @@ const controllerFromLaunch = new URLSearchParams(
 if (controllerFromLaunch) {
   sessionStorage.setItem("odd-frame-controller", controllerFromLaunch);
   localStorage.setItem("odd-frame-controller", controllerFromLaunch);
-  history.replaceState(null, "", window.location.pathname);
+  history.replaceState(null, "", window.location.pathname + window.location.search);
 }
 
 type Data = Record<string, any>;
@@ -53,36 +66,6 @@ const pages = [
   ["Analytics", BarChart3],
   ["Settings", Settings],
 ] as const;
-async function api(path: string, method = "GET", body?: any) {
-  const res = await fetch("/api" + path, {
-    method,
-    headers:
-      body instanceof FormData
-        ? {
-            "X-Odd-Controller":
-              (localStorage.getItem("odd-frame-controller") || sessionStorage.getItem("odd-frame-controller") || ""),
-          }
-        : {
-            "Content-Type": "application/json",
-            "X-Odd-Controller":
-              (localStorage.getItem("odd-frame-controller") || sessionStorage.getItem("odd-frame-controller") || ""),
-          },
-    body:
-      body === undefined
-        ? undefined
-        : body instanceof FormData
-          ? body
-          : JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok)
-    throw Error(
-      typeof data.detail === "string"
-        ? data.detail
-        : JSON.stringify(data.detail),
-    );
-  return data;
-}
 const assetTodo = (errors: string[] = []) => {
   const missing = (e: string) => /found 0/.test(e);
   const images = errors.filter((e) => /^S\d+:/.test(e) && missing(e)).length;
@@ -119,13 +102,15 @@ const Empty = ({ text }: { text: string }) => (
 );
 
 function App() {
-  const [page, setPage] = useState("Home"),
-    [status, setStatus] = useState<Data>(),
-    [episodes, setEpisodes] = useState<Data[]>([]),
-    [selected, setSelected] = useState<number>(),
-    [ep, setEp] = useState<Data>(),
-    [runs, setRuns] = useState<Data[]>([]),
-    [ideas, setIdeas] = useState<Data[]>([]),
+  const {page,setPage,selected,setSelected,selectEpisode}=useWorkspaceRoute();
+  const [sidebarOpen,setSidebarOpen]=useState(()=>localStorage.getItem('odd-sidebar')!=='collapsed');
+  const statusQuery=useQuery({queryKey:queryKeys.status,queryFn:({signal})=>stationApi.status(signal),refetchInterval:5000});
+  const episodesQuery=useQuery({queryKey:queryKeys.episodes,queryFn:({signal})=>stationApi.episodes(signal),refetchInterval:5000});
+  const runsQuery=useQuery({queryKey:queryKeys.runs,queryFn:({signal})=>stationApi.runs(signal),refetchInterval:5000});
+  const episodeQuery=useQuery({queryKey:queryKeys.episode(selected),queryFn:({signal})=>stationApi.episode(selected!,signal),enabled:!!selected,refetchInterval:5000});
+  const status=statusQuery.data,episodes=episodesQuery.data||[],runs=runsQuery.data||[],ep=episodeQuery.data;
+  const setStatus=(fn:(v:any)=>any)=>queryClient.setQueryData(queryKeys.status,fn);
+  const [ideas, setIdeas] = useState<Data[]>([]),
     [master, setMaster] = useState(""),
     [busy, setBusy] = useState(""),
     [error, setError] = useState(""),
@@ -173,24 +158,7 @@ function App() {
   const [connectionResults, setConnectionResults] = useState<
     Record<string, Data>
   >({});
-  const reload = async () => {
-    const [s, e, r] = await Promise.all([
-      queryClient.fetchQuery({queryKey:["status"],queryFn:()=>api("/status")}),
-      queryClient.fetchQuery({queryKey:["episodes"],queryFn:()=>api("/episodes")}),
-      queryClient.fetchQuery({queryKey:["runs"],queryFn:()=>api("/runs")}),
-    ]);
-    setStatus(s);
-    setEpisodes(e);
-    setRuns(r);
-    if (selected) {
-      setEp(await queryClient.fetchQuery({queryKey:["episode",selected],queryFn:()=>api("/episodes/" + selected)}));
-    }
-  };
-  useEffect(() => {
-    reload().catch((e) => setError(e.message));
-    const t = setInterval(() => reload().catch(() => {}), 5000);
-    return () => clearInterval(t);
-  }, [selected]);
+  const reload=async()=>{await Promise.all([queryClient.invalidateQueries({queryKey:queryKeys.status}),queryClient.invalidateQueries({queryKey:queryKeys.episodes}),queryClient.invalidateQueries({queryKey:queryKeys.runs}),queryClient.invalidateQueries({queryKey:queryKeys.episode(selected)}),queryClient.invalidateQueries({queryKey:queryKeys.activity})])};
   const [nowMs, setNowMs] = useState(Date.now());
   const [musicDb, setMusicDb] = useState(0);
   const [previewMix, setPreviewMix] = useState<Data | null>(null);
@@ -207,23 +175,13 @@ function App() {
       setMusicDb(Number(ep.data?.music_mix?.offset_db ?? 0));
   }, [ep?.id, ep?.data?.music_mix?.offset_db]);
   useEffect(() => setPreviewMix(null), [selected]);
-  const anyActiveRun = runs.some((r) =>
-    ["QUEUED", "RUNNING"].includes(r.status),
-  );
+  useEffect(()=>{const t=setInterval(()=>setNowMs(Date.now()),1000);return()=>clearInterval(t)},[]);
   useEffect(() => {
-    if (!anyActiveRun) return;
-    const fast = setInterval(() => {
-      setNowMs(Date.now());
-      reload().catch(() => {});
-    }, 1500);
-    return () => clearInterval(fast);
-  }, [anyActiveRun, selected]);
-  useEffect(() => {
-    api("/master").then((v) => setMaster(v.content));
-    api("/settings").then(setPrefs);
-    api("/metrics").then(setMetricRows);
-    api("/providers").then(setProviderInfo);
-    api("/providers/credentials").then((r) => setCredentials(r.credentials));
+    api("/master").then((v) => setMaster(v.content)).catch(e=>setError(e.message));
+    api("/settings").then(setPrefs).catch(e=>setError(e.message));
+    api("/metrics").then(setMetricRows).catch(e=>setError(e.message));
+    api("/providers").then(setProviderInfo).catch(e=>setError(e.message));
+    api("/providers/credentials").then((r) => setCredentials(r.credentials)).catch(e=>setError(e.message));
     checkAuthorization();
   }, []);
   useEffect(() => {
@@ -249,6 +207,7 @@ function App() {
       const result = await fn();
       await reload();
       setNotice(result?.message || label + " completed");
+      toast.success(result?.message || label + " completed");
       return result;
     } catch (e: any) {
       setError(e.message);
@@ -261,8 +220,7 @@ function App() {
       api("/episodes", "POST", idea),
     );
     if (result) {
-      setSelected(result.id);
-      setPage("Script Studio");
+      selectEpisode(result.id,"Script Studio");
       if (status?.settings?.provider !== "manual") {
         const generated = await act("Queue script and retention review", () =>
           api("/episodes/" + result.id + "/script", "POST"),
@@ -403,14 +361,14 @@ function App() {
       : text;
   };
   const AssetChecklist = () => {
-    const total = ep?.data?.package?.scenes?.length || 18;
+    const total = ep?.data?.package?.scenes?.length;
     const t = assetTodo(ep?.data?.asset_errors);
     const fresh = !ep?.data?.asset_errors;
     const rows: [boolean, string, string][] = [
       [
         !fresh && t.images === 0,
-        `Generate ${total} still images in Google Flow (S001…)`,
-        `Google Flow Prompts → download the Flow JSON, generate, then upload. ${fresh ? "" : total - t.images + " of " + total + " uploaded."}`,
+        `Generate ${total ?? "the required"} still images in Google Flow (S001…)`,
+        `Google Flow Prompts → download the Flow JSON, generate, then upload. ${fresh ? "" : (total === undefined ? "Unknown" : total - t.images) + " of " + (total ?? "unknown") + " uploaded."}`,
       ],
       [
         !fresh && !t.narration,
@@ -464,7 +422,7 @@ function App() {
           ))}
         </ol>
         <p className={info.warn ? "error" : "muted"}>{info.text}</p>
-        {ep.status==='EDIT_READY'&&<button onClick={()=>setPage("Edit Studio")}>Open in Remotion Studio</button>}
+        {ep.status==='EDIT_READY'&&<Button onClick={()=>setPage("Edit Studio")}>Open in Remotion Studio</Button>}
         {["AWAITING_ASSETS", "ASSETS_BLOCKED"].includes(ep.status) &&
           AssetChecklist()}
         {LiveIdeasPanel()}
@@ -542,8 +500,7 @@ function App() {
     "/file/" +
     relative.split("/").map(encodeURIComponent).join("/");
   const selectEp = (e: Data, destination = "Episode Workspace") => {
-    setSelected(e.id);
-    setPage(destination);
+    selectEpisode(e.id,destination);
   };
   const activeRuns = runs.filter(
     (r) => !selected || r.episode_id === selected || !r.episode_id,
@@ -565,7 +522,7 @@ function App() {
           <Badge value={r.status} />
           {r.error && <p className="error">{r.error}</p>}
           {["QUEUED", "RUNNING"].includes(r.status) && (
-            <button
+            <Button
               className="secondary small"
               onClick={() =>
                 act("Cancel AI job", () =>
@@ -574,10 +531,10 @@ function App() {
               }
             >
               Cancel job
-            </button>
+            </Button>
           )}
           {["FAILED", "CANCELLED"].includes(r.status) && (
-            <button
+            <Button
               className="secondary small"
               onClick={() =>
                 act("Retry AI job", async () => {
@@ -588,7 +545,7 @@ function App() {
               }
             >
               Retry generation
-            </button>
+            </Button>
           )}
         </div>
       ))}
@@ -646,7 +603,7 @@ function App() {
         </div>
         {runId && (
           <>
-            <textarea
+            <Textarea
               aria-label="AI JSON response"
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
@@ -656,7 +613,7 @@ function App() {
             <div className="row">
               <label className="button secondary">
                 Load JSON file
-                <input
+                <Input
                   hidden
                   type="file"
                   accept=".json"
@@ -666,7 +623,7 @@ function App() {
                   }}
                 />
               </label>
-              <button
+              <Button
                 disabled={!!busy || !importText}
                 onClick={() =>
                   act("Import AI result", async () => {
@@ -683,8 +640,8 @@ function App() {
                 }
               >
                 Validate & import JSON
-              </button>
-              <button
+              </Button>
+              <Button variant="outline"
                 className="secondary"
                 onClick={() =>
                   act("Load saved result", async () => {
@@ -695,7 +652,7 @@ function App() {
                 }
               >
                 Load saved result
-              </button>
+              </Button>
             </div>
           </>
         )}
@@ -708,7 +665,7 @@ function App() {
           <span className="eyebrow">CREATIVE FOUNDATION</span>
           <h3>ODD FRAME AI Skills</h3>
         </div>
-        <button
+        <Button
           className="secondary small"
           disabled={!!busy}
           onClick={() =>
@@ -725,7 +682,7 @@ function App() {
         >
           <RefreshCw size={14} />
           Validate skills
-        </button>
+        </Button>
       </div>
       <div className="skill-list">
         {status?.skills?.documents?.map((d: Data, i: number) => (
@@ -770,57 +727,24 @@ function App() {
   );
 
   return (
-    <div className="shell">
-      <aside className="sidebar">
-        <a
-          className="brand"
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            setPage("Home");
-          }}
-        >
-          <span className="brand-symbol">
-            O<span>F</span>
-          </span>
-          <div>
-            ODD FRAME<small>REEL WORKFLOW STATION</small>
-          </div>
-        </a>
-        <div className="nav-label">PRODUCTION</div>
-        <nav>
-          {pages.map(([name, Icon]) => (
-            <button
-              className={"nav-item " + (page === name ? "active" : "")}
-              key={name}
-              onClick={() => setPage(name)}
-            >
-              <Icon size={18} />
-              {name}
-              {page === name && <span className="nav-dot" />}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="local-dot" />
-          Local workspace<small>E:\facebook · Station v1.0</small>
-        </div>
-      </aside>
-      <div className="main">
+    <SidebarProvider open={sidebarOpen} onOpenChange={open=>{setSidebarOpen(open);localStorage.setItem('odd-sidebar',open?'expanded':'collapsed')}}>
+      <a className="skip-link" href="#page-content">Skip to content</a>
+      <AppSidebar pages={pages} page={page} onNavigate={setPage}/>
+      <SidebarInset className="workspace-content">
         <header className="topbar">
-          <div className="crumb">
+          <div className="crumb"><SidebarTrigger/>
             Workspace <ChevronRight size={14} />
             <strong>{page}</strong>
           </div>
           <div className="top-status">
-            <span className="local-dot" />
+            <StatusBadge variant="outline">{status?.skills.valid ? "Inputs validated" : "Check health"}</StatusBadge>
             {status?.settings?.provider === "manual"
               ? "Manual AI mode"
-              : "AI provider configured"}
+              : status?.settings.provider ? "Provider: " + status.settings.provider : "Connecting"}
             <span className="avatar">OF</span>
           </div>
         </header>
-        <main>
+        <div id="page-content" tabIndex={-1}>
           <div className="page-heading">
             <div>
               <span className="eyebrow">SMALL STORIES. BIG EMOTIONS.</span>
@@ -834,11 +758,17 @@ function App() {
                     : "Create, prepare and produce original ODD FRAME stories."}
               </p>
             </div>
-            <button disabled={!!busy || !valid} onClick={generate}>
+            <Button disabled={!!busy || !valid} onClick={generate}>
               <Plus size={17} />
               Create New Reel
-            </button>
+            </Button>
           </div>
+          {statusQuery.isPending&&<div role="status" aria-label="Loading station"><Skeleton className="h-24 w-full"/><span className="sr-only">Loading station</span></div>}
+          {[statusQuery,episodesQuery,runsQuery,episodeQuery].some(q=>q.isError)&&<div role="alert" className="error">Station data could not load. <Button variant="outline" onClick={()=>void reload()}>Retry connection</Button></div>}
+          {page==='Production Queue'&&<QueuePage status={status} runs={runs} onEpisode={id=>selectEpisode(id,'Episode Workspace')}/>}
+          {page==='System Health'&&<HealthPage status={status} onSettings={()=>setPage('Settings')}/>}
+          {page==='How to Use'&&<HelpPage onNavigate={setPage}/>}
+          {page==='AI Activity'&&<ActivityPage/>}
           {busy && (
             <div className="loading" role="status">
               <RefreshCw className="spin" size={16} />
@@ -854,7 +784,7 @@ function App() {
                 access key from <code>datantroller-access.json</code> (the
                 "token" value) here. It is kept in this browser only.
                 <div className="row">
-                  <input
+                  <Input
                     type="password"
                     autoComplete="off"
                     aria-label="Controller access key"
@@ -862,7 +792,7 @@ function App() {
                     value={accessKey}
                     onChange={(e) => setAccessKey(e.target.value)}
                   />
-                  <button
+                  <Button
                     disabled={!accessKey.trim()}
                     onClick={() => {
                       localStorage.setItem("odd-frame-controller", accessKey.trim());
@@ -871,7 +801,7 @@ function App() {
                     }}
                   >
                     Authorize
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -890,32 +820,7 @@ function App() {
           )}
           {page === "Home" && (
             <>
-              <section className="hero">
-                <div className="hero-art">
-                  <span className="frame-corner tl" />
-                  <span className="frame-corner br" />
-                  <span className="hero-orb" />
-                  <span className="hero-line" />
-                  <span className="hero-small-square" />
-                </div>
-                <div className="hero-copy">
-                  <span className="eyebrow gold">THE NEXT FRAME IS YOURS</span>
-                  <h2>
-                    Find the story.
-                    <br />
-                    Make them feel it.
-                  </h2>
-                  <p>
-                    Original 2D stories. A purposeful golden detail.
-                    <br />
-                    One script approval, then a clear path to export.
-                  </p>
-                  <button disabled={!!busy || !valid} onClick={generate}>
-                    Start story creation <ArrowRight size={17} />
-                  </button>
-                </div>
-                <span className="hero-caption">MIDNIGHT GOLD / 01</span>
-              </section>
+              <section className="home-intro"><div><span className="eyebrow gold">YOUR PRODUCTION DESK</span><h2>Small stories. Big emotions.</h2><p>Choose a story, approve the script, then bring every frame to life.</p></div><Button onClick={()=>setPage('Production Queue')} variant="outline">View production queue <ArrowRight size={16}/></Button></section>
               <div className="stats">
                 {[
                   ["Total Reels", episodes.length],
@@ -960,7 +865,7 @@ function App() {
                 ].map(([label, n]) => (
                   <div className="stat" key={label}>
                     <span>{label}</span>
-                    <strong>{String(n).padStart(2, "0")}</strong>
+                    <strong>{String(n)}</strong>
                   </div>
                 ))}
               </div>
@@ -981,7 +886,7 @@ function App() {
                     >
                       {(rows) =>
                         rows.map((e) => (
-                          <button
+                          <Button
                             className="episode-row"
                             key={e.id}
                             onClick={() => selectEp(e)}
@@ -998,13 +903,13 @@ function App() {
                             </div>
                             <Badge value={e.status} />
                             <ChevronRight size={16} />
-                          </button>
+                          </Button>
                         ))
                       }
                     </Paged>
                   )}
                 </section>
-                {skillsPanel}
+                <section className="panel"><h3>Next actions</h3>{episodes.filter(e=>['AWAITING_APPROVAL','SCRIPT_REVIEW','AWAITING_ASSETS','ASSETS_BLOCKED','EDIT_READY','BLOCKED','FAILED'].includes(e.status)).slice(0,4).map(e=><Button className="episode-row" key={e.id} onClick={()=>selectEp(e)}><div><strong>{e.title}</strong><small>{stepInfo(e).text}</small></div><ChevronRight size={16}/></Button>)}{!episodes.some(e=>['AWAITING_APPROVAL','SCRIPT_REVIEW','AWAITING_ASSETS','ASSETS_BLOCKED','EDIT_READY','BLOCKED','FAILED'].includes(e.status))&&<p className="muted">No pending approvals or asset actions. Create a Reel to begin.</p>}</section>
               </div>
               <section className="panel">
                 <div className="section-heading">
@@ -1049,9 +954,9 @@ function App() {
               <section className="panel">
                 <div className="section-heading">
                   <h3>Creative Director · current source version</h3>
-                  <button disabled={!!busy || !valid} onClick={generate}>
+                  <Button disabled={!!busy || !valid} onClick={generate}>
                     Start Story Creation <ArrowRight size={15} />
-                  </button>
+                  </Button>
                 </div>
                 <p>
                   Provider: <strong>{status?.settings?.provider}</strong> ·
@@ -1064,8 +969,8 @@ function App() {
             </>
           )}
           {page === "Ideas" && (
-            <IdeasStudio legacyHandoff={<>{ManualPanel()}{ideas.length > 0 && <section className="panel"><h3>Saved general story concepts · legacy format</h3><p>These earlier concepts keep their original titles and metadata.</p><div className="cards">{ideas.map((idea, index) => <article className="panel" key={index}><h3>{idea.title}</h3><span className="tag">{idea.genre}</span><p>{idea.premise}</p><p><strong>Opening hook:</strong> {idea.visual_hook}</p><p><strong>Conflict:</strong> {idea.conflict}</p><button disabled={!!busy} onClick={() => choose(idea)}>Select Legacy Story</button></article>)}</div></section>}</>} onSelected={(eid, pendingRun) => {
-              setSelected(eid);setPage("Script Studio");if(pendingRun)setRunId(pendingRun);reload().catch(e=>setError(e.message));
+            <IdeasStudio legacyHandoff={<>{ManualPanel()}{ideas.length > 0 && <section className="panel"><h3>Saved general story concepts · legacy format</h3><p>These earlier concepts keep their original titles and metadata.</p><div className="cards">{ideas.map((idea, index) => <article className="panel" key={index}><h3>{idea.title}</h3><span className="tag">{idea.genre}</span><p>{idea.premise}</p><p><strong>Opening hook:</strong> {idea.visual_hook}</p><p><strong>Conflict:</strong> {idea.conflict}</p><Button disabled={!!busy} onClick={() => choose(idea)}>Select Legacy Story</Button></article>)}</div></section>}</>} onSelected={(eid, pendingRun) => {
+              selectEpisode(eid,"Script Studio");if(pendingRun)setRunId(pendingRun);reload().catch(e=>setError(e.message));
             }}/>
           )}
           {![
@@ -1074,6 +979,7 @@ function App() {
             "Ideas",
             "Settings",
             "Analytics",
+            "Production Queue", "AI Activity", "System Health", "How to Use",
           ].includes(page) && (
             <div className="episode-picker">
               <label>
@@ -1100,6 +1006,7 @@ function App() {
             "Ideas",
             "Settings",
             "Analytics",
+            "Production Queue", "AI Activity", "System Health", "How to Use",
           ].includes(page) && PipelineTracker()}
           {[
             "Script Studio",
@@ -1113,7 +1020,7 @@ function App() {
               <section className="panel">
                 <div className="row">
                   <Search size={16} />
-                  <input
+                  <Input
                     placeholder="Search projects"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -1144,7 +1051,7 @@ function App() {
                 >
                   {(rows) =>
                     rows.map((e) => (
-                      <button
+                      <Button
                         className="episode-row"
                         key={e.id}
                         onClick={() => selectEp(e, page)}
@@ -1154,7 +1061,7 @@ function App() {
                         </strong>
                         <Badge value={e.status} />
                         <ChevronRight size={15} />
-                      </button>
+                      </Button>
                     ))
                   }
                 </Paged>
@@ -1165,7 +1072,7 @@ function App() {
               <section className="panel">
                 <div className="section-heading">
                   <h3>The story, in your words</h3>
-                  <button
+                  <Button
                     className="secondary"
                     disabled={
                       !!busy ||
@@ -1185,11 +1092,11 @@ function App() {
                   >
                     <Sparkles size={15} />
                     Generate Script
-                  </button>
+                  </Button>
                 </div>
                 <label>
                   Story brief
-                  <textarea
+                  <Textarea
                     value={brief}
                     onChange={(e) => setBrief(e.target.value)}
                     disabled={!!ep.data.approval}
@@ -1198,7 +1105,7 @@ function App() {
                 </label>
                 <label>
                   Full narration
-                  <textarea
+                  <Textarea
                     className="script"
                     aria-label="Full narration"
                     value={script}
@@ -1221,7 +1128,7 @@ function App() {
                 <div className="row">
                   {!ep.data.approval ? (
                     <>
-                      <button
+                      <Button
                         className="secondary"
                         disabled={
                           !!busy ||
@@ -1242,8 +1149,8 @@ function App() {
                         }
                       >
                         Save / Import Draft
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         disabled={
                           !!busy ||
                           !ep.data.script ||
@@ -1265,7 +1172,7 @@ function App() {
                       >
                         <ShieldCheck size={16} />
                         APPROVE SCRIPT & CONTINUE
-                      </button>
+                      </Button>
                     </>
                   ) : (
                     <div className="approval">
@@ -1303,7 +1210,7 @@ function App() {
                   </div>
                   {ep.data.error && <p className="error">{ep.data.error}</p>}
                   <div className="row">
-                    <button
+                    <Button
                       className="secondary"
                       disabled={!!busy || !ep.data.approval}
                       onClick={() =>
@@ -1316,8 +1223,8 @@ function App() {
                     >
                       <RefreshCw size={15} />
                       Retry / Resume
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       className="secondary"
                       disabled={!!busy}
                       onClick={() =>
@@ -1327,8 +1234,8 @@ function App() {
                       }
                     >
                       Validate pinned inputs
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       className="secondary"
                       disabled={!ep.data.approval || !!busy}
                       onClick={() =>
@@ -1338,7 +1245,7 @@ function App() {
                       }
                     >
                       Revoke export authorization
-                    </button>
+                    </Button>
                   </div>
                 </section>
                 <section className="panel">
@@ -1356,7 +1263,7 @@ function App() {
                       ? "The native process boundary passed actual write-denial checks. Workers write only into this episode."
                       : "Automatic workers must pass the episode-specific OS boundary probe before execution."}
                   </p>
-                  <button
+                  <Button
                     className="secondary small"
                     disabled={!!busy}
                     onClick={() =>
@@ -1366,7 +1273,7 @@ function App() {
                     }
                   >
                     Verify Episode Isolation
-                  </button>
+                  </Button>
                   {ep.input_snapshot && (
                     <p className="finding">
                       Pinned master v{ep.input_snapshot.master_prompt_version} ·
@@ -1543,7 +1450,7 @@ function App() {
               <section className="panel">
                 <div className="section-heading">
                   <h3>Bring your story to life</h3>
-                  <button
+                  <Button
                     className="secondary"
                     disabled={!!busy || !ep.data.package}
                     onClick={() =>
@@ -1554,7 +1461,7 @@ function App() {
                   >
                     <RefreshCw size={15} />
                     Refresh Assets
-                  </button>
+                  </Button>
                 </div>
                 <p className="muted">
                   Folders are scanned every 10 seconds. Matching is isolated to
@@ -1579,7 +1486,7 @@ function App() {
                         }
                       >
                         Import {kind}
-                        <input
+                        <Input
                           aria-label={"Import " + kind}
                           hidden
                           type="file"
@@ -1624,7 +1531,7 @@ function App() {
                           rows.map((f: string) => (
                             <div className="asset-file" key={f}>
                               <a href={fileURL(f)}>{f.split("/").pop()}</a>
-                              <button
+                              <Button
                                 className="text-button"
                                 onClick={() =>
                                   act("Remove asset", () =>
@@ -1640,7 +1547,7 @@ function App() {
                                 }
                               >
                                 Remove
-                              </button>
+                              </Button>
                             </div>
                           ))
                         }
@@ -1649,7 +1556,7 @@ function App() {
                   ))}
                 </div>
                 <label className="checkbox">
-                  <input
+                  <Input
                     type="checkbox"
                     checked={instrumental}
                     onChange={(e) => setInstrumental(e.target.checked)}
@@ -1659,13 +1566,13 @@ function App() {
                 </label>
                 <label>
                   Music rights evidence / license reference
-                  <input
+                  <Input
                     value={rights}
                     onChange={(e) => setRights(e.target.value)}
                     placeholder="License URL, receipt or ownership note (missing evidence is flagged)"
                   />
                 </label>
-                <button
+                <Button
                   className="secondary"
                   onClick={() =>
                     act("Save music declaration", () =>
@@ -1677,7 +1584,7 @@ function App() {
                   }
                 >
                   Save music declaration
-                </button>
+                </Button>
               </section>
               <section className="panel">
                 <h3>Asset validation</h3>
@@ -1734,7 +1641,7 @@ function App() {
               <section className="panel">
                 <div className="section-heading">
                   <h3>Timeline & render</h3>
-                  <button
+                  <Button
                     className="secondary"
                     disabled={
                       !!busy ||
@@ -1749,7 +1656,7 @@ function App() {
                     }
                   >
                     Validate & prepare draft
-                  </button>
+                  </Button>
                 </div>
                 {(() => {
                   const jobs: Data[] = ep.jobs || [];
@@ -1870,7 +1777,7 @@ function App() {
                         ep.status,
                       ) && (
                         <label className="inline">
-                          <input
+                          <Input
                             type="checkbox"
                             checked={rerenderOnSave}
                             onChange={(e) => setRerenderOnSave(e.target.checked)}
@@ -1878,7 +1785,7 @@ function App() {
                           Re-render as a new export version
                         </label>
                       )}
-                      <button
+                      <Button
                         disabled={
                           !!busy ||
                           ["QUEUED", "RENDERING"].includes(ep.status) ||
@@ -1898,7 +1805,7 @@ function App() {
                         }
                       >
                         Apply style
-                      </button>
+                      </Button>
                     </div>
                     {ep.style_info.adoptable.some(
                       (p: Data) => p.id === styleSel,
@@ -1911,7 +1818,7 @@ function App() {
                       </p>
                     )}
                     <div className="row">
-                      <button
+                      <Button
                         className="secondary"
                         disabled={
                           !!busy || ["QUEUED", "RENDERING"].includes(ep.status)
@@ -1928,7 +1835,7 @@ function App() {
                         }
                       >
                         Preview style: Classic vs Cinematic Transitions
-                      </button>
+                      </Button>
                       <span className="muted">
                         Renders about 7 seconds of your real footage in both
                         styles. Never overwrites your export.
@@ -2025,7 +1932,7 @@ function App() {
                           );
                         })}
                       </div>
-                      <button
+                      <Button
                         className="secondary"
                         disabled={
                           !!busy ||
@@ -2053,7 +1960,7 @@ function App() {
                         }
                       >
                         Save transitions
-                      </button>
+                      </Button>
                     </details>
                   </section>
                 )}
@@ -2069,7 +1976,7 @@ function App() {
                     </p>
                     <div className="row">
                       <span>Quieter</span>
-                      <input
+                      <Input
                         type="range"
                         aria-label="Music level offset in dB"
                         min={-12}
@@ -2083,14 +1990,14 @@ function App() {
                         {musicDb > 0 ? "+" : ""}
                         {musicDb.toFixed(1)} dB
                       </strong>
-                      <button
+                      <Button
                         className="secondary small"
                         onClick={() => setMusicDb(0)}
                         disabled={musicDb === 0}
                       >
                         Reset
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         disabled={
                           !!busy ||
                           ["QUEUED", "RENDERING"].includes(ep.status) ||
@@ -2105,7 +2012,7 @@ function App() {
                         }
                       >
                         Save music level
-                      </button>
+                      </Button>
                     </div>
                     <div className="audio-test">
                       <h4>Listen before you render</h4>
@@ -2135,7 +2042,7 @@ function App() {
                         );
                       })()}
                       <div className="row">
-                        <button
+                        <Button variant="outline"
                           className="secondary"
                           disabled={
                             !!busy ||
@@ -2155,7 +2062,7 @@ function App() {
                         >
                           Preview mix at {musicDb > 0 ? "+" : ""}
                           {musicDb.toFixed(1)} dB
-                        </button>
+                        </Button>
                         <span className="muted">
                           Takes a few seconds. Nothing is saved and no video is
                           rendered.
@@ -2210,7 +2117,7 @@ function App() {
                         );
                       }}
                     >
-                      <textarea
+                      <Textarea
                         aria-label="Caption-safe regions JSON"
                         name="regions"
                         rows={12}
@@ -2224,7 +2131,7 @@ function App() {
                           2,
                         )}
                       />
-                      <button
+                      <Button
                         disabled={
                           !!busy ||
                           ep.status === "QUEUED" ||
@@ -2232,7 +2139,7 @@ function App() {
                         }
                       >
                         Save caption regions & revalidate
-                      </button>
+                      </Button>
                     </form>
                   </details>
                 )}
@@ -2278,7 +2185,7 @@ function App() {
                   ))}
                 </select>
               </label>
-              <textarea
+              <Textarea
                 rows={5}
                 value={metrics}
                 onChange={(e) => setMetrics(e.target.value)}
@@ -2289,7 +2196,7 @@ function App() {
               <div className="row">
                 <label className="button secondary">
                   Load metrics JSON
-                  <input
+                  <Input
                     hidden
                     type="file"
                     accept=".json"
@@ -2299,7 +2206,7 @@ function App() {
                     }}
                   />
                 </label>
-                <button
+                <Button
                   disabled={!selected || !metrics || !!busy}
                   onClick={() =>
                     act("Record real metrics", async () => {
@@ -2315,7 +2222,7 @@ function App() {
                   }
                 >
                   Save actual metrics
-                </button>
+                </Button>
               </div>
               <Paged
                 items={metricRows as Data[]}
@@ -2372,7 +2279,7 @@ function App() {
                   </label>
                   <label>
                     Model
-                    <input
+                    <Input
                       value={prefs.model}
                       onChange={(e) =>
                         setPrefs({ ...prefs, model: e.target.value })
@@ -2381,7 +2288,7 @@ function App() {
                   </label>
                   <label>
                     API base URL
-                    <input
+                    <Input
                       value={prefs.base_url}
                       onChange={(e) =>
                         setPrefs({ ...prefs, base_url: e.target.value })
@@ -2390,7 +2297,7 @@ function App() {
                   </label>
                   <label>
                     Context tokens
-                    <input
+                    <Input
                       type="number"
                       value={prefs.context_tokens}
                       onChange={(e) =>
@@ -2403,7 +2310,7 @@ function App() {
                   </label>
                   <label>
                     Output token reserve
-                    <input
+                    <Input
                       type="number"
                       value={prefs.output_tokens}
                       onChange={(e) =>
@@ -2416,7 +2323,7 @@ function App() {
                   </label>
                   <label>
                     AI timeout (seconds)
-                    <input
+                    <Input
                       type="number"
                       value={prefs.timeout_seconds || 300}
                       onChange={(e) =>
@@ -2429,7 +2336,7 @@ function App() {
                   </label>
                   <label>
                     Concurrent AI jobs
-                    <input
+                    <Input
                       type="number"
                       min="1"
                       max="4"
@@ -2444,7 +2351,7 @@ function App() {
                   </label>
                   <label>
                     Music preferences
-                    <input
+                    <Input
                       value={prefs.music_preferences}
                       onChange={(e) =>
                         setPrefs({
@@ -2462,7 +2369,7 @@ function App() {
                     : "not configured"}{" "}
                   · Settings never expose its value.
                 </p>
-                <button
+                <Button
                   disabled={!!busy}
                   onClick={() =>
                     act("Save settings", async () => {
@@ -2487,7 +2394,7 @@ function App() {
                   }
                 >
                   Save settings
-                </button>
+                </Button>
                 <div className="provider-tests credentials-panel">
                   <h3>AI credentials</h3>
                   <p className="muted">
@@ -2507,7 +2414,7 @@ function App() {
                           : "not set"}
                       </span>
                       <div className="row">
-                        <input
+                        <Input
                           type="password"
                           autoComplete="off"
                           aria-label={c.label}
@@ -2517,7 +2424,7 @@ function App() {
                             setTokenDraft({ ...tokenDraft, [c.name]: e.target.value })
                           }
                         />
-                        <button
+                        <Button
                           disabled={!!busy || authorized === false || !(tokenDraft[c.name] || "").trim()}
                           onClick={() =>
                             act("Save token and test " + c.provider, async () => {
@@ -2528,7 +2435,7 @@ function App() {
                               );
                               setTokenDraft({ ...tokenDraft, [c.name]: "" });
                               setCredentials(saved.credentials);
-                              api("/providers").then(setProviderInfo);
+                              api("/providers").then(setProviderInfo).catch(e=>setError(e.message));
                               return { message: "Token saved to this computer and kept for future runs. Testing the connection…" };
                             }).then((saved) => {
                               if (saved) void runTest(c.provider);
@@ -2536,9 +2443,9 @@ function App() {
                           }
                         >
                           Save &amp; test
-                        </button>
+                        </Button>
                         {c.configured && c.stored_in_env_file && (
-                          <button
+                          <Button
                             className="secondary"
                             disabled={!!busy}
                             onClick={() =>
@@ -2548,13 +2455,13 @@ function App() {
                                   "DELETE",
                                 );
                                 setCredentials(r.credentials);
-                                api("/providers").then(setProviderInfo);
+                                api("/providers").then(setProviderInfo).catch(e=>setError(e.message));
                                 return r;
                               })
                             }
                           >
                             Remove
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -2571,13 +2478,13 @@ function App() {
                     <div className="panel" key={p.provider}>
                       <div className="section-heading">
                         <strong>{p.provider}</strong>
-                        <button
+                        <Button variant="outline"
                           className="secondary"
                           disabled={!!busy || !!testing}
                           onClick={() => void runTest(p.provider)}
                         >
                           {testing === p.provider ? "Testing…" : "Test AI Connection · " + p.provider}
-                        </button>
+                        </Button>
                       </div>
                       <p className="muted">
                         {p.version || p.auth_method} ·{" "}
@@ -2630,13 +2537,13 @@ function App() {
               {skillsPanel}
             </>
           )}
-        </main>
+        </div>
         <footer>
           ODD FRAME <span>Small Stories. Big Emotions.</span>
           <span>LOCAL-FIRST PRODUCTION · v1.0</span>
         </footer>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
 mountStudio(App);

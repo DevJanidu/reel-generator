@@ -1,3 +1,5 @@
+import {AlertDialog,AlertDialogContent,AlertDialogHeader,AlertDialogTitle,AlertDialogDescription,AlertDialogFooter,AlertDialogCancel} from '@/components/ui/alert-dialog';
+import {Button} from '@/components/ui/button';
 import React, {useEffect, useMemo, useState} from "react";
 import {Download, Trash2} from "lucide-react";
 import {Paged} from "./paging";
@@ -67,7 +69,7 @@ export function ExportsPanel({
                 Select all on this page
               </label>
               {info.filtered > rows.length && (
-                <button
+                <Button
                   type="button"
                   className="text-button"
                   disabled={disabled}
@@ -77,42 +79,16 @@ export function ExportsPanel({
                   }}
                 >
                   Select all {info.filtered}{info.query ? " matching" : ""}
-                </button>
+                </Button>
               )}
               {picked.length > 0 && (
                 <>
                   <strong>{picked.length} selected</strong>
-                  <button type="button" className="text-button" onClick={() => setPicked([])}>
+                  <Button type="button" className="text-button" onClick={() => setPicked([])}>
                     Clear
-                  </button>
-                  {!confirming ? (
-                    <button type="button" className="danger" disabled={disabled} onClick={() => setConfirming(true)}>
-                      <Trash2 size={14} /> Delete {picked.length} selected…
-                    </button>
-                  ) : (
-                    <span role="alert" className="row">
-                      <strong>
-                        Permanently delete {picked.length} export{picked.length === 1 ? "" : "s"} and their preview clips? This cannot be undone.
-                        Your script, stills, audio and Studio project are not touched.
-                      </strong>
-                      <button
-                        type="button"
-                        className="danger"
-                        disabled={disabled}
-                        onClick={async () => {
-                          const ids = picked;
-                          setConfirming(false);
-                          await onDelete(ids);
-                          setPicked([]);
-                        }}
-                      >
-                        Yes, delete {picked.length}
-                      </button>
-                      <button type="button" className="secondary" onClick={() => setConfirming(false)}>
-                        Keep them
-                      </button>
-                    </span>
-                  )}
+                  </Button>
+                  <Button type="button" variant="destructive" disabled={disabled} onClick={()=>setConfirming(true)}><Trash2 size={16}/>Delete {picked.length} selected</Button>
+                  <AlertDialog open={confirming} onOpenChange={setConfirming}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete {picked.length} exports permanently?</AlertDialogTitle><AlertDialogDescription>The selected final videos and preview clips will be deleted. This cannot be undone. Your script, stills, audio and Studio source are preserved.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={disabled}>Keep them</AlertDialogCancel><Button variant="destructive" disabled={disabled} onClick={async()=>{await onDelete(picked);setConfirming(false)}}>Yes, delete {picked.length}</Button></AlertDialogFooter></AlertDialogContent></AlertDialog>
                 </>
               )}
             </div>
@@ -133,7 +109,7 @@ export function ExportsPanel({
                   Final MP4
                 </a>
                 <a className="button secondary" href={fileURL("07_export/QC_REPORT.md")} target="_blank" rel="noreferrer">
-                  QC report
+                  Current episode QC report
                 </a>
               </div>
             ))}

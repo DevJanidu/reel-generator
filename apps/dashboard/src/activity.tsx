@@ -1,3 +1,5 @@
+import {Sheet,SheetContent,SheetTrigger,SheetHeader,SheetTitle,SheetDescription} from '@/components/ui/sheet';
+import {Button} from '@/components/ui/button';
 import {useEffect, useState} from 'react';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {api} from './api';
@@ -7,17 +9,17 @@ type ActivityEvent = {event_id:string; timestamp:string; message:string; type:st
 type Job = {job_id:string; episode_id:number|null; provider:string; status:string; task:string; stage:string; created:string; started_at?:string; finished_at?:string; events:ActivityEvent[]; error?:string; cancellable:boolean; retryable:boolean};
 const running=(j:Job)=>['QUEUED','RUNNING'].includes(j.status);
 
-export function ActivityMonitor(){
+export function ActivityMonitor({embedded=false}:{embedded?:boolean}={}){
   const client=useQueryClient();
-  const {data:jobs=[]}=useQuery<Job[]>({queryKey:['activity'],queryFn:()=>api('/activity'),refetchInterval:15000});
+  const {data:jobs=[]}=useQuery<Job[]>({queryKey:['activity'],queryFn:({signal})=>api('/activity','GET',undefined,signal),refetchInterval:15000});
   const [open,setOpen]=useState(false),[filter,setFilter]=useState('all'),[connection,setConnection]=useState('Connecting'),[error,setError]=useState(''),[tick,setTick]=useState(Date.now());
   useEffect(()=>{
-    const source=new EventSource('/api/activity/stream');let refresh:ReturnType<typeof setTimeout>|undefined;
+    if(embedded)return;const source=new EventSource('/api/activity/stream');let refresh:ReturnType<typeof setTimeout>|undefined;
     const update=()=>{if(!refresh)refresh=setTimeout(()=>{client.invalidateQueries({queryKey:['activity']});refresh=undefined},150)};
     source.addEventListener('activity',update);source.addEventListener('reset',update);
     source.onopen=()=>{setConnection('Live');update()};source.onerror=()=>setConnection('Reconnecting');
     return ()=>{source.close();clearTimeout(refresh)};
-  },[client]);
+  },[client,embedded]);
   useEffect(()=>{const timer=setInterval(()=>setTick(Date.now()),1000);return()=>clearInterval(timer)},[]);
   const active=jobs.filter(running),visible=jobs.filter(j=>filter==='all'||String(j.episode_id)===filter);
   const connectionDetail=connection==='Reconnecting'?'Reconnecting to live updates. Saved job status remains available.':connection==='Live'?'Connected to live job updates.':'Connecting to live job updates.';
@@ -26,13 +28,12 @@ export function ActivityMonitor(){
     try{setError('');await api(`/runs/${job.job_id}/${kind}`,'POST');await client.invalidateQueries({queryKey:['activity']})}
     catch(e){setError((e as Error).message)}
   }
-  return <><button className="activity-launch" data-connection={connection.toLowerCase()} onClick={()=>setOpen(!open)} aria-label={`${taskLabel}, ${connection}`} aria-expanded={open} aria-controls="ai-activity-panel" title={connectionDetail}>
+  const trigger=<Button className="activity-launch" data-connection={connection.toLowerCase()} onClick={()=>setOpen(!open)} aria-label={`${taskLabel}, ${connection}`} aria-expanded={open} aria-controls="ai-activity-panel" title={connectionDetail}>
     <span className="activity-launch-icon"><Activity size={17} aria-hidden="true"/></span>
     <span className="activity-launch-copy"><strong>{taskLabel}</strong><small><span className="activity-connection-dot"/>{connection}</small></span>
     <ChevronRight size={14} className="activity-launch-chevron" aria-hidden="true"/>
-  </button>
-    {open&&<aside id="ai-activity-panel" className="activity-drawer" aria-label="AI Activity Monitor"><div className="studio-row"><h2>AI Activity</h2><button onClick={()=>setOpen(false)}>Close</button></div>
-      <p>{connectionDetail} Status is saved on this station.</p><a href="/help">Understanding AI Job Progress</a>
+  </Button>;
+  const content=<><p>{embedded?"Saved jobs and verified events. The header control streams live updates.":connectionDetail} Status is saved on this station.</p><a href="/help">Understanding AI Job Progress</a>
       <label>Jobs <select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">All Jobs</option>{Array.from(new Set(jobs.map(j=>j.episode_id))).map(id=><option key={String(id)} value={String(id)}>{id?`OF_R${String(id).padStart(3,'0')}`:'Story ideas / provider tests'}</option>)}</select></label>
       {error&&<p role="alert">{error}</p>}{!visible.length&&<p>No recorded jobs yet. Generate ideas or open an episode to begin.</p>}
       <Paged items={visible} size={5} label="jobs" resetKey={filter} empty={<></>} getText={j=>`${j.job_id} ${j.episode_id??""} ${j.task} ${j.provider} ${j.stage} ${j.status} ${j.error||""}`}>{rows=>rows.map(job=>{
@@ -49,11 +50,13 @@ export function ActivityMonitor(){
             <ol className="activity-log">{job.events.slice(-80).map(e=><li key={e.event_id}><time>{new Date(e.timestamp).toLocaleTimeString()}</time> {e.message}{e.retry_of?' · Retry of '+e.retry_of:''}</li>)}</ol>
             <p>Last event: {last?new Date(last.timestamp).toLocaleString():'Waiting for first event'}</p><p>Generated files: {files.length?files.join(', '):'None verified yet'}</p>
           </details>
-          {job.cancellable&&<button onClick={()=>action(job,'cancel')}>Cancel generation</button>}{job.retryable&&<button onClick={()=>action(job,'retry')}>Retry as new job</button>}
+          {job.cancellable&&<Button onClick={()=>action(job,'cancel')}>Cancel generation</Button>}{job.retryable&&<Button onClick={()=>action(job,'retry')}>Retry as new job</Button>}
           {!running(job)&&<p className="next-action">{job.status==='AWAITING_MANUAL'?'Next: download the complete request and import your structured response in the dashboard.':last?.message||'Open the episode workspace for the next action.'}</p>}
           {job.task==='draft'&&job.status==='COMPLETE'&&job.episode_id&&<a className="open-live-editor" href="/">Open Edit Studio → Remotion Studio</a>}
         </section>
-      })}</Paged></aside>}</>;
+      })}</Paged></>;
+  return embedded?<section className="panel activity-panel"><h2>Saved activity</h2>{content}</section>:<Sheet open={open} onOpenChange={setOpen}><SheetTrigger asChild>{trigger}</SheetTrigger><SheetContent id="ai-activity-panel" className="activity-panel w-[min(640px,96vw)] sm:max-w-[640px] overflow-y-auto p-6"><SheetHeader><SheetTitle>AI Activity</SheetTitle><SheetDescription>Actual provider events and saved job states.</SheetDescription></SheetHeader>{content}</SheetContent></Sheet>;
+
 }
 
 export function ProgressHelp(){return <main className="progress-help"><a href="/">← Dashboard</a><h1>Understanding AI Job Progress</h1><p>The activity button stays available as you move between pages. Choose All Jobs or one episode. Each job has its own provider, ID, history and output files.</p>
@@ -73,3 +76,5 @@ export function ProgressHelp(){return <main className="progress-help"><a href="/
     ['Disconnected / Reconnecting','Recent events and status remain on disk. The browser reconnects and replays events; refreshing restores the current job. A long silent provider does not imply a completed scene.'],
     ['Audio preview and final mastering','The player uses the measured normalized narration and ducked instrumental separately. Live gain, fades and additional ducking use the same frame controls as export. Audition mute and solo are temporary. Final FFmpeg loudness and true-peak mastering can change the overall playback level. Listen to and validate the final file.'],
   ].map(([term,text])=><div key={term}><dt>{term}</dt><dd>{text}</dd></div>)}</dl></main>}
+
+export function ActivityPage(){return <ActivityMonitor embedded/>}

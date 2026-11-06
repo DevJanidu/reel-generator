@@ -1,3 +1,4 @@
+import {Button} from '@/components/ui/button';
 import React, {useEffect, useMemo, useState} from "react";
 import "./paging.css";
 
@@ -83,11 +84,11 @@ export function Paged<T>({
             {w.from + 1}–{w.to} of {filtered.length}
             {filtered.length !== items.length ? ` (${items.length} in total)` : ""}
           </span>
-          <button type="button" className="secondary small" disabled={w.current <= 1} onClick={() => setPage(1)} aria-label="First page">«</button>
-          <button type="button" className="secondary small" disabled={w.current <= 1} onClick={() => setPage(w.current - 1)}>‹ Previous</button>
+          <Button variant="outline" type="button" className="secondary small" disabled={w.current <= 1} onClick={() => setPage(1)} aria-label="First page">«</Button>
+          <Button variant="outline" type="button" className="secondary small" disabled={w.current <= 1} onClick={() => setPage(w.current - 1)}>‹ Previous</Button>
           <span className="pager-page">Page {w.current} of {w.pages}</span>
-          <button type="button" className="secondary small" disabled={w.current >= w.pages} onClick={() => setPage(w.current + 1)}>Next ›</button>
-          <button type="button" className="secondary small" disabled={w.current >= w.pages} onClick={() => setPage(w.pages)} aria-label="Last page">»</button>
+          <Button variant="outline" type="button" className="secondary small" disabled={w.current >= w.pages} onClick={() => setPage(w.current + 1)}>Next ›</Button>
+          <Button variant="outline" type="button" className="secondary small" disabled={w.current >= w.pages} onClick={() => setPage(w.pages)} aria-label="Last page">»</Button>
           <label className="pager-size">
             Rows per page{" "}
             <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
