@@ -1,5 +1,9 @@
 # ODD FRAME redesign changelog
 
+## Current theme — owner revision
+
+The owner replaced Midnight Gold with the supplied neutral shadcn reference. The current app uses near-black backgrounds, neutral gray surfaces, rounded cards/inputs and white pill-shaped primary actions. Decorative gold has been removed from navigation, Ideas, activity, forms and Help. Green indicates confirmed success, red errors and yellow actionable warnings. Shared status badges apply the same semantics to episodes, Queue and Activity; running/queued work remains neutral. Production artwork, brand rules and creative-engine files are unchanged. The earlier gold styling described below records the implementation history, not the current palette.
+
 ## Baselines and boundaries
 
 Original: main at af891b2d2a18f2fc103f312899adffd84f526a72 in E:/facebook.

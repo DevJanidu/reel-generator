@@ -100,7 +100,7 @@ try {
   const primaryStyle = await page
     .getByRole("button", { name: "Create New Reel", exact: true })
     .evaluate((el) => getComputedStyle(el).backgroundColor);
-  expect(primaryStyle).toContain("0.12");
+  expect(primaryStyle).toBe("rgb(229, 229, 229)");
   const navItems = page
     .locator('[data-slot="sidebar-menu"]')
     .first()
@@ -117,7 +117,7 @@ try {
     fullPage: true,
   });
   checks.push(
-    "Visible Reel link labels, translucent primary buttons and 6px sidebar hover gaps",
+    "Visible Reel link labels, neutral primary buttons and 6px sidebar hover gaps",
   );
   await page.goto(base + "/help");
 

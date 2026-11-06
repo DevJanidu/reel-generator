@@ -1,9 +1,9 @@
 /* Product layout; registry primitives retain their shipped implementations. */
 :root {
-  --action-background: rgb(255 212 59 / 0.12);
-  --action-hover: rgb(255 212 59 / 0.2);
-  --action-border: rgb(255 212 59 / 0.3);
-  --action-foreground: #ffe38a;
+  --action-background: var(--primary);
+  --action-hover: #ffffff;
+  --action-border: var(--primary);
+  --action-foreground: var(--primary-foreground);
 }
 :is(button, a)[data-variant="default"] {
   background: var(--action-background);
@@ -19,10 +19,10 @@
   border-color: transparent;
 }
 :is(button, a)[data-variant="link"] {
-  color: var(--action-foreground);
+  color: var(--foreground);
 }
 :is(button, a)[data-variant="ghost"]:hover {
-  background: var(--action-background);
+  background: var(--accent);
 }
 [data-slot="sidebar-menu"] {
   gap: 6px;
@@ -45,8 +45,8 @@
 }
 .workspace-content [data-slot="accordion-trigger"]:hover,
 .workspace-content [data-slot="accordion-trigger"][data-state="open"] {
-  background: var(--action-background);
-  color: var(--action-foreground);
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
 .workspace-content [data-slot="accordion-content"] > div {
   padding: 16px;
@@ -594,4 +594,178 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
+
+/* Neutral application theme. Color is reserved for meaningful status. */
+.workspace-content .panel {
+  border-radius: 22px;
+}
+.workspace-content .stat {
+  border-radius: 18px;
+}
+.workspace-content [data-slot="card"] {
+  border-radius: 22px;
+  font-size: 16px;
+}
+:is(button, a)[data-variant="default"] {
+  border-radius: 999px;
+}
+:is(button, a)[data-variant="link"]:hover {
+  color: var(--foreground);
+}
+.workspace-content a.button:not(.secondary) {
+  border-radius: 999px;
+}
+.workspace-content input:not([type="checkbox"]):not([type="range"]),
+.workspace-content textarea,
+.workspace-content select {
+  background: var(--secondary);
+  border-color: var(--border);
+  color: var(--foreground);
+  border-radius: 14px;
+}
+.workspace-content input[type="checkbox"],
+.workspace-content input[type="range"] {
+  accent-color: var(--primary);
+}
+.workspace-content .eyebrow,
+.workspace-content .gold,
+.category-count,
+.concept-number,
+.concept-card dt,
+.concept-card summary,
+.genre-confirm-icon {
+  color: var(--foreground);
+}
+.concept-genre {
+  background: var(--secondary);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.workspace-content .category-card.selected,
+.workspace-content .category-card:hover {
+  box-shadow: none;
+  border-color: var(--input);
+}
+.workspace-content .category-icon {
+  background: var(--secondary);
+  color: var(--foreground);
+}
+.workspace-content .genre-option.selected,
+.workspace-content .genre-mode button.active {
+  background: var(--accent);
+  color: var(--foreground);
+  border-color: var(--input);
+}
+.workspace-content .home-intro {
+  border-left-color: var(--border);
+}
+.activity-launch[data-variant="default"] {
+  background: var(--secondary);
+  color: var(--foreground);
+  border-color: var(--border);
+  border-radius: 999px;
+}
+.activity-launch[data-variant="default"]:hover {
+  background: var(--accent);
+}
+.activity-launch-icon {
+  background: transparent;
+  color: var(--foreground);
+}
+.activity-connection-dot,
+.live-dot,
+.genre-job-dot {
+  background: var(--muted-foreground);
+}
+.activity-launch[data-connection="live"] .activity-connection-dot {
+  background: var(--success);
+}
+.activity-launch[data-connection="reconnecting"] .activity-connection-dot {
+  background: var(--warning);
+}
+.activity-job summary,
+.live-stage,
+.next-action,
+.progress-help dt {
+  color: var(--foreground);
+}
+.workspace-content .pipeline .steps li.current {
+  color: var(--foreground);
+}
+.workspace-content .pipeline .steps li.done {
+  color: var(--success);
+}
+.workspace-content .notice,
+.workspace-content .approval {
+  background: var(--success-background);
+  color: var(--success);
+  border-color: var(--success-border);
+}
+.workspace-content .error,
+.genre-error,
+.activity-panel [role="alert"],
+.studio-notice[role="alert"] {
+  background: var(--error-background);
+  color: var(--error);
+  border-color: var(--error-border);
+}
+.genre-premise-warning {
+  background: var(--warning-background);
+  color: var(--warning);
+  border-color: var(--warning-border);
+}
+.genre-premise-warning label {
+  color: var(--warning);
+}
+.open-live-editor {
+  background: var(--primary);
+  color: var(--primary-foreground) !important;
+}
+.status-badge {
+  font-size: 13px;
+  height: auto;
+  min-height: 24px;
+  padding: 3px 9px;
+  white-space: normal;
+}
+.status-badge[data-tone="success"] {
+  color: var(--success);
+  background: var(--success-background);
+  border-color: var(--success-border);
+}
+.status-badge[data-tone="error"] {
+  color: var(--error);
+  background: var(--error-background);
+  border-color: var(--error-border);
+}
+.status-badge[data-tone="warning"] {
+  color: var(--warning);
+  background: var(--warning-background);
+  border-color: var(--warning-border);
+}
+.status-badge[data-tone="neutral"] {
+  color: var(--muted-foreground);
+  background: var(--secondary);
+  border-color: var(--border);
+}
+.workspace-content .badge.green {
+  color: var(--success);
+  background: var(--success-background);
+}
+.workspace-content .badge.red {
+  color: var(--error);
+  background: var(--error-background);
+}
+select option,
+select optgroup,
+select::picker(select) {
+  background-color: var(--popover);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+select option:checked,
+select option:hover {
+  background: var(--accent);
+  color: var(--foreground);
 }

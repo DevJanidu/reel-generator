@@ -1,3 +1,4 @@
+import { JobStatus } from "./status-badge";
 import React, { useEffect, useState } from "react";
 import { mountStudio, queryClient, useWorkspaceRoute } from "./router";
 import { useQuery } from "@tanstack/react-query";
@@ -97,22 +98,7 @@ const assetTodo = (errors: string[] = []) => {
   );
   return { images, narration, music, subtitles, confirmMusic, other };
 };
-const Badge = ({ value }: { value: string }) => (
-  <span
-    className={
-      "badge " +
-      (value === "COMPLETE" || value === "LOADED" || value === "SUCCEEDED"
-        ? "green"
-        : value.includes("FAIL") ||
-            (value.includes("BLOCK") && value !== "ASSETS_BLOCKED") ||
-            value === "MISSING"
-          ? "red"
-          : "")
-    }
-  >
-    {value === "ASSETS_BLOCKED" ? "NEEDS ASSETS" : value.replaceAll("_", " ")}
-  </span>
-);
+const Badge = JobStatus;
 const Empty = ({ text }: { text: string }) => (
   <div className="empty">
     <Clapperboard size={34} />

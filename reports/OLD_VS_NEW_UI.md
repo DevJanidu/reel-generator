@@ -1,5 +1,7 @@
 # Old versus new UI
 
+Current screenshots reflect the owner's later neutral-theme request: near-black backgrounds, gray surfaces and white primary buttons; green success, red error and yellow warning indicators. The original yellow-theme notes below describe the prior iteration. The preserved old screenshots remain the original baseline.
+
 Both sets were captured from the application against disposable local data. Old screens were captured before frontend changes from the reviewed source snapshot. New examples include synthetic test episodes; differing counts are fixture data, not a comparison of actual production metrics.
 
 |Area|Before|After|

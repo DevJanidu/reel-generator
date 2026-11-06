@@ -1,3 +1,4 @@
+import { JobStatus } from "./status-badge";
 import {
   Sheet,
   SheetContent,
@@ -197,7 +198,7 @@ export function ActivityMonitor({
                         : "Story ideas"}{" "}
                     · {job.task}
                   </strong>
-                  <span>{job.status.replaceAll("_", " ")}</span>
+                  <JobStatus value={job.status} />
                 </div>
                 <p>
                   {job.provider} · {job.stage} · {Math.floor(elapsed / 60)}m{" "}

@@ -1,3 +1,4 @@
+import { JobStatus } from "./status-badge";
 import { ProgressHelp } from "./activity";
 import { useState } from "react";
 import {
@@ -123,9 +124,7 @@ export function QueuePage({
                     {j.error && <p role="alert">{j.error}</p>}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">
-                      {j.status.replaceAll("_", " ")}
-                    </Badge>
+                    <JobStatus value={j.status} />
                   </TableCell>
                 </TableRow>
               ))}

@@ -6,7 +6,7 @@ Executed 2026-11-06 in E:/facebook-ui-redesign. All mutations used disposable da
 |---|---|---|
 |Dashboard TypeScript and Vite build|PASS|npm run build; strict dashboard tsc runs before Vite|
 |Remotion TypeScript|PASS|npm run typecheck|
-|Frontend unit tests|6 PASS|npm run test:ui; authorization, multipart, abort, validation, unreadable/empty response handling|
+|Frontend unit tests|8 PASS|npm run test:ui; six transport checks plus two status-semantic checks|
 |Complete existing backend suite|151 PASS|python -m pytest -q --basetemp=artifacts/snapshot-pytest-2 --tb=short; 770.84 seconds|
 |Focused backend regressions|38 PASS|editor/activity, genre ideas and export deletion tests|
 |All page routes and responsive layout|PASS|scripts/redesign-qa.mjs; 1440px desktop and 390px mobile; no page overflow|
@@ -18,7 +18,7 @@ Executed 2026-11-06 in E:/facebook-ui-redesign. All mutations used disposable da
 |Authorized settings|PASS|manual provider saved to disposable database|
 |Request error and retry|PASS|deliberate browser-local 503 fixture, explicit retry restores actual backend data|
 |Cross-origin protection|PASS|foreign Origin mutation rejected with HTTP 403 through preview proxy|
-|User visual corrections|PASS|visible Reel text on transparent links, primary fill alpha 0.12, sidebar gap >=6px, neutral/open Help accordion|
+|User visual corrections|PASS|visible Reel text on transparent links, neutral white primary buttons, sidebar gap >=6px, neutral/open Help accordion; green success/red error/yellow warning semantics|
 |Accessibility|PASS|axe WCAG 2 A/AA + 2.1 AA; zero violations on 14 checked routes including populated episode pages|
 |Dependency audit|PASS|npm audit: zero vulnerabilities|
 |Original source preservation|PASS|scripts/verify-redesign-snapshot.py compares main HEAD/status and all 70 original source states/hashes|
