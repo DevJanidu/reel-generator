@@ -38,6 +38,8 @@ def create_session(payload):
                    secondary_genre_id=choice.secondary_genre_id,secondary_genre=secondary['name'] if secondary else None,
                    genre_definition=genre['description'],surprise=choice.surprise,taxonomy_version=taxonomy['version'],idea_count=5,
                    audience='US-primary',format='cinematic_2d_still_story',story_brand='ODD FRAME')
+    selection.update(human_mirror_preference=choice.human_mirror_preference,
+                     voice_calibration=choice.voice_calibration.model_dump() if choice.voice_calibration else None)
     state=dict(schema_version='2.0',id=sid,created=core.now(),selection=selection,batches=[],selected_stories=[],custom_selections={})
     EpisodeWriter(root).json('session.json',state,replace=False)
     with core.db() as c:c.execute('INSERT INTO idea_sessions(id,path,created,updated) VALUES (?,?,?,?)',(sid,relative,state['created'],state['created']))
@@ -145,6 +147,8 @@ def validate_result(run,result):
     payload=json.loads(json.loads(run['request'])['messages'][1]['content']);sid=payload['session_id'];root=_root(sid)
     if str(root)!=run['workspace']:raise ValueError('Idea result workspace does not match its registered session')
     data=GenreIdeas.model_validate(result).model_dump();selection=core.read_json(root/'session.json')['selection']
+    from .storytelling import validate_analysis
+    validate_analysis(snapshots.source_root(root),'genre_ideas',data,payload)
     if data['category_group_id']!=selection['category_group_id'] or data['primary_genre_id']!=selection['primary_genre_id']:raise ValueError('The response changed the confirmed genre identity')
     expected={payload['batch_id']+'-'+str(i) for i in range(1,6)}
     if {c['idea_id'] for c in data['ideas']}!=expected:raise ValueError('Five unique batch-scoped idea IDs are required')
@@ -168,6 +172,7 @@ def save_result(run,data,evidence):
                 skill_versions={s['id']:s['version'] for s in evidence['skills']},taxonomy=evidence.get('genre_taxonomy'),
                 diversity_check='Heuristic comparison of titles, premises, relationships and conflicts; not a guarantee of originality',
                 editorial_assessments='Model editorial judgments, not verified popularity scores')
+    if evidence.get('storytelling_extension'):record['storytelling_extension']=evidence['storytelling_extension']
     with episode_lock(root,'idea-session'):
         relative='batches/'+payload['batch_id']+'.json'
         if writer.path(relative).exists():

@@ -290,6 +290,7 @@ def generate(directory, props, package_scenes, code, *, force=False, source_revi
              timeline='transition_series',
              captions=len(props['captions']), files=file_hashes, library=lib, media=media, editable=list(EDITABLE),
              previous_source_archived_as=archived, remotion_version=_remotion_version())
+    if props.get('storytelling_metadata'):m['storytelling_metadata']=props['storytelling_metadata']
     writer.json(f'{STUDIO_DIR}/studio.manifest.json', m)
     say('Validating composition', 'Checking the generated project structure')
     validate_project(directory)

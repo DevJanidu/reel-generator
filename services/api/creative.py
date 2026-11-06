@@ -98,6 +98,14 @@ def start_task(task, payload, eid=None,background=False,workspace=None,expected_
         payload.setdefault('generation_mode','legacy_general');payload.setdefault('idea_count',10)
         with db() as c:
             payload['recent_ideas']=[json.loads(r['data'])['idea'] for r in c.execute('SELECT data FROM episodes ORDER BY id DESC LIMIT 20')]
+    from .storytelling import planning_context,feedback_context
+    plan=planning_context(source,payload)
+    if plan:
+        payload['storytelling_plan']=plan
+        payload['observed_feedback']=feedback_context()
+        if eid:
+            context=episode(eid)['data']
+            payload['approved_storytelling_context']=context.get('approval',{}).get('storytelling_context') if context.get('approval') else None
     if task=='prepare':
         ep=episode(eid)
         loaded,current_rules=load_skills(source)
@@ -266,6 +274,17 @@ def _complete_run(runid,result,manual=False,background=False):
         save_result(run,data,evidence)
         if manual:EpisodeWriter(run['workspace']).json(f'.production/runs/{runid}/import_validation.json',dict(valid=True,at=now()))
     else:data=TASKS[task][1].model_validate(result).model_dump()
+    from .storytelling import validate_analysis,planning_context
+    request_payload=json.loads(json.loads(run['request'])['messages'][1]['content'])
+    validate_analysis(source,task,data,request_payload)
+    if task in ('script','review') and data.get('retention_audit'):
+        data['_review_narration_sha256']=sha(data['narration'])
+        planning=planning_context(source,request_payload)
+        timing=planning['timing'] if planning else {'measured_voice_wpm':None}
+        if timing['measured_voice_wpm']:
+            timing={**timing,'estimated_seconds':round(len(clean_words(data['narration']))/timing['measured_voice_wpm']*60,1),
+                    'estimate_is_provisional':True}
+        data['_voice_timing']=timing
     if eid and task in ('script','review') and episode(eid)['data'].get('approval'):
         raise ValueError('Approved narration is locked. Revoke approval before creating another version.')
     if task=='prepare':
@@ -313,6 +332,9 @@ def _approve(eid,narration,brief=None,background=False):
     approval=dict(version=data.get('previous_approval',{}).get('version',0)+1,sha256=sha(narration),timestamp=now(),approved_by='Disposable test harness (explicit test authorization)' if os.getenv('ODD_TEST_RUN')=='1' else 'local owner',auto_export=True,revoked=False,
                   skill_hashes={d['id']:d['sha256'] for d in docs},override_version=rules['version'],
                   owner_edited_after_review=sha(narration)!=sha(data['script']['narration']))
+    from .storytelling import approved_context
+    editorial=approved_context(script,narration,data.get('genre_selection',{}).get('human_mirror_preference','automatic'))
+    if editorial:approval['storytelling_context']=editorial
     update_episode(eid,'PREPARING',script=script,approval=approval,pending_run=None,error=None)
     directory=epdir(ep)
     textfile(directory/'01_script/SCRIPT.md',narration)
@@ -400,4 +422,6 @@ EXCLUDE: photorealism, 3D, CGI, realistic human faces, extra limbs, inconsistent
     write_json(directory/'06_edit/caption_design.json',dict(font='Barlow Condensed',weight=800,color='#FFFFFF',outline='#000000',required=True,animation=styles.effective_style(ep)['profile']['captions']['entrance'],style_profile=styles.effective_style(ep)['profile_id'],positions={s['scene_id']:s['caption_y'] for s in scenes}))
     textfile(directory/'06_edit/MUSIC_DIRECTION.md',package['music_direction']+'\n\nUser-supplied instrumental only. No SFX. Rights evidence required from user; never inferred.')
     textfile(directory/'07_export/PUBLISHING.md',package['publishing'])
+    if approval.get('storytelling_context'):
+        write_json(directory/'reports/STORYTELLING_AUDIT.json',approval['storytelling_context'])
     update_episode(eid,'AWAITING_ASSETS',package=package,pending_run=None,error=None,dependent_stages='COMPLETE',message='Complete preproduction validated; waiting for user assets')

@@ -1,10 +1,12 @@
 from typing import Literal
 from pydantic import BaseModel, Field, ConfigDict
+from .storytelling_models import HumanMirror, RetentionAudit
 
 class Strict(BaseModel):
     model_config=ConfigDict(extra='forbid',str_strip_whitespace=True)
 
 class Idea(Strict):
+    human_mirror: HumanMirror | None = None
     title: str=Field(min_length=3,max_length=150)
     genre: str=Field(min_length=3)
     premise: str=Field(min_length=10)
@@ -21,6 +23,8 @@ class Ideas(Strict):
     ideas: list[Idea]=Field(min_length=10,max_length=10)
 
 class Script(Strict):
+    human_mirror: HumanMirror | None = None
+    retention_audit: RetentionAudit | None = None
     narration: str=Field(min_length=30,max_length=15000)
     brief: str=Field(min_length=10)
     findings: list[str]=Field(min_length=1)

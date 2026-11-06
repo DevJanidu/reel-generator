@@ -1,6 +1,6 @@
 # ODD FRAME — 01_IDEA_GENERATION
 
-Version: 2.0.0
+Version: 3.1.0
 Responsibility: Story Developer
 
 This stage requires the mandatory four-document loader and master prompt. Latest ODD_FRAME_RULES.json overrides historical conflicts. Return only the requested format; never claim a failed model call succeeded.
@@ -25,3 +25,7 @@ Internally assess genre relevance, hook clarity, originality, motivation, escala
 For downstream script/review/package tasks, genre_context and selected_story_concept carry this identity forward. Preserve the selected genre, specific hook/conflict/escalation and intended payoff. user_story_input contains the owner's exact title and optional premise. Develop that specific story; do not silently replace the title or premise. An absent premise is permission to develop one, not permission to ignore the supplied title or genre. If input tension remains after the owner's explicit Keep My Premise choice, address it honestly in findings and use the supplied premise. The existing single script approval remains the only creative freeze gate. Never rewrite approved narration downstream.
 
 Compatibility: generation_mode="legacy_general" is the existing v1 ten-idea contract. Return ten only when that explicitly supplied schema/count requests it. Old saved ideas and episode snapshots keep their own pinned formats and versions. Category mode does not reinterpret or repin them.
+
+## Combined storytelling v3.1
+
+For new extension-pinned category concepts include human_mirror and retention_plan. Apply the session preference (automatic by default), do not assign mode from genre, and retain exactly five concepts with their existing v2 identities. Analyze immediate understanding, early conflict, exposition risk, meaningful developments and payoff. Without measured voice evidence, runtime is only a creative estimate, not measured speech.

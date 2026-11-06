@@ -304,6 +304,8 @@ def timeline(eid,report,style=None,extra_overrides=None,write=True):
     styles.assign_caption_presets(captions,result,package_scenes,offsets,profile)
     props=dict(episode_id=ep['code'],width=1080,height=1920,fps=30,durationInFrames=frames,scenes=result,captions=captions,audioSources=['narration','instrumental'],approved_script_sha256=ep['data']['approval']['sha256'],asset_fingerprints=report['fingerprints'],
                style=styles.renderer_style(style,transition_notes))
+    editorial=ep['data']['approval'].get('storytelling_context')
+    if editorial:props['storytelling_metadata']=editorial  # Data only; never converted into extra captions/scenes.
     verify_timeline(props)
     if write:
         write_json(epdir(ep)/'06_edit/timeline.json',props)

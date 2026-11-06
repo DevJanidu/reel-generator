@@ -13,6 +13,9 @@ def bootstrap(root,source_root=ROOT):
     if (root/'.production/provenance.json').exists():return validate(root)
     docs,rules=load_skills(source_root)
     files=['brand/SKILLS_MANIFEST.json','brand/ODD_FRAME_RULES.json',*[d['canonical_path'] for d in docs]]
+    from .storytelling import load_extension
+    extension=load_extension(source_root)
+    if extension:files += [extension['provenance']['path'],extension['provenance']['policy_path']]
     if (source_root/'brand/EDITING_PROFILES.json').is_file():files.append('brand/EDITING_PROFILES.json')
     if (source_root/'brand/STORY_GENRES.json').is_file():files.append('brand/STORY_GENRES.json')
     files += ['prompts/'+p.name for p in (source_root/'prompts').glob('*.md')]

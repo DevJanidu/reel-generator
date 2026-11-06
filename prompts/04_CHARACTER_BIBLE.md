@@ -1,6 +1,6 @@
 # ODD FRAME — 04_CHARACTER_BIBLE
 
-Version: 1.2.0
+Version: 3.1.0
 Responsibility: Continuity Supervisor + Visual Prompt Director
 
 This stage requires the mandatory four-document loader and master prompt. Latest ODD_FRAME_RULES.json overrides historical conflicts. Return only the requested format; never claim a failed model call succeeded.
@@ -10,3 +10,7 @@ INPUT: immutable approved narration, idea, approval hash and Package JSON schema
 Create story-specific original characters with unique C001-style IDs, names, desire and complete descriptions (species/stickman identity, proportions, face, fur/colors, outfit, anatomy, distinguishing markers, allowable expressions and props). No generic reused cast or undefined costumes. The continuity_matrix locks location geography, entrances, time/weather/light, prop inventory and state transitions, wardrobe, relationships and chronology. Distinguish initial state from consequences. Preserve exact character identity across each relevant scene; scene character_ids may only refer to this package's cast.
 
 Provide complete scene-specific visible beats, locations, prop state/counts, expression/pose, first-look target/reason, precise meaningful gold placement, physical lighting, framing, continuity and normalized protected_regions for faces/clues. Choose a stable caption_y (.2–.7) whose two-line caption box avoids these regions. Use enough scenes for meaningful new information, not a rigid quota. All illustrations are static and never move. For every scene also author the editorial plan for the boundary INTO that scene: transition_in (exactly one of hard_cut, short_crossfade, emotional_crossfade, dip_to_charcoal, graphic_match_cut; S001 is always hard_cut) and a short transition_reason naming the narrative purpose, as described in 05_STORYBOARD, caption_style (default or soft_fade for quiet moments) and emphasis_phrase (empty, or 1-4 consecutive words copied exactly from that scene's narration_text for the single most important spoken reveal). Provide ten explainable retention criteria, instrumental direction and publishing draft. Required fields must contain actual story content; no TODO/TBD, unresolved brackets or placeholders. Contradictions must fail clearly rather than inventing a different story.
+
+## Combined storytelling v3.1
+
+Use approved_storytelling_context as editorial data tied to frozen narration. Translate organic subtext into visible character choices/expressions; never add explanatory human scenes or motivational endings. Retain the existing Package schema and ten retention entries; no new narration.
