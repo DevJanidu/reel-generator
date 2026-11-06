@@ -74,6 +74,8 @@ def session_details(sid):
             with core.db() as c:row=c.execute('SELECT status,stage,error,created,provider FROM runs WHERE id=?',(batch['run_id'],)).fetchone()
             if row:
                 batch.update(dict(row))
+                from .activity import generation_progress
+                batch['generation_progress']=generation_progress(root,batch['run_id'],row['status'],row['stage'],row['provider'])
                 if row['error']:
                     from .providers import redact
                     batch['error']=redact(row['error'])

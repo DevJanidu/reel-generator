@@ -17,6 +17,7 @@ from .activity import emit
 def run_event(runid, kind, message, **details):
     with db() as c: row=c.execute('SELECT * FROM runs WHERE id=?',(runid,)).fetchone()
     if row and row['workspace']:
+        details.setdefault('status',row['status'])
         return emit(row['workspace'],runid,row['episode_id'],row['provider'],row['task'],kind,message,**details)
 
 _executor=ThreadPoolExecutor(max_workers=4,thread_name_prefix='odd-frame-creative-controller')
@@ -69,11 +70,20 @@ def persist_provenance(eid, runid, evidence):
         existing['runs'].append(dict(run_id=runid,**evidence))
         write_json(path,existing)
 
-def start_task(task, payload, eid=None,background=False,workspace=None,expected_provider=None):
+def start_task(task, payload, eid=None,background=False,workspace=None,expected_provider=None,retry_of=None):
+    if eid:
+        with episode_lock(epdir(episode(eid)),'schedule',blocking=False):
+            return _start_task(task,payload,eid,background,workspace,expected_provider,retry_of)
+    return _start_task(task,payload,eid,background,workspace,expected_provider,retry_of)
+
+def _start_task(task, payload, eid=None,background=False,workspace=None,expected_provider=None,retry_of=None):
+    import time
+    context_started=time.monotonic()
     stage, schema=TASKS[task]
     config=settings()
     if expected_provider and config['provider']!=expected_provider:raise ValueError('The AI provider changed. Review the confirmation again before generating.')
     if eid:
+        if retry_of and task=='prepare' and episode(eid)['data'].get('package'):raise ValueError('A validated production package already exists; use the asset/edit workflow instead of regenerating it')
         with db() as c:
             active=c.execute("SELECT id FROM runs WHERE episode_id=? AND status IN ('QUEUED','RUNNING')",(eid,)).fetchone()
         if active:raise ValueError('An AI operation is already active for this episode; cancel it or wait before retrying')
@@ -110,6 +120,18 @@ def start_task(task, payload, eid=None,background=False,workspace=None,expected_
             ['05_STORYBOARD.md','06_FLOW_IMAGE_PROMPTS.md','07_RETENTION_AUDIT.md','11_PUBLISHING.md']}
     messages,evidence=model_request(stage,payload,config,root=source)
     runid=str(uuid.uuid4())
+    evidence.update(job_group_id=runid,attempt_number=1,retry_of=None,timeout_seconds=config.get('timeout_seconds',300))
+    evidence['context_preparation_seconds']=round(time.monotonic()-context_started,3)
+    if retry_of:
+        with db() as c:previous=c.execute('SELECT provenance,status FROM runs WHERE id=?',(retry_of,)).fetchone()
+        if not previous or previous['status'] not in ('FAILED','CANCELLED'):raise ValueError('Only failed or cancelled attempts can be retried')
+        prior=json.loads(previous['provenance']);evidence.update(job_group_id=prior.get('job_group_id',retry_of),attempt_number=prior.get('attempt_number',1)+1,retry_of=retry_of)
+        with db() as c:others=c.execute('SELECT id,status,provenance FROM runs WHERE workspace=? AND task=?',(str(root),task)).fetchall()
+        for other in others:
+            meta=json.loads(other['provenance'])
+            if meta.get('job_group_id')==evidence['job_group_id'] and meta.get('attempt_number',1)>=evidence['attempt_number']:
+                if other['status'] in ('QUEUED','RUNNING','AWAITING_MANUAL'):return dict(run_id=other['id'],status=other['status'],job_group_id=evidence['job_group_id'],attempt_number=meta['attempt_number'])
+                raise ValueError('Retry the latest failed attempt; this attempt has already been superseded')
     evidence['episode_id']=episode(eid)['code'] if eid else None
     if eid:
         evidence['script_approval']=episode(eid)['data'].get('approval')
@@ -123,6 +145,8 @@ def start_task(task, payload, eid=None,background=False,workspace=None,expected_
         c.execute('INSERT INTO runs(id,episode_id,task,status,request,provenance,created,workspace,stage,progress,provider) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
                   (runid,eid,task,'AWAITING_MANUAL' if config['provider']=='manual' else 'QUEUED',json.dumps(request),json.dumps(evidence),now(),str(root),'Loading skills',.05,config['provider']))
     persist_provenance(eid,runid,evidence)
+    if eid:update_episode(eid,{'prepare':'PREPARING','script':'SCRIPTING','review':'SCRIPT_REVIEW'}.get(task,'PREPARING'),error=None,pending_run=runid)
+    if retry_of:run_event(runid,'job.retry','Explicit retry accepted; previous attempt retained',retry_of=retry_of)
     if task=='genre_ideas':run_event(runid,'category.confirmed',f"Category confirmed: {payload['category_group']} / {payload['primary_genre']}")
     run_event(runid,'job.queued','Request queued; waiting for an available provider slot')
     run_event(runid,'skills.validated','All four complete pinned skills, master and stage instructions validated')
@@ -135,7 +159,7 @@ def start_task(task, payload, eid=None,background=False,workspace=None,expected_
     _cancellations[runid]=threading.Event()
     if background:
         _executor.submit(execute_run,runid,config,messages,response_schema,root,True)
-        return dict(run_id=runid,status='QUEUED',message=f'Full skills loaded; {task} queued using {config["provider"]}')
+        return dict(run_id=runid,status='QUEUED',job_group_id=evidence['job_group_id'],attempt_number=evidence['attempt_number'],message=f'Full skills loaded; {task} queued using {config["provider"]}')
     return execute_run(runid,config,messages,response_schema,root)
 
 def run_progress(runid,stage,progress,status=None):
@@ -217,6 +241,26 @@ def stop_creative():
     for event in list(_cancellations.values()):event.set()
 
 def fail_run(runid,error):
+    with db() as c:row=c.execute('SELECT workspace,episode_id FROM runs WHERE id=?',(runid,)).fetchone()
+    if row and row['episode_id']:
+        with episode_lock(row['workspace'],'schedule'):
+            return _fail_run(runid,error)
+    return _fail_run(runid,error)
+
+def _fail_run(runid,error):
+    from .job_errors import diagnosis
+    from datetime import datetime
+    with db() as c:prior=c.execute('SELECT * FROM runs WHERE id=?',(runid,)).fetchone()
+    if not prior or prior['status'] in ('FAILED','CANCELLED','SUCCEEDED'):return
+    diagnostic={**diagnosis(error), 'job_id':runid,'episode_id':prior['episode_id'],'provider':prior['provider'],
+                'failed_stage':prior['stage'],'failed_at':now(),
+                'elapsed_seconds':max(0,round((datetime.fromisoformat(now())-datetime.fromisoformat(prior['created'])).total_seconds(),1))}
+    if prior['workspace']:
+        from .activity import generation_progress
+        latest=generation_progress(prior['workspace'],runid,'RUNNING',prior['stage'],prior['provider'])
+        diagnostic.update(failed_stage=latest['message'],last_activity_at=latest['last_event_at'])
+        try:EpisodeWriter(prior['workspace']).json(f'.production/runs/{runid}/failure.json',dict(public=diagnostic,technical=providers.redact(str(error))[-3500:]))
+        except OSError:pass
     status='CANCELLED' if 'cancelled' in error.lower() else 'FAILED'
     with db() as c:
         c.execute('UPDATE runs SET status=?,error=?,stage=? WHERE id=?',(status,error,'Cancelled' if status=='CANCELLED' else 'Failed',runid))
@@ -224,9 +268,9 @@ def fail_run(runid,error):
     if row and row['workspace']:
         EpisodeWriter(row['workspace']).json(f'.production/runs/{runid}/state.json',dict(id=runid,episode_id=row['episode_id'],status=status,error=error,stage=row['stage'],progress=row['progress'],updated=now()))
         run_event(runid,'job.cancelled' if status=='CANCELLED' else 'ai.failed',
-                  'Generation cancelled' if status=='CANCELLED' else 'Provider or output validation failed. Check authentication, usage limits and pinned inputs before retrying.',status=status)
-    if row and row['episode_id']:
-        update_episode(row['episode_id'],'FAILED',error=error)
+                  diagnostic['message'],status=status)
+    if row and row['episode_id'] and episode(row['episode_id'])['data'].get('pending_run') in (None,runid):
+        update_episode(row['episode_id'],'FAILED',error=diagnostic['category']+': '+diagnostic['message'])
 
 def complete_run(runid,result,manual=False,background=False):
     with db() as c:row=c.execute('SELECT workspace FROM runs WHERE id=?',(runid,)).fetchone()
@@ -269,20 +313,30 @@ def _complete_run(runid,result,manual=False,background=False):
     if eid and task in ('script','review') and episode(eid)['data'].get('approval'):
         raise ValueError('Approved narration is locked. Revoke approval before creating another version.')
     if task=='prepare':
-        run_progress(runid,'Generating episode files',.9)
-        populate(eid,data,evidence)
+        run_progress(runid,'Saving validated production package',.9)
+        run_event(runid,'output.saving','Package schema validated; saving production artifacts')
+        try:
+            writer=EpisodeWriter(run['workspace'])
+            if evidence.get('retry_of'):
+                for base in ('02_characters','03_storyboard','04_google_flow'):
+                    for path in writer.path(base).rglob('*'):
+                        if path.is_file() and path.suffix.lower() in ('.md','.json','.txt'):
+                            rel=str(path.relative_to(writer.root)).replace('\\','/')
+                            writer.bytes(f'.production/runs/{runid}/before-retry/{rel}',writer.path(rel).read_bytes(),replace=False)
+            populate(eid,data,evidence)
+        except OSError as exc:raise providers.ProviderError('Could not persist the production package','ARTIFACT_PERSISTENCE') from exc
     elif task in ('script','review'):
         ep=episode(eid)
         update_episode(eid,'SCRIPT_REVIEW' if task=='script' else 'AWAITING_APPROVAL',script=data,pending_run=None,error=None)
         textfile(epdir(ep)/'01_script/SCRIPT.md',data['narration'])
-    with db() as c:
-        c.execute('UPDATE runs SET status=?,result=?,error=NULL WHERE id=?',('SUCCEEDED',json.dumps(data),runid))
     if run.get('workspace'):EpisodeWriter(run['workspace']).json(f'.production/runs/{runid}/validated_result.json',data)
     run_event(runid,'file.saved','Validated structured result saved',file=f'.production/runs/{runid}/validated_result.json')
     if eid:
         public_files = ['01_script/SCRIPT.md'] if task in ('script','review') else ['02_characters/CHARACTER_BIBLE.md','03_storyboard/STORYBOARD.md','04_google_flow/IMAGE_JOBS.json'] if task=='prepare' else []
         for filename in public_files:
             if (epdir(episode(eid))/filename).is_file():run_event(runid,'file.saved','Generated file verified',file=filename)
+    with db() as c:
+        c.execute('UPDATE runs SET status=?,result=?,error=NULL WHERE id=?',('SUCCEEDED',json.dumps(data),runid))
     run_progress(runid,'Five story ideas ready for selection' if task=='genre_ideas' else 'Completed' if task not in ('script','review') else 'Waiting for script approval' if task=='review' else 'Script generated; retention review next',1,status='SUCCEEDED')
     run_event(runid,'job.completed','Validated stage complete. '+('Select one of the five concepts in Ideas to begin its script.' if task=='genre_ideas' else 'Approve the reviewed script to continue.' if task=='review' else 'Add still images, narration and SRT subtitles in Asset Manager.' if task=='prepare' else 'Continue in the episode workspace.'),status='SUCCEEDED')
     if manual:

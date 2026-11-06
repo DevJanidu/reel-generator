@@ -1,4 +1,6 @@
 import { uploadAssetFiles } from "./api";
+import { ProductionActivity } from "./production-activity";
+import { latestAttemptIds } from "./job-lifecycle";
 import { AssetExplorer } from "./asset-explorer";
 import { JobStatus } from "./status-badge";
 import React, { useEffect, useState } from "react";
@@ -305,7 +307,9 @@ function App() {
     runs.find(
       (r) =>
         r.episode_id === selected && ["QUEUED", "RUNNING"].includes(r.status),
-    ) || runs.find((r) => r.id === runId);
+    ) ||
+    runs.find((r) => r.id === runId) ||
+    runs.find((r) => r.episode_id === selected);
   const taskLabel = (t?: string) =>
     t === "ideas"
       ? "your ideas"
@@ -539,48 +543,7 @@ function App() {
   };
   const LiveIdeasPanel = (override?: Data) => {
     const r = override || liveRun;
-    if (!r) return null;
-    const active = ["QUEUED", "RUNNING"].includes(r.status);
-    const who =
-      r.provider === "codex_cli"
-        ? "Codex"
-        : r.provider === "claude_cli"
-          ? "Claude"
-          : r.provider;
-    return (
-      <section className="panel live-run" role="status" aria-live="polite">
-        <div className="section-heading">
-          <h3>
-            {active && <RefreshCw className="spin" size={16} />}{" "}
-            {active
-              ? who + " · " + (r.stage || "Waiting to start")
-              : r.status === "SUCCEEDED"
-                ? "Ready: " + taskLabel(r.task)
-                : "Generation " + r.status.toLowerCase()}
-          </h3>
-          <span className="muted">
-            {active ? "Elapsed " + elapsedText(r.created) : ""}
-          </span>
-        </div>
-        <p className="muted">
-          {active
-            ? "Reading all four skill documents and the master prompt first. This can take a few minutes — please keep this page open. The fields below fill in automatically when it finishes."
-            : r.status === "SUCCEEDED"
-              ? r.task === "ideas"
-                ? "Scroll down to review the ten concepts."
-                : r.task === "prepare"
-                  ? "Production package saved. Add the required assets to continue."
-                  : "The story brief and narration are filled in below. Review and edit them before approving."
-              : ""}
-        </p>
-        <strong>
-          {r.provider || "manual"} · {r.stage || r.status}
-        </strong>
-        {active && <progress aria-label={r.stage || r.status} />}
-        {active && <div className="indeterminate" aria-hidden="true" />}
-        {r.error && <p className="error">{r.error}</p>}
-      </section>
-    );
+    return r ? <ProductionActivity run={r} now={nowMs} /> : null;
   };
   const selectedPath = "/episodes/" + selected;
   const valid = Boolean(status?.skills?.valid);
@@ -604,44 +567,47 @@ function App() {
   const AIProgress = () => (
     <section className="panel">
       <h3>AI generation progress</h3>
-      {activeRuns.slice(0, 6).map((r) => (
-        <div className="job" key={r.id}>
-          <strong>
-            {r.task} · {r.provider || "manual"} · {r.stage || r.status}
-          </strong>
-          {["QUEUED", "RUNNING"].includes(r.status) && (
-            <progress aria-label={r.stage || r.status} />
-          )}
-          <Badge value={r.status} />
-          {r.error && <p className="error">{r.error}</p>}
-          {["QUEUED", "RUNNING"].includes(r.status) && (
-            <Button
-              className="secondary small"
-              onClick={() =>
-                act("Cancel AI job", () =>
-                  api("/runs/" + r.id + "/cancel", "POST"),
-                )
-              }
-            >
-              Cancel job
-            </Button>
-          )}
-          {["FAILED", "CANCELLED"].includes(r.status) && (
-            <Button
-              className="secondary small"
-              onClick={() =>
-                act("Retry AI job", async () => {
-                  const retry = await api("/runs/" + r.id + "/retry", "POST");
-                  if (retry.run_id) setRunId(retry.run_id);
-                  return retry;
-                })
-              }
-            >
-              Retry generation
-            </Button>
-          )}
-        </div>
-      ))}
+      {activeRuns
+        .filter((r) => latestAttemptIds(activeRuns).has(r.id))
+        .slice(0, 6)
+        .map((r) => (
+          <div className="job" key={r.id}>
+            <strong>
+              {r.task} · {r.provider || "manual"} · {r.stage || r.status}
+            </strong>
+            {["QUEUED", "RUNNING"].includes(r.status) && (
+              <progress aria-label={r.stage || r.status} />
+            )}
+            <Badge value={r.status} />
+            {r.error && <p className="error">{r.error}</p>}
+            {["QUEUED", "RUNNING"].includes(r.status) && (
+              <Button
+                className="secondary small"
+                onClick={() =>
+                  act("Cancel AI job", () =>
+                    api("/runs/" + r.id + "/cancel", "POST"),
+                  )
+                }
+              >
+                Cancel job
+              </Button>
+            )}
+            {["FAILED", "CANCELLED"].includes(r.status) && (
+              <Button
+                className="secondary small"
+                onClick={() =>
+                  act("Retry AI job", async () => {
+                    const retry = await api("/runs/" + r.id + "/retry", "POST");
+                    if (retry.run_id) setRunId(retry.run_id);
+                    return retry;
+                  })
+                }
+              >
+                Retry generation
+              </Button>
+            )}
+          </div>
+        ))}
     </section>
   );
   const ManualPanel = () =>

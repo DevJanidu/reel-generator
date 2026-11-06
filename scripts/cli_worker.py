@@ -57,16 +57,34 @@ async def execute():
     # Bound each machine event and total captured bytes; never accumulate a transcript in RAM.
     with writer.path(folder+'/provider.stderr.log').open('wb') as err, writer.path(folder+'/events.jsonl').open('wb') as log:
         proc=await asyncio.create_subprocess_exec(*args,stdin=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE,
-                    stderr=err,env=env,cwd=root,limit=4*1024*1024,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+                    stderr=asyncio.subprocess.PIPE,env=env,cwd=root,limit=4*1024*1024,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         activity('ai.started','Provider process started; waiting for structured activity')
+        async def process_heartbeat():
+            while proc.returncode is None:
+                activity('process.alive','CLI process is running; this is not model-output progress')
+                await asyncio.sleep(10)
+        heartbeat_task=asyncio.create_task(process_heartbeat())
+        async def drain_stderr():
+            saved=0
+            while chunk:=await proc.stderr.read(8192):
+                if saved<256*1024:
+                    part=chunk[:256*1024-saved];err.write(part);err.flush();saved+=len(part)
+        stderr_task=asyncio.create_task(drain_stderr())
         async def feed():
             try:
                 proc.stdin.write(prompt.encode('utf-8'));await proc.stdin.drain();proc.stdin.close()
+                activity('request.sent','Complete request delivered to the CLI input; awaiting provider session activity')
             except (BrokenPipeError,ConnectionResetError):pass
         feeder=asyncio.create_task(feed())
         size=0;envelope=None
+        async def lines():
+            while True:
+                try:line=await proc.stdout.readline()
+                except ValueError as exc:raise ValueError('INVALID_OUTPUT: Provider JSONL event exceeded the bounded line limit') from exc
+                if not line:return
+                yield line
         try:
-            while line:=await proc.stdout.readline():
+            async for line in lines():
                 size+=len(line)
                 if size>64*1024*1024:raise ValueError('Provider event output exceeded the safety limit')
                 log.write(line);log.flush()
@@ -77,7 +95,10 @@ async def execute():
                 if item.get('type') in ('command_execution','file_change','mcp_tool_call','web_search'):
                     raise ValueError('Unexpected tool use during structured generation; response rejected')
                 if event.get('type') in ('error','turn.failed'):
-                    raise ValueError('Provider reported a generation failure; retry after checking provider status')
+                    from services.api.job_errors import category
+                    detail=event.get('error') or event.get('message') or ''
+                    if isinstance(detail,dict):detail=detail.get('message','')
+                    raise ValueError(category(str(detail))+': Provider reported a generation failure')
                 message=provider_activity(provider,event)
                 if message:activity('ai.activity',message)
                 if provider=='claude_cli':
@@ -87,7 +108,8 @@ async def execute():
                     if event.get('type')=='result':envelope=event
             await feeder
             code=await proc.wait()
-            if code:raise ValueError('Provider process exited unsuccessfully; check authentication and usage limits')
+            await stderr_task
+            if code:raise ValueError('PROCESS_EXIT: Provider process exited unsuccessfully')
             if provider=='claude_cli':
                 if not envelope or envelope.get('is_error'):raise ValueError('Claude generation did not complete successfully')
                 data=envelope.get('structured_output')
@@ -97,8 +119,13 @@ async def execute():
         finally:
             if proc.returncode is None:proc.kill();await proc.wait()
             if not feeder.done():feeder.cancel()
+            heartbeat_task.cancel()
+            await asyncio.gather(heartbeat_task,return_exceptions=True)
+            await stderr_task
 asyncio.run(execute())
 if not response.exists():raise SystemExit('Provider returned no final structured response')
+activity('output.parsing','Parsing the complete provider JSON response')
 data=json.loads(response.read_text(encoding='utf-8'))
 if not isinstance(data,dict):raise SystemExit('Structured response must be an object')
+activity('output.parsed','Provider JSON parsed; controller schema validation is pending')
 print(json.dumps(dict(status='GENERATED',provider=provider,response=str(response.relative_to(root)))))

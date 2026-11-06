@@ -55,6 +55,7 @@ async def activity_stream(request:Request, episode_id:int|None=None):
                         cursor[job['job_id']]=event['sequence']
                         yield f'id: {encode_cursor(cursor)}\nevent: activity\ndata: {json.dumps(event)}\n\n'
             yield ': heartbeat\n\n'
+            yield f'event: heartbeat\ndata: {json.dumps(dict(timestamp=now()))}\n\n'
             await asyncio.sleep(1)
     return StreamingResponse(stream(),media_type='text/event-stream',headers={'Cache-Control':'no-cache','X-Accel-Buffering':'no'})
 
@@ -155,7 +156,8 @@ def detail(eid:int):
     ep=episode(eid)
     with db() as c:
         ep['history']=[dict(r) for r in c.execute('SELECT * FROM events WHERE episode_id=? ORDER BY id DESC LIMIT 1000',(eid,))]
-        ep['runs']=[dict(r) for r in c.execute('SELECT id,task,status,error,created,stage,progress,provider FROM runs WHERE episode_id=? ORDER BY created DESC',(eid,))]
+        from .activity import run_view
+        ep['runs']=[run_view(r) for r in c.execute('SELECT * FROM runs WHERE episode_id=? ORDER BY created DESC',(eid,))]
         ep['jobs']=[dict(r) for r in c.execute('SELECT * FROM jobs WHERE episode_id=? ORDER BY id DESC',(eid,))]
     directory=epdir(ep)
     ep['history']=list(reversed(read_json(directory/'.production/history.json'))) if (directory/'.production/history.json').exists() else ep['history']
@@ -424,7 +426,8 @@ def cancel_export(eid:int):
 def retry(eid:int):
     ep=episode(eid); approved(ep)
     if not ep['data'].get('package'):
-        return start_task('prepare',dict(idea=ep['data']['idea'],approved_narration=ep['data']['script']['narration'],approval=ep['data']['approval']),eid,background=True)
+        with db() as c:prior=c.execute("SELECT id FROM runs WHERE episode_id=? AND task='prepare' AND status IN ('FAILED','CANCELLED') ORDER BY created DESC LIMIT 1",(eid,)).fetchone()
+        return start_task('prepare',dict(idea=ep['data']['idea'],approved_narration=ep['data']['script']['narration'],approval=ep['data']['approval']),eid,background=True,retry_of=prior['id'] if prior else None)
     report=secure_validate(eid)
     if not report['valid']:
         raise ValueError('; '.join(report['errors']))
@@ -444,7 +447,8 @@ def reconcile(eid:int):
 @app.get('/api/runs')
 def runs():
     with db() as c:
-        return [dict(r) for r in c.execute('SELECT id,episode_id,task,status,error,created,stage,progress,provider FROM runs ORDER BY created DESC LIMIT 100')]
+        from .activity import run_view
+        return [run_view(r) for r in c.execute('SELECT * FROM runs ORDER BY created DESC LIMIT 100')]
 
 @app.get('/api/runs/{runid}/request')
 def request_bundle(runid:str):
@@ -830,7 +834,7 @@ def retry_generation(runid:str):
         from .story_ideas import retry_run
         return retry_run(runid)
     payload=json.loads(json.loads(row['request'])['messages'][1]['content'])
-    result=start_task(row['task'],payload,row['episode_id'],background=True)
+    result=start_task(row['task'],payload,row['episode_id'],background=True,retry_of=runid)
     from .creative import run_event
     run_event(result['run_id'],'job.retry','Explicit retry created a new request; previous records are preserved',retry_of=runid)
     return result
