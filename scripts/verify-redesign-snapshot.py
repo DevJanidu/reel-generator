@@ -23,7 +23,7 @@ baseline=ast.parse(git(root,'show','d445704:services/api/main.py'))
 current=ast.parse((root/'services/api/main.py').read_text(encoding='utf-8'))
 for tree in [baseline,current]:
     tree.body=[node for node in tree.body if not (isinstance(node,ast.FunctionDef) and node.name=='detail')]
-assert ast.dump(baseline)==ast.dump(current),'Changes outside read-only episode detail metadata' 
+assert ast.dump(baseline)==ast.dump(current),'Changes outside read-only episode detail metadata'
 for path in git(root, 'ls-files').splitlines():
     assert not (path.startswith(('data/', 'episodes/', 'artifacts/')) and not path.endswith('.gitkeep')), path
     assert not (path.startswith('.env') and path != '.env.example'), path
