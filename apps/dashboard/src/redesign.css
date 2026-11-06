@@ -615,16 +615,20 @@
   position: relative;
   z-index: 1;
   background: var(--sidebar);
+  padding: 18px 0;
 }
 .sidebar-brand {
   min-width: 0;
   width: 100%;
   min-height: 36px;
+  padding-left: 6px;
 }
 .sidebar-brand-mark {
   flex: 0 0 36px;
   width: 36px;
   height: 36px;
+  display: block;
+  aspect-ratio: 1;
 }
 .sidebar-brand-copy {
   min-width: 0;
@@ -636,10 +640,9 @@
   white-space: nowrap;
 }
 [data-collapsible="icon"] .app-sidebar-header {
-  padding: 18px 6px;
+  padding: 18px 0;
 }
 [data-collapsible="icon"] .sidebar-brand {
-  justify-content: center;
   gap: 0;
 }
 [data-collapsible="icon"] .sidebar-brand-copy {
@@ -752,18 +755,57 @@
 }
 
 /* Each column owns its scroll position; boundaries never hand motion to a parent. */
-[data-slot="sidebar-wrapper"] {height:100dvh;min-height:0;overflow:hidden;}
-[data-sidebar="content"] {min-height:0;overscroll-behavior-y:contain;}
-[data-collapsible="icon"] [data-sidebar="content"] {overflow-y:auto;}
-.workspace-content {height:100dvh;min-height:0;overflow:hidden;}
-.workspace-content > .topbar {flex-shrink:0;}
-.workspace-content > #page-content {min-height:0;min-width:0;overflow-y:auto;overscroll-behavior-y:contain;}
-.workspace-content > footer {flex-shrink:0;}
-.file-explorer {height:clamp(380px, 70dvh, 640px);min-height:0;min-width:0;}
-.explorer-sidebar {min-height:0;overscroll-behavior:contain;}
-.explorer-main,.explorer-files {min-height:0;min-width:0;}
-.explorer-files [data-slot="scroll-area-viewport"] {overscroll-behavior:contain;}
-@media(max-width:1100px){.explorer-sidebar {overscroll-behavior:contain;}}
+[data-slot="sidebar-wrapper"] {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+[data-sidebar="content"] {
+  min-height: 0;
+  overscroll-behavior-y: contain;
+}
+[data-collapsible="icon"] [data-sidebar="content"] {
+  overflow-y: auto;
+}
+.workspace-content {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+.workspace-content > .topbar {
+  flex-shrink: 0;
+}
+.workspace-content > #page-content {
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+.workspace-content > footer {
+  flex-shrink: 0;
+}
+.file-explorer {
+  height: clamp(380px, 70dvh, 640px);
+  min-height: 0;
+  min-width: 0;
+}
+.explorer-sidebar {
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+.explorer-main,
+.explorer-files {
+  min-height: 0;
+  min-width: 0;
+}
+.explorer-files [data-slot="scroll-area-viewport"] {
+  overscroll-behavior: contain;
+}
+@media (max-width: 1100px) {
+  .explorer-sidebar {
+    overscroll-behavior: contain;
+  }
+}
 .workspace-content .panel {
   border-radius: 22px;
 }

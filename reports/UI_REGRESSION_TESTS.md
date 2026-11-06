@@ -70,3 +70,8 @@ Ideas layout follow-up: `node scripts/ideas-layout-qa.mjs` passed at 1920/1440/7
 
 
 Hover/spacing follow-up: `node scripts/layout-polish-qa.mjs` PASS. Every rendered Home Reel/next-action row was hovered and checked for neutral background/readable foreground. Expanded/collapsed/mobile logo bounds pass, header gap is at least 12px, batch label/control gaps at least 8px, production-history search spacing at least 12px, authorization alert top/bottom separation at least 16px. Short-page alignment and mobile overflow pass. Axe on the unauthenticated alert page and all checked routes reports zero violations. Dashboard build, 12 unit tests and the general desktop/mobile route regression pass. No backend or production-state changes.
+
+
+## Favicon and sidebar branding follow-up
+
+The same circular SVG renders at 16, 32 and 64px and supplies the sidebar mark; the ICO contains 16/32/48/64px fallbacks. Development and production FastAPI static serving returned HTTP 200 with the correct MIME types; the page title was unchanged. Playwright checked expanded/collapsed geometry, centering and tooltips at 1920?1080 and 1366?768, and mobile Sheet geometry at 390px. A separate animation-frame probe confirmed no clipping or horizontal position shift during collapse (14 frames) or expansion (17 frames). Scroll-isolation tests passed again. Browser tab chrome itself was not captured; the favicon resources and rendered icon were inspected.

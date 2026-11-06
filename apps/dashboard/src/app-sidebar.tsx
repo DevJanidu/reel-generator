@@ -39,16 +39,20 @@ export function AppSidebar({
     <Sidebar collapsible="icon">
       <SidebarHeader className="app-sidebar-header p-4">
         <a
-          className="sidebar-brand flex items-center gap-3 overflow-hidden text-foreground"
+          className="sidebar-brand flex items-center gap-3 text-foreground"
           href="/"
           onClick={(e) => {
             e.preventDefault();
             onNavigate("Home");
           }}
         >
-          <span className="sidebar-brand-mark grid size-9 shrink-0 place-items-center rounded-lg border border-primary text-base font-bold text-primary">
-            OF
-          </span>
+          <img
+            className="sidebar-brand-mark"
+            src="/favicon.svg?v=of1"
+            alt=""
+            width="36"
+            height="36"
+          />
           <span className="sidebar-brand-copy whitespace-nowrap font-semibold group-data-[collapsible=icon]:hidden">
             ODD FRAME
             <small className="block text-xs font-normal text-muted-foreground">

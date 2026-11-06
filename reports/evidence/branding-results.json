@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "checks": [
+    "SVG and ICO return HTTP 200",
+    "Correct page title",
+    "1920 and 1366 expanded/collapsed logo bounds and centered alignment",
+    "No logo position shift",
+    "Collapsed tooltip",
+    "390px mobile Sheet"
+  ],
+  "failures": []
+}
