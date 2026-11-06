@@ -2,6 +2,8 @@
 
 ## Decision
 
+Latest scope addition: Asset Manager now needs the paired read-only `file_entries` API metadata extension in services/api/file_catalog.py and the episode-detail handler. Existing `files`, upload/download/delete contracts, database schema and engine remain unchanged. The earlier no-backend-change statements below describe the initial redesign; this explicitly reviewed read-only feature is the only subsequent exception. Original E:/facebook remains unchanged.
+
 Ready for owner UI review at http://127.0.0.1:5174. Not merged, pushed, rebased or deployed. Worktree retained. Owner approval and original-work reconciliation remain required before integration.
 
 Original: main, af891b2d2a18f2fc103f312899adffd84f526a72.

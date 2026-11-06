@@ -183,20 +183,17 @@ try {
     fullPage: true,
   });
   checks.push("Real asset validation and missing-asset feedback");
-  await page
-    .getByLabel("Import images", { exact: true })
-    .setInputFiles({
-      name: "S001.png",
-      mimeType: "image/png",
-      buffer: Buffer.from(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jA1sAAAAASUVORK5CYII=",
-        "base64",
-      ),
-    });
+  await page.getByRole("button", { name: "Images", exact: true }).click();
+  await page.getByLabel("Import images", { exact: true }).setInputFiles({
+    name: "S001.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jA1sAAAAASUVORK5CYII=",
+      "base64",
+    ),
+  });
   await expect(
-    page
-      .getByRole("link", { name: "S001.png", exact: true })
-      .and(page.locator("a")),
+    page.getByRole("button", { name: "Preview S001.png", exact: true }),
   ).toBeVisible();
   checks.push("Real multipart upload into disposable episode");
 

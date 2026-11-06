@@ -6,7 +6,7 @@ Executed 2026-11-06 in E:/facebook-ui-redesign. All mutations used disposable da
 |---|---|---|
 |Dashboard TypeScript and Vite build|PASS|npm run build; strict dashboard tsc runs before Vite|
 |Remotion TypeScript|PASS|npm run typecheck|
-|Frontend unit tests|8 PASS|npm run test:ui; six transport checks plus two status-semantic checks|
+|Frontend unit tests|12 PASS|npm run test:ui; transport, status semantics and folder isolation/natural sorting/size checks|
 |Complete existing backend suite|151 PASS|python -m pytest -q --basetemp=artifacts/snapshot-pytest-2 --tb=short; 770.84 seconds|
 |Focused backend regressions|38 PASS|editor/activity, genre ideas and export deletion tests|
 |All page routes and responsive layout|PASS|scripts/redesign-qa.mjs; 1440px desktop and 390px mobile; no page overflow|
@@ -58,3 +58,12 @@ Browser scripts read the disposable controller capability locally and never prin
 
 
 Ideas layout follow-up: `node scripts/ideas-layout-qa.mjs` passed at 1920/1440/768/390px; all eight cards have 18px corners and contained children, selection works and no page overflow occurs. Vite/TypeScript build passed. Evidence: reports/evidence/ideas-layout-results.json.
+
+
+## Asset explorer follow-up
+
+- `node scripts/asset-explorer-qa.mjs`: PASS against real disposable episode metadata. Tests separate/empty/nested folders, search and sorting, grid/list switching, text/audio previews, successful multipart upload, byte-identical download, cancellation of remove confirmation, private-folder exclusion and desktop/390px layout. Zero axe WCAG A/AA violations on the populated explorer.
+- `pytest tests/test_file_catalog.py`: 3 PASS (nested/empty folders, private/temp exclusions, hard-link rejection).
+- Existing API/path-safety and export regressions: 5 PASS after the read-only metadata extension.
+- Dashboard build/TypeScript and 12 frontend unit tests PASS. No live providers or production mutations were used.
+- Source preservation verification still compares all original main hashes/status; the reviewed read-only catalog/detail metadata is now the only permitted backend exception. No worker, creative, database-schema or renderer changes.

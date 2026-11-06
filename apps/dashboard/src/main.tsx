@@ -1,3 +1,4 @@
+import { AssetExplorer } from "./asset-explorer";
 import { JobStatus } from "./status-badge";
 import React, { useEffect, useState } from "react";
 import { mountStudio, queryClient, useWorkspaceRoute } from "./router";
@@ -1266,7 +1267,15 @@ function App() {
             "AI Activity",
             "System Health",
             "How to Use",
-          ].includes(page) && PipelineTracker()}
+          ].includes(page) &&
+            (page === "Asset Manager" ? (
+              <details className="asset-pipeline-details">
+                <summary>Production status and asset checklist</summary>
+                {PipelineTracker()}
+              </details>
+            ) : (
+              PipelineTracker()
+            ))}
           {[
             "Script Studio",
             "Episode Workspace",
@@ -1725,7 +1734,7 @@ function App() {
             <>
               <section className="panel">
                 <div className="section-heading">
-                  <h3>Bring your story to life</h3>
+                  <h3>Episode file explorer</h3>
                   <Button
                     className="secondary"
                     disabled={!!busy || !ep.data.package}
@@ -1744,95 +1753,37 @@ function App() {
                   this episode. All valid assets automatically enter the edit
                   queue.
                 </p>
-                <div className="asset-grid">
-                  {[
-                    ["images", "Still illustrations", "S001.png · 9:16"],
-                    ["narration", "Narration", "One ElevenLabs audio file"],
-                    ["subtitles", "Subtitles", "SRT · 1–4 words per cue"],
-                    ["music", "Instrumental music", "One background track"],
-                  ].map(([kind, label, help]) => (
-                    <div className="asset-card" key={kind}>
-                      <Upload size={22} />
-                      <h3>{label}</h3>
-                      <p>{help}</p>
-                      <label
-                        className={
-                          "button secondary " +
-                          (!ep.data.package ? "disabled" : "")
-                        }
-                      >
-                        Import {kind}
-                        <Input
-                          aria-label={"Import " + kind}
-                          hidden
-                          type="file"
-                          multiple={kind === "images"}
-                          disabled={!!busy || !ep.data.package}
-                          accept={
-                            kind === "images"
-                              ? ".png,.jpg,.jpeg,.webp"
-                              : kind === "subtitles"
-                                ? ".srt"
-                                : ".wav,.mp3,.m4a,.aac,.flac,.ogg"
-                          }
-                          onChange={(e) => {
-                            if (e.target.files) {
-                              const fd = new FormData();
-                              Array.from(e.target.files).forEach((f) =>
-                                fd.append("files", f),
-                              );
-                              act("Import " + kind, () =>
-                                api(
-                                  selectedPath + "/assets/" + kind,
-                                  "POST",
-                                  fd,
-                                ),
-                              );
-                              e.target.value = "";
-                            }
-                          }}
-                        />
-                      </label>
-                      <Paged
-                        items={((ep.files || []) as string[]).filter((f) =>
-                          f.startsWith("05_assets/" + kind + "/"),
-                        )}
-                        size={5}
-                        label={kind + " files"}
-                        getText={
-                          kind === "images" ? (f: string) => f : undefined
-                        }
-                        resetKey={kind}
-                        empty={<></>}
-                      >
-                        {(rows) =>
-                          rows.map((f: string) => (
-                            <div className="asset-file" key={f}>
-                              <a href={fileURL(f)}>{f.split("/").pop()}</a>
-                              <Button
-                                className="text-button"
-                                onClick={() =>
-                                  act("Remove asset", () =>
-                                    api(
-                                      selectedPath +
-                                        "/assets/" +
-                                        kind +
-                                        "/" +
-                                        encodeURIComponent(f.split("/").pop()!),
-                                      "DELETE",
-                                    ),
-                                  )
-                                }
-                              >
-                                Remove
-                              </Button>
-                            </div>
-                          ))
-                        }
-                      </Paged>
-                    </div>
-                  ))}
-                </div>
+                <AssetExplorer
+                  episodeId={ep.id}
+                  episodeCode={ep.code}
+                  entries={ep.file_entries || []}
+                  disabled={!!busy}
+                  canUpload={!!ep.data.package}
+                  fileURL={fileURL}
+                  onUpload={(kind, files) =>
+                    act("Import " + kind, () => {
+                      const body = new FormData();
+                      files.forEach((file) => body.append("files", file));
+                      return api(
+                        selectedPath + "/assets/" + kind,
+                        "POST",
+                        body,
+                      );
+                    })
+                  }
+                  onRemove={(path) =>
+                    act("Remove asset", () =>
+                      api(
+                        selectedPath +
+                          "/assets/" +
+                          path.split("/")[1] +
+                          "/" +
+                          encodeURIComponent(path.split("/").at(-1)!),
+                        "DELETE",
+                      ),
+                    )
+                  }
+                />
                 <label className="checkbox">
                   <Input
                     type="checkbox"

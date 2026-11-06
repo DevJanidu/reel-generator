@@ -1,5 +1,11 @@
 # ODD FRAME redesign changelog
 
+## Current Asset Manager — folder explorer
+
+Owner-requested Finder-style browsing now mirrors actual episode directories, including empty and nested folders. The default view opens `05_assets`; Images, Narration, Subtitles and Music have separate shortcuts. Other generated episode folders are available under All episode folders. List/grid views, folder breadcrumbs/back/up, current-folder search, natural name/kind/size/modified sorting, real file sizes/dates, text/image/audio/video previews and scoped downloads are provided through shadcn components. Import controls appear only in supported raw asset folders. Existing music rights, validation, protected inputs and upload/delete contracts remain intact; no files are moved or reorganized.
+
+The sole backend extension after the source snapshot is a read-only public file catalog used by episode detail. `file_entries` adds actual directory/file metadata while retaining `files` for existing clients. The catalog excludes `.production` and temporary files and rejects links/aliases. This is required to show real empty folders; no database, worker, provider, creative or rendering changes were introduced. Deploy/restart this small API extension with the frontend. The source verification script explicitly checks this exception and compares the rest of the API module AST with the snapshot.
+
 ## Current theme — owner revision
 
 The owner replaced Midnight Gold with the supplied neutral shadcn reference. The current app uses near-black backgrounds, neutral gray surfaces, rounded cards/inputs and white pill-shaped primary actions. Decorative gold has been removed from navigation, Ideas, activity, forms and Help. Green indicates confirmed success, red errors and yellow actionable warnings. Shared status badges apply the same semantics to episodes, Queue and Activity; running/queued work remains neutral. Production artwork, brand rules and creative-engine files are unchanged. The earlier gold styling described below records the implementation history, not the current palette.

@@ -38,3 +38,7 @@ Baseline main JS was approximately 406.58 kB / 125.96 kB gzip. The redesigned ap
 
 Build time is under one second for the Vite bundling step on this machine, excluding TypeScript. No runtime-speed, Lighthouse, LCP or production network benchmark is claimed. Split chunks support caching; they do not by themselves prove a faster initial load.
 
+
+## Asset Manager folder explorer
+
+Files now follow their actual on-disk folders rather than mixed upload lists. [Desktop explorer](evidence/new-assets.png) ? [Mobile explorer](evidence/new-assets-mobile.png). The source metadata includes real empty folders and nested paths; no production files were moved.
