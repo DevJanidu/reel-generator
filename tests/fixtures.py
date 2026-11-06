@@ -2,6 +2,8 @@
 NARRATION='The key was gone. The door was open. She stayed outside.'
 IDEA=dict(title='Disposable QA — The Open Door',genre='Mystery',premise='Synthetic pipeline test: an illustrated rabbit discovers an open doorway.',visual_hook='An empty key hook beside a door',narration_hook='The key was gone.',conflict='A missing key changes a choice',curiosity='Who opened the door?',emotion='Uncertainty',ending_type='Quiet choice',character_type='Expressive rabbit',feasibility='Three simple static views; one character and one doorway')
 SCRIPT=dict(narration=NARRATION,brief='Disposable QA fiction for pipeline verification only.',findings=['Synthetic fixture, not a model-generated production story.'])
+from .storytelling_fixtures import editorial_fields
+SCRIPT.update(editorial_fields())
 CHARACTER=dict(id='C001',name='Mira',description='A small illustrated ivory rabbit with two upright ears, charcoal eyes, muted slate coat, two forelegs and two hindlegs, round expressive face, no jewelry; fixed proportions and clean dark 2D ink outline.',desire='Understand the open door')
 CRITERIA=['Opening attention','Curiosity','Emotional stakes','Mid-story progression','Visual comprehensibility','Micro-payoffs','Ending satisfaction','Shareability','Originality','Brand consistency']
 def package():

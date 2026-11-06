@@ -1,4 +1,5 @@
 import { uploadAssetFiles } from "./api";
+import { RetentionAuditPanel } from "./storytelling";
 import { AssetExplorer } from "./asset-explorer";
 import { JobStatus } from "./status-badge";
 import React, { useEffect, useState } from "react";
@@ -1415,6 +1416,10 @@ function App() {
                         {f}
                       </p>
                     ))}
+                    <RetentionAuditPanel
+                      script={ep.data.script}
+                      narration={script}
+                    />
                     <div className="row">
                       {!ep.data.approval ? (
                         <>
@@ -1499,6 +1504,12 @@ function App() {
           )}
           {page === "Episode Workspace" && selected && ep && (
             <>
+              {ep.data.script?.retention_audit && (
+                <RetentionAuditPanel
+                  script={ep.data.script}
+                  narration={ep.data.script.narration}
+                />
+              )}
               <div className="columns">
                 <section className="panel">
                   <h3>{ep.title}</h3>
@@ -2511,6 +2522,14 @@ function App() {
               <p className="muted">
                 No Meta connection is implied. Import actual metrics with their
                 source and reporting period.
+              </p>
+              <p className="muted">
+                For richer feedback include observed_at, source_definitions,
+                publication_date, runtime_seconds, viewers and
+                retention_observations when actually available. Leave missing
+                measurements absent. Small samples are uncertain; views are not
+                unique viewers, and average watch time divided by runtime is not
+                completion rate.
               </p>
               <label>
                 Episode

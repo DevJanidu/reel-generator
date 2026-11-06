@@ -59,7 +59,7 @@ def test_profile_document_rejects_policy_violations(mutation):
 def test_skills_loader_pins_rules_and_profiles():
     from services.api import skills
     docs, rules = skills.load_skills()
-    assert len(docs) == 4 and rules['version'] == '1.2.0' and rules['editing']['default_profile'] == NEW
+    assert len(docs) == 4 and rules['version'] == '1.3.0' and rules['editing']['default_profile'] == NEW
     assert rules['visuals']['image_motion'] == 'static' and rules['audio']['sfx'] is False
     assert rules['audio']['sources'] == ['narration', 'instrumental']
 

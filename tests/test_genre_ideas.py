@@ -38,7 +38,7 @@ def test_manual_validates_exactly_five_and_persists_batch_metadata(store):
     creative.complete_run(run['id'],valid,manual=True)
     restored=story_ideas.session_details(s['id']);b=restored['batches'][0]
     assert b['status']=='SUCCEEDED' and len(b['result']['ideas'])==5
-    assert b['result']['master_prompt']['version']=='2.0.0'
+    assert b['result']['master_prompt']['version']=='3.1.0'
     assert len(b['result']['skill_versions'])==4 and b['result']['taxonomy']['version']=='2.0.0'
     assert story_ideas.list_sessions()[0]['id']==s['id']
 
@@ -73,7 +73,7 @@ def test_selecting_a_concept_keeps_genre_and_starts_existing_manual_script_stage
     chosen=story_ideas.select_story(s['id'],batch['batch_id'],data['ideas'][0]['idea_id'])
     ep=core.episode(chosen['episode_id']);assert ep['data']['genre_selection']['primary_genre_id']=='comedy'
     assert ep['data']['genre_selection']['idea_batch_id']==batch['batch_id']
-    assert ep['data']['genre_selection']['master_prompt']['version']=='2.0.0'
+    assert ep['data']['genre_selection']['master_prompt']['version']=='3.1.0'
     with core.db() as c:script=dict(c.execute('SELECT * FROM runs WHERE id=?',(chosen['run_id'],)).fetchone())
     body=json.loads(json.loads(script['request'])['messages'][1]['content'])
     assert body['genre_context']['primary_genre_id']=='comedy' and body['selected_story_concept']['title']==data['ideas'][0]['title']
