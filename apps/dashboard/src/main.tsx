@@ -139,6 +139,17 @@ function App() {
     episodes = episodesQuery.data || [],
     runs = runsQuery.data || [],
     ep = episodeQuery.data;
+  const hasGeneratedScript =
+    !!ep?.data.script?.narration?.trim() &&
+    ep?.runs?.some(
+      (r: Data) =>
+        ["script", "review"].includes(r.task) && r.status === "SUCCEEDED",
+    );
+  const scriptInProgress = ep?.runs?.some(
+    (r: Data) =>
+      ["script", "review"].includes(r.task) &&
+      ["QUEUED", "RUNNING"].includes(r.status),
+  );
   const setStatus = (fn: (v: any) => any) =>
     queryClient.setQueryData(queryKeys.status, fn);
   const [ideas, setIdeas] = useState<Data[]>([]),
@@ -1343,7 +1354,11 @@ function App() {
             <>
               <section className="panel">
                 <div className="section-heading">
-                  <h3>The story, in your words</h3>
+                  <h3>
+                    {hasGeneratedScript || ep.data.approval
+                      ? "Review your script"
+                      : "Generate your script"}
+                  </h3>
                   <Button
                     className="secondary"
                     disabled={
@@ -1366,100 +1381,118 @@ function App() {
                     Generate Script
                   </Button>
                 </div>
-                <label>
-                  Story brief
-                  <Textarea
-                    value={brief}
-                    onChange={(e) => setBrief(e.target.value)}
-                    disabled={!!ep.data.approval}
-                    rows={3}
-                  />
-                </label>
-                <label>
-                  Full narration
-                  <Textarea
-                    className="script"
-                    aria-label="Full narration"
-                    value={script}
-                    disabled={!!ep.data.approval}
-                    onChange={(e) => setScript(e.target.value)}
-                    rows={12}
-                    placeholder="Generate or paste the complete narration. Its exact wording is frozen at approval."
-                  />
-                </label>
-                <p className="muted">
-                  {script.split(/\s+/).filter(Boolean).length} words · duration
-                  is provisional until real audio is uploaded.
-                </p>
-                {ep.data.script?.findings?.map((f: string, i: number) => (
-                  <p className="finding" key={i}>
-                    <Check size={14} />
-                    {f}
-                  </p>
-                ))}
-                <div className="row">
-                  {!ep.data.approval ? (
-                    <>
-                      <Button
-                        className="secondary"
-                        disabled={
-                          !!busy ||
-                          script.length < 30 ||
-                          brief.length < 10 ||
-                          !validForEpisode
-                        }
-                        onClick={() =>
-                          act("Save owner draft", () =>
-                            api(selectedPath + "/draft", "POST", {
-                              narration: script,
-                              brief,
-                              findings: [
-                                "Owner-imported/edited draft. AI review is not claimed unless a successful review run exists.",
-                              ],
-                            }),
-                          )
-                        }
-                      >
-                        Save / Import Draft
-                      </Button>
-                      <Button
-                        disabled={
-                          !!busy ||
-                          !ep.data.script ||
-                          script.length < 30 ||
-                          !validForEpisode ||
-                          ep.status !== "AWAITING_APPROVAL"
-                        }
-                        onClick={() =>
-                          act("Approve script & prepare episode", async () => {
-                            const r = await api(
-                              selectedPath + "/approve",
-                              "POST",
-                              { narration: script, brief },
-                            );
-                            if (r.run_id) setRunId(r.run_id);
-                            return r;
-                          })
-                        }
-                      >
-                        <ShieldCheck size={16} />
-                        APPROVE SCRIPT & CONTINUE
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="approval">
-                      <ShieldCheck size={18} />
-                      {ep.data.approval.revoked ? (
-                        "Export authorization revoked"
-                      ) : (
+                {hasGeneratedScript || ep.data.approval ? (
+                  <>
+                    <label>
+                      Story brief
+                      <Textarea
+                        aria-label="Story brief"
+                        value={brief}
+                        onChange={(e) => setBrief(e.target.value)}
+                        disabled={!!ep.data.approval || scriptInProgress}
+                        rows={3}
+                      />
+                    </label>
+                    <label>
+                      Full narration
+                      <Textarea
+                        className="script"
+                        aria-label="Full narration"
+                        value={script}
+                        disabled={!!ep.data.approval || scriptInProgress}
+                        onChange={(e) => setScript(e.target.value)}
+                        rows={12}
+                        placeholder="Review the generated narration. Its exact wording is frozen at approval."
+                      />
+                    </label>
+                    <p className="muted">
+                      {script.split(/\s+/).filter(Boolean).length} words ·
+                      duration is provisional until real audio is uploaded.
+                    </p>
+                    {ep.data.script?.findings?.map((f: string, i: number) => (
+                      <p className="finding" key={i}>
+                        <Check size={14} />
+                        {f}
+                      </p>
+                    ))}
+                    <div className="row">
+                      {!ep.data.approval ? (
                         <>
-                          Approved · {ep.data.approval.sha256.slice(0, 16)} ·
-                          automatic export authorized
+                          <Button
+                            className="secondary"
+                            disabled={
+                              !!busy ||
+                              scriptInProgress ||
+                              script.length < 30 ||
+                              brief.length < 10 ||
+                              !validForEpisode
+                            }
+                            onClick={() =>
+                              act("Save owner draft", () =>
+                                api(selectedPath + "/draft", "POST", {
+                                  narration: script,
+                                  brief,
+                                  findings: [
+                                    "Owner-imported/edited draft. AI review is not claimed unless a successful review run exists.",
+                                  ],
+                                }),
+                              )
+                            }
+                          >
+                            Save Edits
+                          </Button>
+                          <Button
+                            disabled={
+                              !!busy ||
+                              scriptInProgress ||
+                              !ep.data.script ||
+                              script.length < 30 ||
+                              !validForEpisode ||
+                              ep.status !== "AWAITING_APPROVAL"
+                            }
+                            onClick={() =>
+                              act(
+                                "Approve script & prepare episode",
+                                async () => {
+                                  const r = await api(
+                                    selectedPath + "/approve",
+                                    "POST",
+                                    { narration: script, brief },
+                                  );
+                                  if (r.run_id) setRunId(r.run_id);
+                                  return r;
+                                },
+                              )
+                            }
+                          >
+                            <ShieldCheck size={16} />
+                            APPROVE SCRIPT & CONTINUE
+                          </Button>
                         </>
+                      ) : (
+                        <div className="approval">
+                          <ShieldCheck size={18} />
+                          {ep.data.approval.revoked ? (
+                            "Export authorization revoked"
+                          ) : (
+                            <>
+                              Approved · {ep.data.approval.sha256.slice(0, 16)}{" "}
+                              · automatic export authorized
+                            </>
+                          )}
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
+                  </>
+                ) : (
+                  <p className="muted" role="status">
+                    {scriptInProgress
+                      ? "Your script is being generated and reviewed. The editor will appear when a script is available."
+                      : "Generate a script with your configured provider first. Then review and edit the story brief and narration before approving."}
+                    {ep.data.script &&
+                      " An existing imported draft is preserved; it has not been identified as a completed generation."}
+                  </p>
+                )}
               </section>
               {ManualPanel()}
             </>

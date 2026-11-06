@@ -63,3 +63,11 @@ Reel rows and next actions use the ghost Button variant with a neutral, readable
 ## Dedicated Explorer follow-up
 
 Asset Manager now contains production controls and its always-expanded checklist, with working Open File Explorer and Upload Files actions. The reused explorer fills `/episodes/:episodeId/files`, with separate folder/file scrolling and a mobile folder Sheet. Explicit upload destinations, transfer progress, duplicate/type/size validation and selected individual downloads use existing protected APIs. No backend changes or dependencies were added in this stage. ZIP downloads and generated-document uploads are unsupported. See [DEDICATED_FILE_EXPLORER.md](DEDICATED_FILE_EXPLORER.md) for verification, screenshots and limitations.
+
+## Script editor gating and badge spacing
+
+Script Studio now shows brief/narration editing and Save Edits only after a persisted script has a successful script/review run. Empty, queued/running without output, failed without output and owner-import-only drafts show generation guidance instead. Existing approved scripts remain readable and locked, including legacy approvals without run records; draft data is never deleted. Active generation/review disables editing/saving/approval. Backend approval and manual AI response import contracts are unchanged.
+
+Standalone panel badges use a shared block layout with 12px top/16px bottom spacing. This separates NEEDS ASSETS from validation errors and also applies to isolation/other standalone badges; inline header/table badges retain their container spacing. Scene-chip groups retain an 8px gap and gain 16px separation from preceding content.
+
+Verification: TypeScript/Vite build and 12 frontend tests PASS. scripts/script-editor-qa.mjs PASS with intercepted state/mutation fixtures (no provider calls or episode writes): pre-generation, running, failure, import-only, review lock, generated edits/save, approval payload and locked refresh/legacy approval. scripts/badge-spacing-qa.mjs PASS with measured gaps on Assets and Workspace at 1440px/390px; screenshots inspected and no horizontal overflow. Original source preservation verification PASS. Evidence: reports/evidence/script-editor-results.json, badge-spacing-results.json and validation-spacing-1440.png / validation-spacing-390.png.

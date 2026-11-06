@@ -137,6 +137,20 @@
   margin-bottom: 20px;
   box-shadow: none;
 }
+/* Standalone status badges need their own row; inline/table badges retain their
+   parent's gap rather than acquiring margins that disturb alignment. */
+.workspace-content .panel > [data-slot="badge"] {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  white-space: normal;
+  margin-block: 12px 16px;
+}
+.workspace-content .scene-chips {
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
 .workspace-content .panel p,
 .workspace-content .muted,
 .workspace-content .todo,
