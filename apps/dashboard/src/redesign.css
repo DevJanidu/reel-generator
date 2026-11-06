@@ -597,6 +597,33 @@
 }
 
 /* Neutral application theme. Color is reserved for meaningful status. */
+.workspace-content .genre-studio .category-card {
+  border-radius:18px;
+  padding:22px;
+  min-height:216px;
+  width:100%;
+  min-width:0;
+  gap:12px;
+  position:relative;
+}
+.workspace-content .genre-studio .category-icon {
+  flex-shrink:0;
+  width:40px;
+  height:40px;
+  border-radius:11px;
+}
+.workspace-content .genre-studio .category-title {line-height:1.4;}
+.workspace-content .genre-studio .category-description {line-height:1.6;}
+.workspace-content .genre-studio .category-count {
+  width:100%;
+  margin-top:auto;
+  padding-top:4px;
+  color:var(--muted-foreground);
+}
+@media(max-width:560px){
+  .workspace-content .genre-studio .category-grid {grid-template-columns:1fr;}
+  .workspace-content .genre-studio .category-card {min-height:190px;padding:20px;}
+}
 .workspace-content .panel {
   border-radius: 22px;
 }

@@ -44,3 +44,7 @@ Open http://127.0.0.1:5174. Existing application source stays at E:/facebook.
 Disposable preview state lives only in the feature worktree's ignored artifacts/preview-data.
 To restart after stopping the existing preview processes, run `npm run ui:preview` in the feature worktree. It refuses occupied ports. ODD_DEV_PYTHON may override the development Python interpreter path. No original .env is copied.
 
+
+## Ideas card correction
+
+Category cards now use the official outline Button variant with explicit 18px card corners, contained 20?22px padding and a bottom-aligned genre count. They no longer inherit primary-action pill corners. At narrow mobile widths the category grid becomes a single readable column. Eight category groups, genre selection and generation behavior are unchanged. Targeted browser checks verify all child content stays inside every card at 1920, 1440, 768 and 390px, plus selected states and no horizontal overflow.

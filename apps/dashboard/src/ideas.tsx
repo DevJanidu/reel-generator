@@ -400,6 +400,7 @@ export function IdeasStudio({
               const Icon = icons[i];
               return (
                 <Button
+                  variant="outline"
                   key={g.id}
                   className={
                     "category-card" + (groupId === g.id ? " selected" : "")

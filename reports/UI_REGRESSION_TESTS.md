@@ -56,3 +56,5 @@ npm audit
 
 Browser scripts read the disposable controller capability locally and never print its value. Full test outputs and screenshots remain under ignored artifacts; selected non-sensitive evidence is retained in reports/evidence.
 
+
+Ideas layout follow-up: `node scripts/ideas-layout-qa.mjs` passed at 1920/1440/768/390px; all eight cards have 18px corners and contained children, selection works and no page overflow occurs. Vite/TypeScript build passed. Evidence: reports/evidence/ideas-layout-results.json.
