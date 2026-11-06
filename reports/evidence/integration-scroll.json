@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "overflowFixtures": "80 folders and 80 files injected into read-only API response",
+  "checks": [
+    "sidebar movement and boundary isolation",
+    "main movement alone",
+    "both explorer panes move independently and contain top/bottom wheel",
+    "production status open after refresh",
+    "desktop and mobile widths"
+  ]
+}

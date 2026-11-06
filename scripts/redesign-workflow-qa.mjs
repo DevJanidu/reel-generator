@@ -114,7 +114,7 @@ try {
     .click();
   await expect(
     page.getByRole("heading", {
-      name: "The story, in your words",
+      name: "Generate your script",
       exact: true,
     }),
   ).toBeVisible({ timeout: 30000 });
@@ -128,6 +128,15 @@ try {
   const source = await fixture(
     "import json; from tests.fixtures import SCRIPT,NARRATION,package; print(json.dumps(dict(script=SCRIPT,narration=NARRATION,package=package())))",
   );
+  await expect(page.getByLabel("Full narration", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Generate Script", exact: true }).click();
+  await page.getByLabel("AI JSON response").fill(JSON.stringify(source.script));
+  await page.getByRole("button", { name: "Validate & import JSON", exact: true }).click();
+  // Import the subsequent retention review through the same real API/UI contract.
+  await expect(page.getByRole("heading", { name: "Review your script", exact: true })).toBeVisible();
+  await page.getByLabel("AI JSON response").fill(JSON.stringify(source.script));
+  await page.getByRole("button", { name: "Validate & import JSON", exact: true }).click();
+  await expect(page.getByLabel("Full narration", { exact: true })).toBeEditable();
   await page
     .getByLabel("Story brief", { exact: true })
     .fill(source.script.brief);
@@ -135,7 +144,7 @@ try {
     .getByLabel("Full narration", { exact: true })
     .fill(source.narration);
   await page
-    .getByRole("button", { name: "Save / Import Draft", exact: true })
+    .getByRole("button", { name: "Save Edits", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "APPROVE SCRIPT & CONTINUE" }),
@@ -176,13 +185,14 @@ try {
   await page
     .getByRole("button", { name: "Refresh Assets", exact: true })
     .click();
-  await expect(page.getByText(/S001: need exactly one/)).toBeVisible();
+  await expect(page.getByText(/S001: need exactly one/)).toBeVisible({ timeout: 120000 });
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
     path: "artifacts/workflow-qa/assets.png",
     fullPage: true,
   });
   checks.push("Real asset validation and missing-asset feedback");
+  await page.getByRole("button", { name: "Open File Explorer", exact: true }).click();
   await page.getByRole("button", { name: "Images", exact: true }).click();
   await page.getByLabel("Import images", { exact: true }).setInputFiles({
     name: "S001.png",

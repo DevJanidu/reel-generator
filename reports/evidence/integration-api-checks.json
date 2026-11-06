@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "checks": [
+    "Controller capability, Origin and invalid settings fail closed",
+    "Actual manual job cancellation and retry preserve old record and allocate unique ID",
+    "Traversal and private production files rejected by actual API",
+    "Analytics returns actual stored metrics without fabricated external data",
+    "Codex CLI, Claude CLI and manual provider selection works; no live connection/generation call"
+  ]
+}

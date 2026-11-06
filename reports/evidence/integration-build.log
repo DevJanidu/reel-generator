@@ -1,0 +1,35 @@
+> odd-frame-station@1.0.0 build
+> npm run build -w apps/dashboard
+
+
+> @odd-frame/dashboard@1.0.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.6 building client environment for production...
+transforming...
+✓ 2005 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                               0.85 kB │ gzip:  0.43 kB
+dist/assets/barlow-condensed-vietnamese-800-normal-BZxKbt5V.woff              6.18 kB
+dist/assets/atkinson-hyperlegible-next-latin-ext-400-normal-BalHKn7d.woff2    7.37 kB
+dist/assets/atkinson-hyperlegible-next-latin-ext-600-normal-kZZEtAc7.woff2    7.54 kB
+dist/assets/barlow-condensed-vietnamese-800-normal-CpjukuLw.woff2             7.80 kB
+dist/assets/atkinson-hyperlegible-next-latin-ext-400-normal-qxMiU51n.woff     9.37 kB
+dist/assets/atkinson-hyperlegible-next-latin-ext-600-normal-BBAQIogt.woff     9.60 kB
+dist/assets/barlow-condensed-latin-ext-800-normal-gY_0Gifi.woff              11.91 kB
+dist/assets/atkinson-hyperlegible-next-latin-400-normal-FfmJh7DR.woff2       12.09 kB
+dist/assets/atkinson-hyperlegible-next-latin-600-normal-BBuhw47K.woff2       12.67 kB
+dist/assets/barlow-condensed-latin-ext-800-normal-DGNyg4u8.woff2             14.54 kB
+dist/assets/atkinson-hyperlegible-next-latin-400-normal-DPp7N0cD.woff        14.94 kB
+dist/assets/atkinson-hyperlegible-next-latin-600-normal-BhgCag5w.woff        15.61 kB
+dist/assets/barlow-condensed-latin-800-normal-e9GbPXiK.woff                  18.72 kB
+dist/assets/barlow-condensed-latin-800-normal-BKzMuPgK.woff2                 22.46 kB
+dist/assets/index-kRuFBmSk.css                                              156.82 kB │ gzip: 27.74 kB
+dist/assets/rolldown-runtime-WkwZ5CU-.js                                      0.59 kB │ gzip:  0.36 kB
+dist/assets/data-CnjwEe-u.js                                                109.33 kB │ gzip: 36.10 kB
+dist/assets/primitives-fjbptE-J.js                                          123.99 kB │ gzip: 39.40 kB
+dist/assets/react-BrJGmayC.js                                               189.52 kB │ gzip: 59.55 kB
+dist/assets/index-nuQzSbQL.js                                               232.07 kB │ gzip: 68.79 kB
+
+✓ built in 863ms

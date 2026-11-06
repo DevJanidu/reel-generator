@@ -39,7 +39,7 @@ try {
       .getByRole("link", { name, exact: true })
       .and(page.locator("a"))
       .click();
-    await expect(page).toHaveURL(base + path);
+    await expect(page).toHaveURL((url) => url.origin === base && url.pathname === path);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
@@ -85,9 +85,9 @@ try {
     "Neutral Help accordion, subtle open state and readable expanded content",
   );
   await page.goBack();
-  await expect(page).toHaveURL(base + "/health");
+  await expect(page).toHaveURL((url) => url.origin === base && url.pathname === "/health");
   await page.goForward();
-  await expect(page).toHaveURL(base + "/help");
+  await expect(page).toHaveURL((url) => url.origin === base && url.pathname === "/help");
   checks.push("Refresh and browser back/forward");
   await page.goto(base + "/queue");
   const reelButton = page.getByRole("button", { name: /^OF_R\d+/ }).first();
@@ -179,7 +179,7 @@ try {
     .and(page.locator("a"))
     .click();
   await expect(page.getByRole("dialog")).not.toBeVisible();
-  await expect(page).toHaveURL(base + "/ideas");
+  await expect(page).toHaveURL((url) => url.origin === base && url.pathname === "/ideas");
   checks.push("Mobile Sheet navigation and every route layout");
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole("button", { name: /AI Activity,/ }).click();

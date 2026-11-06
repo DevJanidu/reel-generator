@@ -1,0 +1,2 @@
+> odd-frame-station@1.0.0 typecheck
+> tsc --noEmit -p video/remotion/tsconfig.json

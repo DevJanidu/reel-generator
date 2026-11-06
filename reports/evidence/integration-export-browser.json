@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "checks": [
+    "Completed disposable Reel is visible in Exports",
+    "Actual preview video loads and playback time advances",
+    "Downloaded final bytes match generated MP4 SHA-256"
+  ],
+  "sha256": "267fd63134a06b326079b9dc396eba80b1e074bb2b5c56fc5acd8efcb405e930",
+  "bytes": 283402
+}

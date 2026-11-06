@@ -77,6 +77,10 @@ try {
   const mobileLogo = dialog.locator(".sidebar-brand-mark"),
     mobileHeader = dialog.locator(".app-sidebar-header");
   await expect(mobileLogo).toBeVisible();
+  // A visible Sheet may still be sliding; compare bounds in the same settled state.
+  await dialog.evaluate(async (el) => {
+    await Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})));
+  });
   const m = await mobileLogo.boundingBox(),
     h = await mobileHeader.boundingBox();
   expect(m.x).toBeGreaterThanOrEqual(h.x);
