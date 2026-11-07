@@ -1,0 +1,11 @@
+{
+  "version": "3.1.0",
+  "priority": "ODD_FRAME_RETENTION_FIRST_V1",
+  "human_mirror": "ODD_FRAME_HUMAN_MIRROR_V1",
+  "human_mirror_preference": "automatic",
+  "preferred_seconds": [40, 55],
+  "duration_is_hard_limit": false,
+  "require_measured_voice_for_word_budget": true,
+  "new_sessions_only": true,
+  "extra_approval_gates": 0
+}

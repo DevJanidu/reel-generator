@@ -16,4 +16,6 @@ def concept_batch(request,rotation=0):
             logline=premise.split('. ')[0]+'.',premise=premise,opening_visual_hook=escalation,main_characters=[cast],central_conflict=conflict,key_escalation=escalation,
             ending_direction=ending,target_emotion='Character-driven comic delight',visual_feasibility='Three to six static portrait tableaux with clear silhouettes and narration; no moving illustrations or lip synchronization.',duration_seconds=55,
             quality_audit=[dict(criterion=c,assessment='ready',evidence='Synthetic engineering fixture; this qualitative statement is not independently verified creative quality.') for c in CRITERIA]))
+    from .storytelling_fixtures import no_mirror,retention_plan
+    for idea in ideas:idea.update(human_mirror=no_mirror(),retention_plan=retention_plan())
     return dict(schema_version='2.0',category_group_id=request['category_group_id'],primary_genre_id=request['primary_genre_id'],ideas=ideas)

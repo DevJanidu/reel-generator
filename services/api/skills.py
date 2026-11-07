@@ -55,6 +55,11 @@ def load_skills(root=ROOT):
         rules['visuals']['generated_video'] or not rules['captions']['required'] or rules['audio']['sfx'] or
         rules['audio']['sources']!=['narration','instrumental'] or rules['output']!={'width':1080,'height':1920,'fps':30,'video_codec':'h264','audio_codec':'aac'}):
         raise ValueError('Configuration contradicts the approved ODD FRAME production policy')
+    from .storytelling import load_extension
+    extension = load_extension(root)
+    master_path = root/'prompts/00_MASTER_PROMPT.md'
+    if master_path.exists() and re.search(r'^Version:\s*3\.1\.', master_path.read_text(encoding='utf-8'), re.M) and not extension:
+        raise ValueError('Version 3.1 master requires its registered storytelling extension')
     return loaded, rules
 
 def skill_status(root=ROOT):
@@ -90,6 +95,10 @@ def model_request(task, payload, config, root=ROOT):
         taxonomy=genres.load(root)
     system=full+'\n\n=== MASTER PROMPT ===\n'+master+'\n\n=== CURRENT OVERRIDES: HIGHEST AUTHORITY ===\n'+json.dumps(rules,ensure_ascii=False)
     if taxonomy is not None:system+='\n\n=== COMPLETE PINNED STORY GENRE TAXONOMY ===\n'+json.dumps(taxonomy,ensure_ascii=False)
+    from .storytelling import load_extension
+    extension = load_extension(root)
+    if extension:
+        system+='\n\n=== COMPLETE PINNED STORYTELLING EXTENSION: RETENTION FIRST, HUMAN MIRROR OPTIONAL ===\n'+extension['text']+'\n'+json.dumps(extension['policy'],ensure_ascii=False)
     system+='\n\n=== TASK ===\n'+stage
     messages=[dict(role='system',content=system),dict(role='user',content=json.dumps(payload,ensure_ascii=False))]
     # One UTF-8 byte per token is deliberately conservative, including task input/output reserve.
@@ -105,4 +114,5 @@ def model_request(task, payload, config, root=ROOT):
                   task=task, stage_prompt_sha256=sha(stage), full_read_validated=True, context_byte_upper_bound=bound,
                   request_sha256=sha(json.dumps(messages,ensure_ascii=False)))
     if taxonomy is not None:evidence['genre_taxonomy']=dict(version=taxonomy['version'],sha256=sha((root/'brand/STORY_GENRES.json').read_bytes()))
+    if extension:evidence['storytelling_extension']=extension['provenance']
     return messages,evidence

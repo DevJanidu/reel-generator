@@ -27,6 +27,15 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { api } from "./api";
+import {
+  StoryPreferences,
+  HumanConnection,
+  emptyCalibration,
+  measuredCalibration,
+  type MirrorPreference,
+  type CalibrationDraft,
+  type Calibration,
+} from "./storytelling";
 import "./ideas.css";
 import { IdeaProgress, type GenerationProgress } from "./idea-progress";
 import "./provider-progress.css";
@@ -34,6 +43,8 @@ import "./provider-progress.css";
 type Genre = { id: string; name: string; description: string };
 type Group = { id: string; name: string; description: string; genres: Genre[] };
 type Selection = {
+  human_mirror_preference?: MirrorPreference;
+  voice_calibration?: Calibration | null;
   category_group_id: string;
   category_group: string;
   primary_genre_id: string;
@@ -44,6 +55,7 @@ type Selection = {
   taxonomy_version: string;
 };
 type Concept = {
+  human_mirror?: any;
   idea_id: string;
   title: string;
   primary_genre_id: string;
@@ -135,6 +147,12 @@ export function IdeasStudio({
     [secondary, setSecondary] = useState<string>(initial.secondary || ""),
     [sid, setSid] = useState<string>(initial.session || ""),
     [batchId, setBatchId] = useState<string>(initial.batch || "");
+  const [mirrorPreference, setMirrorPreference] = useState<MirrorPreference>(
+    initial.mirror || "automatic",
+  );
+  const [calibration, setCalibration] = useState<CalibrationDraft>(
+    initial.calibration || emptyCalibration,
+  );
   const [title, setTitle] = useState<string>(initial.title || ""),
     [premise, setPremise] = useState<string>(initial.premise || ""),
     [ownStory, setOwnStory] = useState(false),
@@ -174,15 +192,39 @@ export function IdeasStudio({
         batch: batchId,
         title,
         premise,
+        mirror: mirrorPreference,
+        calibration,
       }),
     );
-  }, [groupId, genreId, secondary, sid, batchId, title, premise]);
+  }, [
+    groupId,
+    genreId,
+    secondary,
+    sid,
+    batchId,
+    title,
+    premise,
+    mirrorPreference,
+    calibration,
+  ]);
   useEffect(() => {
     if (session.data?.id !== sid) return;
     const s = session.data.selection;
     setGroupId(s.category_group_id);
     setGenreId(s.surprise ? "surprise" : s.primary_genre_id);
     setSecondary(s.secondary_genre_id || "");
+    setMirrorPreference(s.human_mirror_preference || "automatic");
+    setCalibration(
+      s.voice_calibration
+        ? {
+            voice: s.voice_calibration.voice,
+            words: String(s.voice_calibration.measured_words),
+            seconds: String(s.voice_calibration.measured_seconds),
+            source: s.voice_calibration.source,
+            date: s.voice_calibration.observed_at.slice(0, 10),
+          }
+        : emptyCalibration,
+    );
   }, [sid, session.data?.id]);
   const group = taxonomy?.groups.find((g) => g.id === groupId),
     genre = group?.genres.find((g) => g.id === genreId);
@@ -262,6 +304,8 @@ export function IdeasStudio({
       primary_genre_id: genreId === "surprise" ? null : genreId,
       secondary_genre_id: secondary || null,
       surprise: genreId === "surprise",
+      human_mirror_preference: mirrorPreference,
+      voice_calibration: measuredCalibration(calibration),
     });
     setSid(created.id);
     client.setQueryData(["idea-session", created.id], created);
@@ -499,6 +543,13 @@ export function IdeasStudio({
             </section>
           )}
           <section className="genre-next panel">
+            <StoryPreferences
+              value={mirrorPreference}
+              onChange={setMirrorPreference}
+              calibration={calibration}
+              onCalibration={setCalibration}
+              locked={!!sid}
+            />
             <div>
               <h3>
                 {ownStory
@@ -777,6 +828,7 @@ export function IdeasStudio({
                         <dd>{c.ending_direction}</dd>
                       </div>
                     </dl>
+                    <HumanConnection value={c.human_mirror} />
                     <details>
                       <summary>
                         View Full Concept <ChevronDown size={15} />

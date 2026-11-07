@@ -1,0 +1,60 @@
+{
+  "production_head": "4781f23aa6045824dddcb80f760c05d89f61fd8f",
+  "production_status": "?? feat/\n",
+  "development_branch": "feat/storytelling-intelligence-v31",
+  "owner_specifications": [
+    {
+      "original": "E:\\facebook\\feat\\ODD FRAME HUMAN MIRROR STORYTELLING INTELLIGENCE v2..txt",
+      "preserved": "source_documents/storytelling/HUMAN_MIRROR_v2_1.md",
+      "bytes": 19503,
+      "sha256": "5ba63154352d554edcbb5c375e45f12c400716bfc2fc84c37ff0a48d8a730239"
+    },
+    {
+      "original": "E:\\facebook\\feat\\ODD FRAME RETENTION-FIRST STORYTELLING UPGRADE v3.1.txt",
+      "preserved": "source_documents/storytelling/RETENTION_FIRST_v3_1.md",
+      "bytes": 15580,
+      "sha256": "09ac85c9eac524c6b1ab5f565f3dca5ff35b48cd8e14f107dd27c99e7787c8a8"
+    }
+  ],
+  "original_creative_documents": [
+    {
+      "id": "bible",
+      "sha256": "69f5cb246167105fdac732073a7fd0650b892d749cc65003ea7fd792b3e01168",
+      "bytes": 37403,
+      "all_three_original_copies_unchanged": true
+    },
+    {
+      "id": "psychology",
+      "sha256": "e99427772c03934f4c92fba3ec4a0486b332718c7ed4a87ed8bf96725ff6b1ec",
+      "bytes": 41821,
+      "all_three_original_copies_unchanged": true
+    },
+    {
+      "id": "design",
+      "sha256": "425192991379226e33b78e6f1f3d7e5d921ad3f15e98a4f31969d8d88c622003",
+      "bytes": 20695,
+      "all_three_original_copies_unchanged": true
+    },
+    {
+      "id": "typography",
+      "sha256": "c4ce0ad4595437ae50444f401e562c501fbe5e3474c2000b9f38a1fb64975be1",
+      "bytes": 14299,
+      "all_three_original_copies_unchanged": true
+    }
+  ],
+  "extension": {
+    "version": "3.1.0",
+    "path": "brand/storytelling/ODD_FRAME_STORYTELLING_V3_1.md",
+    "sha256": "141bb99f7173da3850d13c394713e1863abd5d9a24b160126cf7136f80da6d18",
+    "byte_length": 9398,
+    "policy_path": "brand/storytelling/POLICY_V3_1.json",
+    "policy_sha256": "7b03f0d4e6b5aff2129ca0399b26fb1db8c2a3571811e319f71ffed2d53b8259"
+  },
+  "database_migrations": false,
+  "live_provider_calls": false,
+  "production_data_readonly_check": {
+    "public_files_unchanged": 172,
+    "pinned_files_unchanged": 29,
+    "episode_status_approval_and_export_records_unchanged": true
+  }
+}

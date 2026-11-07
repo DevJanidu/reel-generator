@@ -2,6 +2,7 @@
 from typing import Literal
 from pydantic import Field,StrictInt
 from .models import Strict
+from .storytelling_models import HumanMirror, RetentionPlan, Preference, VoiceCalibration
 
 CRITERIA=('Genre relevance','Hook clarity','Originality','Character motivation','Narrative escalation','Intentional ending','Visual feasibility','Curiosity','Short-form suitability','Batch diversity')
 
@@ -11,6 +12,8 @@ class ConceptAssessment(Strict):
     evidence:str=Field(min_length=12,max_length=400)
 
 class StoryConcept(Strict):
+    human_mirror: HumanMirror | None = None
+    retention_plan: RetentionPlan | None = None
     idea_id:str=Field(pattern=r'^[A-Za-z0-9_-]{5,90}$')
     title:str=Field(min_length=3,max_length=150)
     category_group_id:str=Field(min_length=3,max_length=60)
@@ -35,6 +38,8 @@ class GenreIdeas(Strict):
     ideas:list[StoryConcept]=Field(min_length=5,max_length=5)
 
 class SessionSelection(Strict):
+    human_mirror_preference: Preference = 'automatic'
+    voice_calibration: VoiceCalibration | None = None
     category_group_id:str=Field(min_length=3,max_length=60)
     primary_genre_id:str|None=None
     secondary_genre_id:str|None=None

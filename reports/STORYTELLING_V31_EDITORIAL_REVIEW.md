@@ -1,0 +1,202 @@
+# Combined storytelling editorial review
+
+Agent-authored disposable editorial examples after complete four-document loading via services/api/skills.py, current master/stage prompts and both owner specifications. Not live Codex/Claude output, audience evidence, or approved production narration.
+
+These are six full agent-authored samples and 24 reviewed premises, not 24 completed scripts or live-provider results. Passing schema tests does not establish audience retention. No sample is approved production narration.
+
+40–55 seconds is the soft pilot target. No measured voice sample is supplied; no measured duration is claimed.
+
+## Genre coverage
+
+| Genre | Premise | Mirror mode | Editorial evaluation / unresolved risk |
+|---|---|---|---|
+| mystery | **False coastal signal** — A removed lighthouse lamp appears to flash; a moving brass reflector supplies a fair physical answer. | none | Readable question, early boat risk, directional clue, solved optical cause; ray geometry needs visual checking. |
+| suspense | **The fraying cradle** — A squirrel must lower a sleeping cub before rising water reaches the branch; each attempt costs another strand of rope. | none | Immediate vulnerable goal, worsening constraint, deliberate quiet holds, escape payoff; establish knots and rope length. |
+| crime_detective | **The auction scratch** — A mole detective traces a forged sculpture to the only polishing wheel missing a tooth; the suspect's alibi fails on the pattern, not intuition. | subtle | Clue progresses to test and evidence; suspicion/vanity can enrich the story but no justice lecture is needed. |
+| unexplained_surreal | **The waiting shadow** — A fox's shadow remains seated when she leaves a station; after the last train, it boards without her. | none | Establish one impossible rule and escalate its consequences; identity of the passenger remains deliberately open. |
+| comedy | **The stand-in** — A penguin magician's coat-rack substitute receives the applause and top billing. | subtle | Visual mistake, accumulating prop gag and exact reaction/punchline; do not convert embarrassment into motivational advice. |
+| dark_comedy | **The complaint award** — A crow stages a prize ceremony for the quietest neighbor; every trophy delivery starts another argument. | subtle | Escalate the organizer's contradiction, then let the final empty winner's chair carry the joke. |
+| dark_irony | **The silent alarm** — A badger hides his rattling alarm so no one notices his late starts; the buried alarm becomes the town's new dawn bell. | subtle | His concealment creates public exposure; show how the buried device is found, not magical instantaneous consequences. |
+| betrayal | **Seven trial beams** — A beaver loses design credit but uses retained failed beams to recover payment and end the partnership. | natural | Concrete cost, missing obvious evidence, causal alternative proof, intentionally unresolved plaque; no confession requirement. |
+| revenge | **The exact-sized crown** — A tailor fox delivers a pompous ruler the tiny crown he measured around the ruler's boastfully extended finger. | subtle | Plant the measurement and arrogant instruction, then pay off literal compliance; revenge need not become cruelty or a moral. |
+| jealousy_rivalry | **The second ladder** — A climber removes her rival's route markers, then realizes the return path depended on those same markers. | natural | Envy drives a specific choice with an intelligible cost; show shared-route geography and let the rival choose the response. |
+| emotional_drama | **The unfinished mug** — An otter potter finishes the handle her late partner always left crooked, then deliberately makes the next one crooked herself. | natural | Object action carries grief without an explanatory speech; identify who made each mug and allow a quiet hold. |
+| friendship | **The untaken shortcut** — Two aging dogs abandon their usual steep path when one hides a limp; the friend quietly moves their meeting bench instead. | natural | Recognition emerges through noticing and adapting, not announcing a lesson; geography makes the new path readable. |
+| family_drama | **The spare key hook** — A bear child wants the locked workshop; her mother reveals the unfinished gift and asks whether they should finish it together. | natural | Privacy and expectations collide; establish who owns the key and avoid assuming every closed room implies betrayal. |
+| heartbreak | **The moving boxes** — A fox returns an ex-partner's boxes and discovers the empty space where his own favorite cup used to be packed. | natural | Specific missing object makes separation tangible; do not add forced reconciliation or new unrelated betrayal. |
+| wholesome_heartwarming | **The low window** — A giraffe lowers a display window so a tiny mouse can see the parade model she helped build. | natural | Concrete shared action and acknowledgment deliver warmth; no moral voiceover or obligatory sadness first. |
+| horror | **One more stair** — A mole's descending cellar repeats her tether and voice until her route home disappears. | none | Threat progresses through personal evidence; impossible spatial rules and unanswered origin are intentional horror. |
+| psychological_thriller | **The corrected diary** — A wolf's housemate changes one diary detail each morning, persuading him his memory is failing; he tests her against an independent mark. | natural | Manipulation depends on access and knowledge; plant the independent record and avoid diagnosing a real disorder. |
+| fantasy | **The cloud fisher** — A creature discovers migrating glass fish inside the town's last tethered cloud. | none | Goal, magical rule, discovery and water payoff; wonder needs no human-world explanation. |
+| adventure | **The bridge of flags** — A young hare follows expedition flags until floodwater reveals they mark unsafe ground, not the route. | none | Early goal and a meaningful reinterpretation change the journey; establish who planted flags and why. |
+| science_fiction | **The borrowed sunrise** — A station caretaker notices its artificial sunrise consuming the emergency battery and must choose which light to preserve. | subtle | Clear energy rule and consequence; identity/comfort themes are optional, not substitutes for the resource decision. |
+| survival | **The last dry knot** — A mouse uses each surviving dry knot in a soaked rope to cross a flooded channel with one companion. | none | Limited resource, changing physical constraints and an earned escape; show distances and avoid impossible rope strength. |
+| cleverness_strategy | **The weighted promise** — A small fox asks a giant to hold a gate open until her shadow leaves it, then moves a lamp instead of challenging his strength. | none | Plant the lamp and precise bargain; satisfy the trick's visible geometry rather than producing a surprise magic ability. |
+| plot_twists | **The rehearsal flowers** — A rabbit thinks funeral flowers are for him; they are props for the play he forgot he agreed to direct. | none | Plant stage marks and reusable vases so the reframe is fair; do not falsely promise real tragedy then ridicule grief. |
+| romance | **The spare seat** — Two shy otters trade folded invitations until a closing theater moves their first meeting across the street. | natural | Reciprocal middle beats and an emotional deadline earn the knock; no danger, revenge or relationship advice needed. |
+
+## Six full scripts
+
+The before/after lines compare structural approaches; they do not claim that an original published episode was rewritten or retested. Each warning needs human/storyboard review before production.
+
+### Mystery — The Empty Lamp Room
+
+The lighthouse sent a distress signal. Its lamp had been removed that morning. Ada pushed through the crowd at the quay. Her father was out in the fog, steering toward those flashes. Each flash swept across the cliff before it reached the empty lamp room. Ada followed the light down. A delivery cart stood beside the path. Its brass lid swung in the wind, catching the low sun and throwing it up through the tower window. She wedged the lid shut. The flashes stopped. Through a break in the fog, her father's boat turned toward the real harbor marker. Ada carried the bright lid home under her coat.
+
+**Brief:** An illustrated fox identifies the physical cause of a false coastal signal before her father's boat follows it onto a dangerous approach.
+**Human Mirror:** none. Fear for a parent motivates action, but a human-message ending adds nothing to this optical puzzle.
+**Story promise:** Explain how an empty lighthouse appears to signal and stop the danger.
+
+Progression:
+
+- False signal plus missing lamp establishes a precise contradiction.
+- Her father's approaching boat supplies immediate stakes.
+- The moving stripe identifies an external light source before the final payoff.
+- A wind-driven brass reflector explains the flashes; blocking it removes the false cue.
+
+**Discovery:** The flash crosses the cliff before the lamp room, pointing to reflection rather than an internal lamp.
+**Turning point:** Ada finds the moving brass lid aligned with the low sun and tower window.
+**Payoff:** Closing the lid stops the flashes; the boat follows the genuine harbor marker.
+**Ending:** Solved mechanism and immediate escape from danger
+**Editorial assessment:** The next beat supplies stakes instead of lighthouse history; a useful clue precedes the answer. The ending resolves both the signal and the boat risk. Hold the boat's turn long enough to read. The physical layout remains a visual-production check, not an automated proof.
+**Unresolved production check:** Storyboard a ray diagram: sun, tilted lid and tower window must align; no impossible beam path or emitted light from matte brass. Establish the real harbor marker visually early.
+
+Before: Hook → lighthouse biography → repeat empty-room mystery → final reflector explanation.
+
+After: Hook → approaching boat → directional clue → reflector discovery → stop false cue → boat turns.
+
+### Comedy — The Stand-In
+
+Pip hired a stand-in for his first magic show. The agency sent a coat rack. He checked the crate. No penguin, just three wooden arms and a bow tie. The audience was already taking their seats. Pip tried his opening trick. The scarf snagged on a hook. His hat caught on another. Then the rack tipped, and the borrowed props spilled into his suitcase. Pip froze. The audience applauded. He bowed. Nobody clapped. He slowly turned the coat rack toward them. They rose to their feet. The next poster put Pip in smaller letters. Under his name, it read: Assistant.
+
+**Brief:** A penguin magician accidentally makes an inanimate substitute the star of his debut.
+**Human Mirror:** subtle. Status reversal is recognizable, but the visual joke and final billing are sufficient; no explanatory reflection is recommended.
+**Story promise:** What happens when a magician's substitute is a coat rack?
+
+Progression:
+
+- Wrong substitute is immediately visible.
+- The seated audience removes time to replace it.
+- Hooks collect the magician's props; the fall creates an accidental trick.
+- Applause belongs to the rack, then the poster formalizes the reversal.
+
+**Discovery:** The audience reads the rack's accident as the act.
+**Turning point:** Pip bows and receives silence, then turns the rack toward the audience.
+**Payoff:** The next show's billing makes him the assistant.
+**Ending:** Comic status reversal
+**Editorial assessment:** The gag escalates from delivery error to mechanical mishap to audience response. Reaction pauses serve comedy and must not be cut on a fixed suspense grid. The poster is a punchline rather than a motivational line. A pure-entertainment interpretation would also be valid.
+**Unresolved production check:** Show the suitcase open beneath the falling props before the rack tips. The poster lettering belongs in controlled editor typography, not generated artwork.
+
+Before: Explain Pip's childhood dream → wrong delivery → long list of failed tricks → narrator explains being overlooked.
+
+After: Wrong substitute → no replacement time → one escalating trick → applause misattribution → assistant billing.
+
+### Horror — One More Stair
+
+Each night, Mara's cellar had one more stair. By Friday, the old ladder no longer reached the floor. She tied a yellow thread to the kitchen pipe and climbed down, determined to find what was sinking. Halfway down, she found her missing boot, neatly filled with dirt. Below it stood a second ladder. Her own thread was tied to its top. Mara climbed back up. The kitchen was gone. Above her stretched another cellar ceiling, another pipe, another yellow thread. Someone tugged from below. Then her own voice called, very gently, 'You missed a step.'
+
+**Brief:** An illustrated mole investigates a descending cellar and becomes trapped in a repeating space that uses her own voice.
+**Human Mirror:** none. An uncanny spatial trap and familiar voice deliver horror; a lesson about relationships would weaken the dread.
+**Story promise:** Discover what is changing beneath the house and whether the way back remains safe.
+
+Progression:
+
+- An extra stair supplies an intelligible impossible change.
+- The ladder loses reach, so investigation has a concrete spatial problem.
+- The boot and repeated thread make the space personally impossible.
+- The vanished kitchen and borrowed voice turn investigation into entrapment.
+
+**Discovery:** The missing boot appears below the known cellar.
+**Turning point:** Mara's own tether is already attached to another ladder.
+**Payoff:** The return route repeats the cellar and something below uses her voice.
+**Ending:** Intentionally unexplained frightening revelation
+**Editorial assessment:** Each discovery changes the threat; there is no repeated description of fear. The mechanism remains intentionally unresolved, while the promised unsettling discovery is delivered. Use the same narrator for the quoted line; no SFX or moral reassurance. One longer recognition hold is appropriate at the repeated tether.
+**Unresolved production check:** The spatial loop is deliberately impossible fiction. Distinguish stairs from the portable ladder and repeat recognizable pipe/tether anchors. Do not imply a realistic engineering explanation or introduce a second narrator/audio source.
+
+Before: Family/house history → several descriptions of unease → creature jump scare → reassurance.
+
+After: Extra stair → failing reach → personal object → repeated tether → lost exit → familiar voice.
+
+### Betrayal — Seven Trial Beams
+
+At the unveiling, only Bram's name was on their bridge. Ivo had sold his winter tools to finish the design. Their payment would buy them back. Bram told the mayor he'd worked alone. Ivo opened the workshop ledger. The original drawings were gone. But every trial beam still carried the colored marks they had used for load tests. He laid them across the meeting table in the order they had failed. Bram couldn't explain the first crack. Ivo could explain all seven. The mayor asked who should receive the payment. Ivo gave her the address of the pawnbroker. Bram's name stayed on the bridge. His next bridge had no partner.
+
+**Brief:** One beaver partner claims sole credit; the other uses retained engineering evidence to recover the promised payment without a confession scene.
+**Human Mirror:** natural. Recognition follows understandable choices and imperfect consequences; the unchanged plaque leaves a deliberately bitter public-credit thread.
+**Story promise:** Can Ivo respond to the theft of credit and recover the payment that will restore his tools?
+
+Progression:
+
+- A single name exposes betrayal immediately.
+- Pawned tools make the harm concrete rather than abstract.
+- Missing drawings remove the obvious proof.
+- Retained trial beams demonstrate knowledge; payment and future partnership change.
+
+**Discovery:** The failed trial beams still preserve the experiment sequence.
+**Turning point:** Ivo explains the failures Bram cannot account for.
+**Payoff:** Payment is directed to recover Ivo's tools, while Bram loses the partnership.
+**Ending:** Practical recovery with an intentionally imperfect public record
+**Editorial assessment:** The costs appear directly after the hook. Evidence changes the power balance without a mandatory confession, revenge spectacle or victim-walks-away ending. The unresolved plaque is named, not dropped. Audience understanding of the seven-beam sequence is a storyboard readability risk.
+**Unresolved production check:** Expert explanation supports the mayor's decision but is not conclusive legal proof of ownership. Keep all seven beams accounted for and distinguish payment from public credit; the plaque's persistence is intentional.
+
+Before: Describe lifelong friendship → declare betrayal → repeat hurt feelings → confession → generic advice.
+
+After: Missing credit → tools at risk → drawings removed → trial evidence → recovered payment → lost partnership and unchanged plaque.
+
+### Romance — The Spare Seat
+
+Every Tuesday, Lio bought two theater tickets and went alone. Across the aisle, Sera did the same. On the fourth Tuesday, his spare seat held a paper crane. Hers held a tiny folded boat. Next week, he left her a flower in the empty chair. She folded its wrapper into a heart. Neither crossed the aisle. Then the theater announced its final performance. Lio arrived with one ticket. Sera's row was empty. He nearly left. A paper boat rested on his usual seat. Inside, she'd sketched the bakery across the street, with two chairs at its window. Lio crossed the street instead of the aisle. This time, he knocked.
+
+**Brief:** Two shy illustrated otters exchange invitations through empty theater seats until the venue's closure gives their connection a new setting.
+**Human Mirror:** natural. The invitation and the knock communicate vulnerability without announcing a relationship lesson.
+**Story promise:** Will the two people buying spare seats finally make room for each other?
+
+Progression:
+
+- Two unused seats make the loneliness and possibility visible.
+- Reciprocal paper gifts confirm the interest is mutual.
+- The final performance creates a deadline.
+- An absent partner appears to end the connection; the drawn invitation changes its location.
+
+**Discovery:** The flower wrapper returns as a folded heart.
+**Turning point:** The empty row is followed by an invitation to the bakery.
+**Payoff:** Lio acts on the invitation and knocks, opening the next encounter.
+**Ending:** Quiet emotional arrival
+**Editorial assessment:** The middle earns recognition through reciprocal action. The closing venue supplies momentum without danger or betrayal. The knock fulfills the approach promise even though a full relationship is not guaranteed. Preserve a quiet pause before the final action.
+**Unresolved production check:** Establish seat ownership and gift transfers through clear before/after stills; do not imply both characters occupy the same chair. The invitation identifies the bakery explicitly, avoiding unexplained knowledge of an address.
+
+Before: Describe both characters' personalities → long loneliness montage → narrator says they should be brave.
+
+After: Unused seats → reciprocal gifts → closure deadline → apparent absence → relocated invitation → knock.
+
+### Fantasy — The Cloud Fisher
+
+When the town's last cloud slipped its leash, Tavi caught it with a fishing pole. Without it, the roof gardens would dry out. He reeled it toward the water tower. The cloud pulled back. Tiny glass fish flashed inside it. Every year, the sky river carried them north; this one had been trapped above the town since spring. Tavi loosened the line. The cloud rose, then stopped beside the tower. One silver fish leaped into the empty tank. Rain followed it down, quietly filling the pipes. Tavi let go. By morning, the cloud was gone. In the tower's round window, a tiny current was still moving north.
+
+**Brief:** A small horned fictional cloud-fisher discovers a migrating ecosystem inside the town's captive cloud and an unexpected water source.
+**Human Mirror:** none. Wonder and a coherent magical discovery are enough. Do not append a lesson about freedom, kindness or human society.
+**Story promise:** Can Tavi understand the escaping cloud without losing the town's water?
+
+Progression:
+
+- A leashed cloud escapes and is caught.
+- Drying roof gardens establish a practical goal.
+- Migrating glass fish explain the cloud's resistance before the ending.
+- A fish enters the tank, rain follows, and a miniature current survives.
+
+**Discovery:** The cloud carries migrating fish, rather than behaving like a simple weather container.
+**Turning point:** Tavi loosens the line after understanding the migration.
+**Payoff:** The water tower receives rain while the cloud continues north.
+**Ending:** Wonder and discovery
+**Editorial assessment:** The goal is clear immediately and the discovery reframes the problem. The surviving current extends wonder rather than delivering advice. The cloud's pause must read as intentional in the storyboard; avoid a random rescue disconnected from the planted fish.
+**Unresolved production check:** Establish the sky-river/fish/water relationship before the final rain; fantasy rules permit this, not real meteorology. Show the tank initially empty and the cloud adjacent to its opening; static stills only.
+
+Before: Long world history → escape → unexplained rain gift → forced lesson about letting go.
+
+After: Escaping cloud → thirsty gardens → migrating fish rule → loosened line → rain enters tank → living current.
+
+## Assessment
+
+The samples use different engines: fair mechanism and rescue, accumulating visual embarrassment, uncanny spatial threat, costly evidence and separation, reciprocal invitation, and magical discovery. Their endings fulfill those different promises without a shared motivational formula. Horror may leave the origin unknown while resolving its immediate threat trajectory. Human Mirror is meaningful for some premises and unnecessary for others.
+
+No measured voice recording accompanies these samples. Their approximate 100–120-word length is descriptive, not proof of a 40–55-second read. Measure the actual selected voice, then revise delivery/wording before approval or plan a justified duration exception. No audience experiment or live Codex/Claude generation was run.

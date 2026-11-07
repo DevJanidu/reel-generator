@@ -1,6 +1,6 @@
 # ODD FRAME — 06_FLOW_IMAGE_PROMPTS
 
-Version: 1.0.0
+Version: 3.1.0
 Responsibility: Visual Prompt Director
 
 This stage requires the mandatory four-document loader and master prompt. Latest ODD_FRAME_RULES.json overrides historical conflicts. Return only the requested format; never claim a failed model call succeeded.
@@ -10,3 +10,7 @@ INPUT: approved Package, exact character descriptors and scene locks. OUTPUT: de
 Each prompt must stand alone, repeating the entire relevant character descriptions and states. Include exact scene context and visible story beat; proportions/species/anatomy; expressions/poses; approved props/counts; detailed environmental layout; portrait 9:16 framing; target and why it matters; exact #FFD43B placement; quiet charcoal/slate background; ivory readable features; motivated source/direction of light; matte gold never emitting light; ink contours, flat colors, stepped shading and restrained texture; continuity restrictions. Genre controls mood without breaking Midnight Gold hierarchy.
 
 Explicitly exclude photorealism, 3D/CGI, realistic human faces, inconsistent identities, extra limbs, text, logos and watermarks. Never request movement or imply image generation occurred because a prompt exists. Validate unique IDs and full storyboard coverage. Batch exports preserve the same schema and original IDs; never regenerate completed assets automatically.
+
+## Combined storytelling v3.1
+
+Carry approved emotional subtext using existing visible expressions/poses and fixed character identities, never a literal human reveal absent from the approved story. Do not insert explanatory scenes; the still-only job contract is unchanged.

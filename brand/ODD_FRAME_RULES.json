@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "brand": "ODD FRAME",
   "precedence": "These latest explicitly approved user rules override every conflicting source recommendation",
   "output": {
@@ -59,9 +59,12 @@
     "forced_happy_ending": false,
     "forced_twist": false,
     "default_seconds": [
-      45,
-      75
-    ]
+      40,
+      55
+    ],
+    "duration_target_is_soft": true,
+    "storytelling_extension": "3.1.0",
+    "human_mirror_optional": true
   },
   "approval": {
     "single_script_gate": true,

@@ -395,6 +395,12 @@ def draft(eid:int,payload:dict):
     from .skills import load_skills
     load_skills(snapshots.source_root(epdir(ep)))
     data=Script.model_validate(payload).model_dump()
+    # An owner's wording change does not magically revalidate prior editorial notes.
+    previous=ep['data'].get('script') or {}
+    for key in ('human_mirror','retention_audit'):
+        if not data.get(key) and previous.get(key):data[key]=previous[key]
+    for key in ('_review_narration_sha256','_voice_timing'):
+        if previous.get(key) and data.get('retention_audit')==previous.get('retention_audit') and data.get('human_mirror')==previous.get('human_mirror'):data[key]=previous[key]
     return update_episode(eid,'AWAITING_APPROVAL',script=data,draft_source='Explicit user-authored/imported draft; AI review not claimed')
 
 @app.post('/api/episodes/{eid}/approve')
@@ -849,6 +855,8 @@ def save_metrics(eid:int,payload:dict):
     episode(eid)
     if not payload.get('period') or not payload.get('source'):
         raise ValueError('Record the metric reporting period and real source')
+    from .storytelling import validate_feedback
+    validate_feedback(payload)
     for key in ['views','reach','shares','comments','follows','average_watch_seconds']:
         if key in payload and payload[key] is not None and (not isinstance(payload[key],(int,float)) or payload[key]<0):
             raise ValueError('Metrics must be actual nonnegative numbers or null')
