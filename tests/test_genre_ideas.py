@@ -23,6 +23,13 @@ def test_bad_genre_pair_is_rejected_and_surprise_stays_in_group(store):
     assert selected['selection']['primary_genre_id']=='romance'
     assert selected['selection']['surprise']
 
+def test_dashboard_default_story_preferences_are_accepted_and_persisted(store):
+    created=story_ideas.create_session(dict(category_group_id='comedy_dark_comedy',primary_genre_id='comedy',
+                                          human_mirror_preference='automatic',voice_calibration=None))
+    restored=story_ideas.session_details(created['id'])
+    assert restored['selection']['human_mirror_preference']=='automatic'
+    assert restored['selection']['voice_calibration'] is None
+
 def test_full_pinned_request_includes_actual_selection_and_schema(store):
     s=session();batch,run,payload=queued(s)
     assert payload['idea_count']==5 and payload['primary_genre_id']=='comedy'
