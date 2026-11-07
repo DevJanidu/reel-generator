@@ -90,5 +90,20 @@
     "byte_length": 9398,
     "policy_path": "brand/storytelling/POLICY_V3_1.json",
     "policy_sha256": "7b03f0d4e6b5aff2129ca0399b26fb1db8c2a3571811e319f71ffed2d53b8259"
+  },
+  "visual_art_direction": {
+    "required": false,
+    "approved": null,
+    "candidate": {
+      "id": "odd-frame-cinematic-2d-still-art-direction",
+      "version": "3.0.0",
+      "status": "ready-for-owner-approval",
+      "canonical_path": "brand/skills/odd-frame-cinematic-2d-still-art-direction/SKILL.md",
+      "sha256": "4295cff8a0abe6daecccdbe14bae735c48e02db8160bfc4e68dbeb4ed5e8f619",
+      "byte_length": 19302,
+      "profile_path": "brand/skills/odd-frame-cinematic-2d-still-art-direction/ART_DIRECTION.json",
+      "profile_sha256": "7dc73e301a19728db07676c92fde1222af948574104622df11ea57f095afa93d",
+      "profile_byte_length": 2411
+    }
   }
 }

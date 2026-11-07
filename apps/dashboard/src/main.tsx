@@ -1,5 +1,6 @@
 import { uploadAssetFiles } from "./api";
 import { ProductionActivity } from "./production-activity";
+import { ContinuityPanel } from "./continuity";
 import { latestAttemptIds } from "./job-lifecycle";
 import { RetentionAuditPanel } from "./storytelling";
 import { AssetExplorer } from "./asset-explorer";
@@ -1660,6 +1661,7 @@ function App() {
           )}
           {page === "Google Flow Prompts" && selected && ep && (
             <section className="panel">
+              <ContinuityPanel ep={ep} fileURL={fileURL} reload={reload} />
               <div className="section-heading">
                 <h3>Still-image queue</h3>
                 {ep.data.package && (

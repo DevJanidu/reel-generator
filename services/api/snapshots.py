@@ -5,17 +5,19 @@ import re
 from pathlib import Path
 from .core import ROOT,now,sha,read_json
 from .file_writer import EpisodeWriter,no_links
-from .skills import load_skills
+from .skills import load_skills,load_art_direction,art_direction_receipt
 
 def bootstrap(root,source_root=ROOT):
     if os.getenv('ODD_EPISODE_WORKER')=='1':raise ValueError('Production workers cannot bootstrap or replace immutable inputs')
     root=Path(root);writer=EpisodeWriter(root)
     if (root/'.production/provenance.json').exists():return validate(root)
     docs,rules=load_skills(source_root)
+    art=load_art_direction(source_root)
     files=['brand/SKILLS_MANIFEST.json','brand/ODD_FRAME_RULES.json',*[d['canonical_path'] for d in docs]]
     from .storytelling import load_extension
     extension=load_extension(source_root)
     if extension:files += [extension['provenance']['path'],extension['provenance']['policy_path']]
+    if art:files.extend([art['canonical_path'],art['profile_path']])
     if (source_root/'brand/EDITING_PROFILES.json').is_file():files.append('brand/EDITING_PROFILES.json')
     if (source_root/'brand/STORY_GENRES.json').is_file():files.append('brand/STORY_GENRES.json')
     files += ['prompts/'+p.name for p in (source_root/'prompts').glob('*.md')]
@@ -46,6 +48,7 @@ def bootstrap(root,source_root=ROOT):
         writer.bytes('05_assets/music/signature'+source.suffix.lower(),raw,replace=False)
     provenance=dict(version='2.0',created=now(),files=records,skill_versions={d['id']:d['version'] for d in docs},
                     master_prompt_version=re.search(r'^Version:\s*([0-9.]+)',(source_root/'prompts/00_MASTER_PROMPT.md').read_text(encoding='utf-8'),re.M).group(1),remotion_template_version=read_json(ROOT/'video/remotion/package.json')['dependencies']['remotion'],signature_music=music,media_runtime=media_runtime)
+    if art:provenance['visual_art_direction']=art_direction_receipt(art)
     writer.json('.production/provenance.json',provenance,immutable=True)
     return provenance
 
@@ -56,6 +59,7 @@ def validate(root,media=False):
         path=snapshot/record['path'];no_links(path);raw=path.read_bytes()
         if len(raw)!=record['byte_length'] or sha(raw)!=record['sha256']:raise ValueError('Pinned episode input was changed: '+record['path'])
     load_skills(snapshot)
+    load_art_direction(snapshot)
     if media:
         runtime=provenance.get('media_runtime')
         if not runtime:raise ValueError('Pinned media runtime is unavailable. Run scripts/setup.ps1 in development mode before creating this episode.')

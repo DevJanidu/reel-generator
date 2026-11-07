@@ -1,6 +1,7 @@
 from typing import Literal
 from pydantic import BaseModel, Field, ConfigDict
 from .storytelling_models import HumanMirror, RetentionAudit
+from .continuity import ContinuityPlan
 
 class Strict(BaseModel):
     model_config=ConfigDict(extra='forbid',str_strip_whitespace=True)
@@ -90,6 +91,7 @@ class AuditItem(Strict):
     recommendation: str=Field(min_length=5)
 
 class Package(Strict):
+    visual_continuity: ContinuityPlan | None = None
     characters: list[Character]=Field(min_length=1)
     continuity_matrix: str=Field(min_length=80)
     scenes: list[Scene]=Field(min_length=1,max_length=100)

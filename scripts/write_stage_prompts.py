@@ -71,6 +71,9 @@ genre_contract=GENRE_MARKER+master.split(GENRE_MARKER,1)[1]
 ONLY=set(__import__('sys').argv[1:])
 for name,(role,body) in STAGES.items():
     if ONLY and name not in ONLY:continue
+    # This stage is now an independently versioned production contract. Never
+    # downgrade it when rebuilding unrelated legacy prompt resources.
+    if name=='06_FLOW_IMAGE_PROMPTS' and 'ODD_FRAME_VISUAL_CONTINUITY_V1' in (ROOT/'prompts'/f'{name}.md').read_text(encoding='utf-8'):continue
     suffix='\n\n'+genre_contract if name in VERSIONS else ''
     (ROOT/'prompts'/f'{name}.md').write_text(f'# ODD FRAME — {name}\n\nVersion: {VERSIONS.get(name,"1.0.0")}\nResponsibility: {role}\n\nThis stage requires the mandatory four-document loader and master prompt. Latest ODD_FRAME_RULES.json overrides historical conflicts. Return only the requested format; never claim a failed model call succeeded.\n\n{body}\n{suffix}',encoding='utf-8')
 print('Wrote eleven operational stage prompts.')

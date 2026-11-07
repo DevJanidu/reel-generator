@@ -1,0 +1,577 @@
+{
+  "$defs": {
+    "Asset": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^(CHAR|BUILDING|PROP|LOC|STYLE)_[A-Z0-9_]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "character",
+            "building",
+            "prop",
+            "location",
+            "style"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "minLength": 40,
+          "title": "Description",
+          "type": "string"
+        },
+        "specifications": {
+          "items": {
+            "$ref": "#/$defs/Property"
+          },
+          "title": "Specifications",
+          "type": "array"
+        },
+        "provenance": {
+          "minLength": 5,
+          "title": "Provenance",
+          "type": "string"
+        },
+        "design_status": {
+          "enum": [
+            "approved",
+            "proposed"
+          ],
+          "title": "Design Status",
+          "type": "string"
+        },
+        "reference_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "name",
+        "description",
+        "specifications",
+        "provenance",
+        "design_status",
+        "reference_ids"
+      ],
+      "title": "Asset",
+      "type": "object"
+    },
+    "Change": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "before": {
+          "title": "Before",
+          "type": "string"
+        },
+        "after": {
+          "title": "After",
+          "type": "string"
+        },
+        "narration_evidence": {
+          "minLength": 3,
+          "title": "Narration Evidence",
+          "type": "string"
+        },
+        "evidence_source": {
+          "default": "narration",
+          "enum": [
+            "narration",
+            "storyboard"
+          ],
+          "title": "Evidence Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "before",
+        "after",
+        "narration_evidence"
+      ],
+      "title": "Change",
+      "type": "object"
+    },
+    "Count": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "value": {
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "key",
+        "value"
+      ],
+      "title": "Count",
+      "type": "object"
+    },
+    "Ledger": {
+      "additionalProperties": false,
+      "properties": {
+        "initial_states": {
+          "items": {
+            "$ref": "#/$defs/Timeline"
+          },
+          "title": "Initial States",
+          "type": "array"
+        },
+        "fixed_properties": {
+          "items": {
+            "$ref": "#/$defs/Property"
+          },
+          "title": "Fixed Properties",
+          "type": "array"
+        },
+        "shots": {
+          "items": {
+            "$ref": "#/$defs/Shot"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Shots",
+          "type": "array"
+        }
+      },
+      "required": [
+        "initial_states",
+        "fixed_properties",
+        "shots"
+      ],
+      "title": "Ledger",
+      "type": "object"
+    },
+    "Property": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "value"
+      ],
+      "title": "Property",
+      "type": "object"
+    },
+    "Reference": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "category": {
+          "enum": [
+            "character",
+            "turnaround",
+            "building",
+            "location",
+            "prop",
+            "style"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Path"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Sha256"
+        },
+        "approved": {
+          "title": "Approved",
+          "type": "boolean"
+        },
+        "essential": {
+          "title": "Essential",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "category",
+        "path",
+        "sha256",
+        "approved",
+        "essential"
+      ],
+      "title": "Reference",
+      "type": "object"
+    },
+    "Relation": {
+      "additionalProperties": false,
+      "properties": {
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "relation": {
+          "enum": [
+            "above",
+            "below",
+            "left_of",
+            "right_of",
+            "upstream_of",
+            "near",
+            "taller_than"
+          ],
+          "title": "Relation",
+          "type": "string"
+        },
+        "object": {
+          "title": "Object",
+          "type": "string"
+        },
+        "evidence": {
+          "title": "Evidence",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject",
+        "relation",
+        "object",
+        "evidence"
+      ],
+      "title": "Relation",
+      "type": "object"
+    },
+    "ScaleCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "character_id": {
+          "title": "Character Id",
+          "type": "string"
+        },
+        "building_id": {
+          "title": "Building Id",
+          "type": "string"
+        },
+        "character_height": {
+          "exclusiveMinimum": 0,
+          "title": "Character Height",
+          "type": "number"
+        },
+        "door_height": {
+          "exclusiveMinimum": 0,
+          "title": "Door Height",
+          "type": "number"
+        },
+        "perspective": {
+          "enum": [
+            "same_plane",
+            "separate_planes"
+          ],
+          "title": "Perspective",
+          "type": "string"
+        },
+        "character_plane": {
+          "enum": [
+            "foreground",
+            "middle_ground",
+            "background"
+          ],
+          "title": "Character Plane",
+          "type": "string"
+        },
+        "building_plane": {
+          "enum": [
+            "foreground",
+            "middle_ground",
+            "background"
+          ],
+          "title": "Building Plane",
+          "type": "string"
+        },
+        "composition": {
+          "minLength": 20,
+          "title": "Composition",
+          "type": "string"
+        }
+      },
+      "required": [
+        "character_id",
+        "building_id",
+        "character_height",
+        "door_height",
+        "perspective",
+        "character_plane",
+        "building_plane",
+        "composition"
+      ],
+      "title": "ScaleCheck",
+      "type": "object"
+    },
+    "Shot": {
+      "additionalProperties": false,
+      "properties": {
+        "scene_id": {
+          "pattern": "^S\\d{3}$",
+          "title": "Scene Id",
+          "type": "string"
+        },
+        "storyboard_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Storyboard Sha256"
+        },
+        "timeline": {
+          "title": "Timeline",
+          "type": "string"
+        },
+        "asset_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Asset Ids",
+          "type": "array"
+        },
+        "character_map": {
+          "items": {
+            "$ref": "#/$defs/Property"
+          },
+          "title": "Character Map",
+          "type": "array"
+        },
+        "moment": {
+          "minLength": 20,
+          "title": "Moment",
+          "type": "string"
+        },
+        "expression_pose": {
+          "minLength": 20,
+          "title": "Expression Pose",
+          "type": "string"
+        },
+        "lighting": {
+          "minLength": 20,
+          "title": "Lighting",
+          "type": "string"
+        },
+        "composition": {
+          "minLength": 20,
+          "title": "Composition",
+          "type": "string"
+        },
+        "geography": {
+          "minLength": 20,
+          "title": "Geography",
+          "type": "string"
+        },
+        "visible_state": {
+          "minLength": 20,
+          "title": "Visible State",
+          "type": "string"
+        },
+        "state_keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "State Keys",
+          "type": "array"
+        },
+        "state_assertions": {
+          "items": {
+            "$ref": "#/$defs/Property"
+          },
+          "title": "State Assertions",
+          "type": "array"
+        },
+        "prop_counts": {
+          "items": {
+            "$ref": "#/$defs/Count"
+          },
+          "title": "Prop Counts",
+          "type": "array"
+        },
+        "changes": {
+          "items": {
+            "$ref": "#/$defs/Change"
+          },
+          "title": "Changes",
+          "type": "array"
+        },
+        "scale_checks": {
+          "items": {
+            "$ref": "#/$defs/ScaleCheck"
+          },
+          "title": "Scale Checks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "scene_id",
+        "timeline",
+        "asset_ids",
+        "character_map",
+        "moment",
+        "expression_pose",
+        "lighting",
+        "composition",
+        "geography",
+        "visible_state",
+        "changes",
+        "scale_checks"
+      ],
+      "title": "Shot",
+      "type": "object"
+    },
+    "Timeline": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "value": {
+          "items": {
+            "$ref": "#/$defs/Property"
+          },
+          "title": "Value",
+          "type": "array"
+        }
+      },
+      "required": [
+        "key",
+        "value"
+      ],
+      "title": "Timeline",
+      "type": "object"
+    },
+    "VisualBible": {
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "const": "ODD_FRAME_VISUAL_CONTINUITY_V1",
+          "default": "ODD_FRAME_VISUAL_CONTINUITY_V1",
+          "title": "Engine",
+          "type": "string"
+        },
+        "version": {
+          "const": "1.0.0",
+          "default": "1.0.0",
+          "title": "Version",
+          "type": "string"
+        },
+        "narration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Narration Sha256",
+          "type": "string"
+        },
+        "assets": {
+          "items": {
+            "$ref": "#/$defs/Asset"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Assets",
+          "type": "array"
+        },
+        "relationships": {
+          "items": {
+            "$ref": "#/$defs/Relation"
+          },
+          "maxItems": 1000,
+          "title": "Relationships",
+          "type": "array"
+        },
+        "geography": {
+          "minLength": 30,
+          "title": "Geography",
+          "type": "string"
+        },
+        "palette_lighting": {
+          "minLength": 20,
+          "title": "Palette Lighting",
+          "type": "string"
+        },
+        "references": {
+          "items": {
+            "$ref": "#/$defs/Reference"
+          },
+          "maxItems": 500,
+          "title": "References",
+          "type": "array"
+        }
+      },
+      "required": [
+        "narration_sha256",
+        "assets",
+        "relationships",
+        "geography",
+        "palette_lighting",
+        "references"
+      ],
+      "title": "VisualBible",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "bible": {
+      "$ref": "#/$defs/VisualBible"
+    },
+    "ledger": {
+      "$ref": "#/$defs/Ledger"
+    }
+  },
+  "required": [
+    "bible",
+    "ledger"
+  ],
+  "title": "ContinuityPlan",
+  "type": "object"
+}

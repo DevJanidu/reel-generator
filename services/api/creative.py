@@ -7,11 +7,11 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import httpx
 from .core import ROOT, STORE, now, sha, db, episode, epdir, update_episode, textfile, write_json, settings
-from .skills import model_request, load_skills
+from .skills import model_request, load_skills,load_art_direction,art_direction_receipt,compact_schema_annotations
 from .models import Ideas, Idea, Script, Package, Flow
 from .idea_models import GenreIdeas
 from .file_writer import EpisodeWriter,episode_lock
-from . import snapshots,providers,styles
+from . import snapshots,providers,styles,continuity
 from .activity import emit
 
 def run_event(runid, kind, message, **details):
@@ -117,6 +117,14 @@ def _start_task(task, payload, eid=None,background=False,workspace=None,expected
             context=episode(eid)['data']
             payload['approved_storytelling_context']=context.get('approval',{}).get('storytelling_context') if context.get('approval') else None
     if task=='prepare':
+        if load_art_direction(source):
+            response_schema=compact_schema_annotations(response_schema)
+            payload['output_json_schema']=response_schema
+        if 'ODD_FRAME_VISUAL_CONTINUITY_V1' in (source/'prompts/06_FLOW_IMAGE_PROMPTS.md').read_text(encoding='utf-8'):
+            # New episodes require the versioned plan; immutable old snapshots retain their contract.
+            response_schema['required']=list(dict.fromkeys([*response_schema.get('required',[]),'visual_continuity']))
+            response_schema['properties']['visual_continuity']={'$ref':'#/$defs/ContinuityPlan'}
+            payload['output_json_schema']=response_schema
         ep=episode(eid)
         loaded,current_rules=load_skills(source)
         frozen=ep['data'].get('approval',{})
@@ -300,6 +308,12 @@ def _complete_run(runid,result,manual=False,background=False):
     source=snapshots.source_root(Path(run['workspace'])) if run.get('workspace') else ROOT
     docs,rules=load_skills(source)
     evidence=json.loads(run['provenance'])
+    art=load_art_direction(source)
+    prior_art=evidence.get('visual_art_direction')
+    current_art=art_direction_receipt(art)
+    if ({k:prior_art.get(k) for k in ('id','version','sha256','profile_sha256')} if prior_art else None)!=(
+        {k:current_art.get(k) for k in ('id','version','sha256','profile_sha256')} if current_art else None):
+        raise ValueError('Approved cinematic skill differs from this request; no stale art-direction result can be imported')
     if [d['sha256'] for d in docs] != [d['sha256'] for d in evidence['skills']] or rules['version']!=evidence['override_version']:
         raise ValueError('Skills changed since this request. Export a new request; approved script remains frozen.')
     if sha((source/'prompts/00_MASTER_PROMPT.md').read_text(encoding='utf-8'))!=evidence['master_prompt']['sha256']:
@@ -329,6 +343,14 @@ def _complete_run(runid,result,manual=False,background=False):
             timing={**timing,'estimated_seconds':round(len(clean_words(data['narration']))/timing['measured_voice_wpm']*60,1),
                     'estimate_is_provisional':True}
         data['_voice_timing']=timing
+    if task=='prepare' and 'ODD_FRAME_VISUAL_CONTINUITY_V1' in (source/'prompts/06_FLOW_IMAGE_PROMPTS.md').read_text(encoding='utf-8') and not data.get('visual_continuity'):
+        raise ValueError('This pinned creative version requires a complete visual continuity plan')
+    if task=='prepare' and data.get('visual_continuity'):
+        # The trusted controller binds newly authored shots; models never calculate hashes.
+        by_id={s['scene_id']:s for s in data['scenes']}
+        for shot in data['visual_continuity']['ledger']['shots']:
+            if shot.get('storyboard_sha256') is None and shot['scene_id'] in by_id:
+                shot['storyboard_sha256']=continuity.storyboard_digest(by_id[shot['scene_id']])
     if eid and task in ('script','review') and episode(eid)['data'].get('approval'):
         raise ValueError('Approved narration is locked. Revoke approval before creating another version.')
     if task=='prepare':
@@ -439,24 +461,24 @@ def populate(eid,package,evidence):
         for region in scene['protected_regions']:
             if region['x']+region['width']>1 or region['y']+region['height']>1:
                 raise ValueError('Protected region exceeds image bounds')
-        descriptions='\n'.join(chars[cid]['name']+': '+chars[cid]['description'] for cid in scene['character_ids']) or 'No characters visible in this detail still.'
-        prompt=f'''Create one original STATIC vertical 9:16 cinematic 2D ODD FRAME story illustration.
-STORY BEAT: {scene['beat']}
-CHARACTERS: {descriptions}
-EXPRESSIONS AND POSES: {scene['expression_pose']}
-LOCATION AND LAYOUT: {scene['location']}
-APPROVED PROPS AND STATES: {scene['props']}
-FRAMING AND COMPOSITION: {scene['framing']}
-FIRST LOOK TARGET: {scene['focus']}. This matters because {scene['focus_reason']}.
-MIDNIGHT GOLD: #14171C charcoal and #41464E slate quiet environment, #7D838B lifted details, #F1EBDD readable features. ONE purposeful #FFD43B attention zone: {scene['yellow_placement']}. Tiny #FFF2B0 highlights only. No unrelated saturated accents or blanket gold filter. Matte yellow does not glow.
-LIGHTING: {scene['lighting']}
-CONTINUITY LOCKS: {scene['continuity']}
-STRICT 2D: hand-drawn dark ink outlines, simplified expressive faces, readable silhouettes, flat local colors, limited stepped shading, restrained paper texture. Genre-appropriate mood, not automatic horror. All scenery and lighting illustrated.
-EXCLUDE: photorealism, 3D, CGI, realistic human faces, extra limbs, inconsistent characters, altered props, random glowing objects, gibberish text, captions, logos and watermarks. STILL IMAGE ONLY. No generated animation or video.'''
-        if re.search(r'\b(TODO|TBD|PLACEHOLDER)\b|\[[A-Z_ ]{3,}\]',prompt):
-            raise ValueError('Unresolved placeholder in scene prompt')
-        jobs.append(dict(job_id=scene['scene_id']+'_IMG',scene_id=scene['scene_id'],type='image',prompt=prompt,source_image=None,output_name=scene['scene_id']))
+        if not package.get('visual_continuity'):
+            prompt=continuity.legacy_prompt(scene,chars)
+            jobs.append(dict(job_id=scene['scene_id']+'_IMG',scene_id=scene['scene_id'],type='image',prompt=prompt,source_image=None,output_name=scene['scene_id']))
+    compiled=None
+    if package.get('visual_continuity'):
+        compiled=continuity.compile_plan(package,ep['data']['script']['narration'],ep['code'],directory)
+        if compiled['flow'] is None:
+            write_json(directory/'reports/CONTINUITY_VALIDATION.json',compiled['report'])
+            raise ValueError('Continuity BLOCKED: '+'; '.join(i['message'] for i in compiled['report']['issues'] if i['level']=='BLOCKED'))
+        jobs=compiled['flow']['jobs']
     flow=Flow(episode_id=ep['code'],jobs=jobs).model_dump()
+    if compiled:
+        write_json(directory/'02_characters/VISUAL_BIBLE.json',compiled['bible'])
+        write_json(directory/'03_storyboard/STORY_STATE_LEDGER.json',compiled['ledger'])
+        write_json(directory/'04_google_flow/REFERENCE_MANIFEST.json',compiled['references'])
+        write_json(directory/'reports/CONTINUITY_VALIDATION.json',compiled['report'])
+        if compiled.get('generation_manifest'):
+            write_json(directory/'04_google_flow/GENERATION_MANIFEST.json',compiled['generation_manifest'])
     textfile(directory/'02_characters/CHARACTER_BIBLE.md','# Character Bible\n\n'+'\n\n'.join(f"## {c['id']} — {c['name']}\n{c['description']}\n\nDesire: {c['desire']}" for c in chars.values()))
     textfile(directory/'02_characters/CONTINUITY_MATRIX.md',package['continuity_matrix'])
     textfile(directory/'03_storyboard/STORYBOARD.md','# PROVISIONAL STORYBOARD — exact timing awaits narration/SRT\n\n'+'\n\n'.join(f"## {s['scene_id']}\nNarration: {s['narration_text']}\n\n{s['beat']}\n\n{s['framing']}\nGold: {s['yellow_placement']}\nContinuity: {s['continuity']}"+_style_notes(s) for s in scenes))

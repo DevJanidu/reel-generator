@@ -1,6 +1,8 @@
 import json
 import os
 import shutil
+import hashlib
+import io
 from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request
@@ -176,8 +178,92 @@ def detail(eid:int):
     ep['asset_report']=read_json(directory/'reports/ASSET_VALIDATION.json') if (directory/'reports/ASSET_VALIDATION.json').exists() else None
     ep['timeline']=read_json(directory/'06_edit/timeline.json') if (directory/'06_edit/timeline.json').exists() else None
     ep['flow']=read_json(directory/'04_google_flow/IMAGE_JOBS.json') if (directory/'04_google_flow/IMAGE_JOBS.json').exists() else None
+    ep['continuity_report']=read_json(directory/'reports/CONTINUITY_VALIDATION.json') if (directory/'reports/CONTINUITY_VALIDATION.json').exists() else None
+    ep['reference_manifest']=read_json(directory/'04_google_flow/REFERENCE_MANIFEST.json') if (directory/'04_google_flow/REFERENCE_MANIFEST.json').exists() else None
+    ep['batch_review']=read_json(directory/'reports/VISUAL_BATCH_REVIEW.json') if (directory/'reports/VISUAL_BATCH_REVIEW.json').exists() else {'history':[]}
+    # A previous owner pass must never be displayed as a pass of replacement bytes.
+    latest={r['scene_id']:r for r in ep['batch_review']['history']}
+    for record in latest.values():
+        try:
+            raw=EpisodeWriter(directory).path(record['path']).read_bytes()
+            record['current_image_matches']=hashlib.sha256(raw).hexdigest()==record['image_sha256']
+        except (OSError,ValueError):record['current_image_matches']=False
     ep['provenance']=read_json(directory/'reports/SKILL_PROVENANCE.json') if (directory/'reports/SKILL_PROVENANCE.json').exists() else None
     return ep
+
+@app.post('/api/episodes/{eid}/continuity/review')
+def review_continuity_image(eid:int,payload:dict):
+    from .continuity import digest
+    ep=episode(eid);directory=epdir(ep);writer=EpisodeWriter(directory)
+    sid=payload.get('scene_id')
+    if sid not in {s['scene_id'] for s in ep['data'].get('package',{}).get('scenes',[])}:
+        raise ValueError('Unknown storyboard scene')
+    if payload.get('status') not in ('PASS','WARNING','REJECT') or payload.get('inspected') is not True:
+        raise ValueError('Record an explicit owner visual inspection and its outcome')
+    relative=payload.get('path','')
+    image=writer.path(relative)
+    if image.parent!=directory/'05_assets/images' or image.stem!=sid or image.suffix.lower() not in IMAGE_EXT:
+        raise ValueError('Review requires an imported scene image')
+    with episode_lock(directory,'mutation'):
+        raw=image.read_bytes()
+        from PIL import Image
+        with Image.open(io.BytesIO(raw)) as decoded:decoded.verify()
+        plan=ep['data']['package'].get('visual_continuity')
+        entry=dict(scene_id=sid,path=relative,image_sha256=hashlib.sha256(raw).hexdigest(),
+                   status=payload['status'],notes=str(payload.get('notes',''))[:4000],at=now(),
+                   inspection='OWNER_ATTESTED',plan_sha256=digest(plan) if plan else None)
+        history=read_json(writer.path('reports/VISUAL_BATCH_REVIEW.json')) if writer.path('reports/VISUAL_BATCH_REVIEW.json').exists() else {'history':[]}
+        history['history'].append(entry);writer.json('reports/VISUAL_BATCH_REVIEW.json',history)
+    return entry
+
+@app.post('/api/episodes/{eid}/continuity/regenerate/{sid}')
+def regenerate_continuity_scene(eid:int,sid:str):
+    from .continuity import compile_plan
+    import uuid
+    ep=episode(eid);approved(ep);directory=epdir(ep);writer=EpisodeWriter(directory)
+    package=ep['data'].get('package',{})
+    if not package.get('visual_continuity'):raise ValueError('Historical package has no structured continuity plan. Use a separate explicit versioned migration; no historical repinning is performed.')
+    if sid not in {s['scene_id'] for s in package['scenes']}:raise ValueError('Unknown storyboard scene')
+    with episode_lock(directory,'mutation'):
+        result=compile_plan(package,ep['data']['script']['narration'],ep['code'],directory)
+        if not result['flow']:raise ValueError('Continuity validation BLOCKED; correct the planning conflict before export')
+        flow={**result['flow'],'jobs':[j for j in result['flow']['jobs'] if j['scene_id']==sid]}
+        base='04_google_flow/regenerations/'+sid+'-'+uuid.uuid4().hex
+        writer.json(base+'.json',flow,replace=False)
+        writer.json(base+'.manifest.json',dict(validation=result['report'],references=result['references'],
+                                             generation=result.get('generation_manifest'),
+                                             note='Identical pinned bible/state; no generation or attachment claimed.'),replace=False)
+    return dict(path=base+'.json',status=result['report']['status'])
+
+@app.post('/api/episodes/{eid}/continuity/references')
+def pin_continuity_reference(eid:int,payload:dict):
+    from .continuity import ContinuityPlan,digest,compile_plan
+    from PIL import Image
+    ep=episode(eid);directory=epdir(ep);writer=EpisodeWriter(directory)
+    plan=ContinuityPlan.model_validate(ep['data'].get('package',{}).get('visual_continuity'))
+    reference=next((r for r in plan.bible.references if r.id==payload.get('reference_id')),None)
+    if reference is None or payload.get('approved') is not True:raise ValueError('Choose a declared reference and explicitly approve the selected image')
+    source=writer.path(payload.get('path',''))
+    if source.parent!=directory/'05_assets/images' or source.suffix.lower() not in IMAGE_EXT:
+        raise ValueError('Choose an imported episode scene image as the approved reference')
+    with episode_lock(directory,'mutation'):
+        registry_path=writer.path('02_characters/APPROVED_REFERENCES.json')
+        registry=read_json(registry_path) if registry_path.exists() else dict(plan_sha256=digest(plan.model_dump()),references=[])
+        if registry['plan_sha256']!=digest(plan.model_dump()):raise ValueError('Reference registry belongs to a different plan')
+        if any(r['id']==reference.id for r in registry['references']):raise ValueError('This reference is already pinned; it cannot be silently replaced')
+        raw=source.read_bytes()
+        with Image.open(io.BytesIO(raw)) as decoded:
+            decoded.load()
+            if getattr(decoded,'n_frames',1)!=1:raise ValueError('Reference must be a static image')
+        # Paths are controller allocated; model/reference identifiers never become filenames.
+        relative='05_assets/references/'+__import__('uuid').uuid4().hex+source.suffix.lower()
+        writer.bytes(relative,raw,replace=False)
+        record={**reference.model_dump(), 'path':relative,'sha256':hashlib.sha256(raw).hexdigest(),'approved':True}
+        registry['references'].append(record);writer.json('02_characters/APPROVED_REFERENCES.json',registry)
+        result=compile_plan(ep['data']['package'],ep['data']['script']['narration'],ep['code'],directory)
+        writer.json('04_google_flow/REFERENCE_MANIFEST.json',result['references'])
+        writer.json('reports/CONTINUITY_VALIDATION.json',result['report'])
+    return dict(reference=record,status=result['report']['status'],attached=False)
 
 @app.post('/api/episodes/{eid}/editor/prepare')
 def prepare_editor(eid:int):

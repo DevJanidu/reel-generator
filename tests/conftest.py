@@ -11,6 +11,9 @@ def no_live_async_providers(monkeypatch):
 @pytest.fixture
 def store(tmp_path,monkeypatch):
     monkeypatch.setenv('ODD_AI_PROVIDER','manual')
+    # Synthetic capacity for the full v3 skill plus coordinated schemas. This
+    # does not change application defaults or the owner's provider settings.
+    monkeypatch.setenv('ODD_AI_CONTEXT_TOKENS','250000')
     monkeypatch.setenv('ODD_DATA_ROOT',str(tmp_path))
     for module in [core,creative,media,worker]:
         monkeypatch.setattr(module,'STORE',tmp_path)
